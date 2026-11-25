@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/assets/logos/logo_17_1024x1024.png?raw=true" alt="PhotoMigrator Logo" width="600" height="480" />
+  <img src="/assets/logos/logo_18_1024x1024.png?raw=true" alt="PhotoMigrator Logo" width="600" height="480" />
 </p>
 
 
@@ -180,11 +180,13 @@ Main characteristics:
   - **Process Takeout:** Google Takeout, iCloud Takeout
   - **Photo libraries:** Google Photos, Synology Photos, Immich Photos, NextCloud Photos, Local Photos Folder
   - **Tools:** Other Features, Upload to Server
-- Visual action picker, option cards with plain-language labels, inline help and the CLI flag of every field.
+- A colour per feature (sidebar icon, header, steps and `Run` button), cards that are easy to tell apart, a visual action picker, option cards with plain-language labels, inline help and the CLI flag of every field, and a run panel that sits next to the options on wide screens.
 - `Activity` page with the job status, live dashboard, log and answers to the questions a job asks.
 - `Settings` with `Service credentials`, `General arguments` (shared by all features) and `App settings` (theme and time zone).
 - Automatic Migration and Local Photos Folder workflows support exclusion filters for unwanted folders/files such as `@eaDir`, `.@__thumb`, `@Recycle`, `SYNOFILE_THUMB*`, `SYNOPHOTO_THUMB*`, `SYNOVIDEO_THUMB*`, `SYNOPHOTO_FILM*`, `Thumbs.db`, `ehthumbs.db`, `.DS_Store`, or `._*`.
 - Real command preview + execution output in the browser.
+- Multi-user accounts with email: sign in with your username or email, `Request an account` from the login page (an admin approves it), and optional emails for account notices and finished tasks (`Email me when it finishes`) through your own SMTP server.
+- Available in English, Español, Català, Français, Italiano, Deutsch, Português, Nederlands, 中文 and 日本語. Translations live in [`lang/`](lang/README.md); contributions are welcome.
 - Backend powered by `FastAPI` + `uvicorn` on port `6078`.
 
 > [!NOTE]
@@ -227,7 +229,7 @@ PhotoMigrator includes two local interactive interfaces in addition to the Web I
 - **Terminal TUI**: an interactive terminal interface built with `Textual`.
 
 Both interfaces expose the same features and settings:
-- The **Desktop GUI** follows the Web Interface layout: a sidebar with `Home`, the features grouped by task, `Activity`, `Settings` (`Service credentials`, `General arguments` and `App settings`) and `Help`, a run bar with the command preview, and an `Activity` view with the job log and the answers to its questions.
+- The **Desktop GUI** follows the Web Interface layout and colours: a dark sidebar with `Home`, the features grouped by task, `Activity`, `Settings` (`Service credentials`, `General arguments` and `App settings`) and `Help`, a run bar with the command preview, and an `Activity` view with the job log and the answers to its questions.
 - The **Terminal TUI** keeps its keyboard-driven layout: `Feature Selector`, `Features Config`, `General Arguments` and `App Settings`, with command preview, status panel, and execution log.
 
 Default launcher behavior:

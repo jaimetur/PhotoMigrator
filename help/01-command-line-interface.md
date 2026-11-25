@@ -21,7 +21,7 @@ PhotoMigrator also includes a native desktop GUI implemented with `tkinter`.
 
 - Running `PhotoMigrator --gui` opens the desktop GUI explicitly.
 - Running `PhotoMigrator --configuration-file <CONFIG_FILE>` together with `--gui` opens the desktop GUI with that configuration file already selected.
-- The desktop GUI reuses the same shared parser/config model as the CLI TUI and follows the Web Interface layout: a sidebar with `Home`, the features grouped by task, `Activity`, `Settings` (`Service credentials`, `General arguments` and `App settings`) and `Help`, a run bar with the command preview, and an `Activity` view with the job log and the answers to its questions.
+- The desktop GUI reuses the same shared parser/config model as the CLI TUI and follows the Web Interface layout and colours: a dark sidebar with `Home`, the features grouped by task, `Activity`, `Settings` (`Service credentials`, `General arguments` and `App settings`) and `Help`, a run bar with the command preview, and an `Activity` view with the job log and the answers to its questions.
 - When `PhotoMigrator` is executed without arguments, the desktop GUI is now the first launcher option.
 
 ## Launcher Flags

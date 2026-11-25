@@ -1,0 +1,3367 @@
+# PhotoMigrator Web Interface - Nederlands (nl)
+# msgid: English text. msgstr: translation. Keep {0}, {1}... and HTML tags such as <b> in the translation.
+
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: nl\n"
+
+msgid "(Use General Arguments value)"
+msgstr "(Gebruik de waarde van Algemene argumenten)"
+
+msgid "(default)"
+msgstr "(standaard)"
+
+msgid "(default: all)"
+msgstr "(standaard: alles)"
+
+msgid "(no output)"
+msgstr "(geen uitvoer)"
+
+msgid "/app/data subpath"
+msgstr "Submap van /app/data"
+
+msgid "/app/volumes subpath"
+msgstr "Submap van /app/volumes"
+
+msgid "<ACTION> can be 'list', 'move' or 'remove'. Default: 'list'."
+msgstr "<ACTION> kan 'list', 'move' of 'remove' zijn. Standaard: 'list'."
+
+msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account."
+msgstr "<b>{0}</b> ({1}) heeft een PhotoMigrator-account aangevraagd."
+
+msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
+msgstr "<b>{0}</b> ({1}) heeft een PhotoMigrator-account aangevraagd.<br>Bericht: <i>{2}</i>"
+
+msgid "A job${lastMeta ?"
+msgstr "A job${lastMeta ?"
+
+msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
+msgstr "Er wordt een nieuw album gemaakt voor elke submap in de submap 'Albums'."
+
+msgid "A whole folder, albums included"
+msgstr "Een hele map, inclusief albums"
+
+msgid "ALL_PHOTOS Folder Name"
+msgstr "Mapnaam ALL_PHOTOS"
+
+msgid "About Auto Rename Folders Content Based"
+msgstr "Over Mappen automatisch hernoemen op basis van inhoud"
+
+msgid "About Automatic Migration"
+msgstr "Over Automatische migratie"
+
+msgid "About Consolidate Albums Names"
+msgstr "Over Albumnamen samenvoegen"
+
+msgid "About Download Albums"
+msgstr "Over Albums downloaden"
+
+msgid "About Download All"
+msgstr "Over Alles downloaden"
+
+msgid "About Find Duplicates"
+msgstr "Over Duplicaten zoeken"
+
+msgid "About Fix Broken Symlinks"
+msgstr "Over Verbroken symlinks herstellen"
+
+msgid "About Google Takeout"
+msgstr "Over Google Takeout"
+
+msgid "About Merge Duplicates Albums"
+msgstr "Over Dubbele albums samenvoegen"
+
+msgid "About Organize Local Folder By Date"
+msgstr "Over Lokale map ordenen op datum"
+
+msgid "About Process Duplicates"
+msgstr "Over Duplicaten verwerken"
+
+msgid "About Remove Albums"
+msgstr "Over Albums verwijderen"
+
+msgid "About Remove All Albums"
+msgstr "Over Alle albums verwijderen"
+
+msgid "About Remove All Assets"
+msgstr "Over Alle items verwijderen"
+
+msgid "About Remove Duplicates Albums"
+msgstr "Over Dubbele albums verwijderen"
+
+msgid "About Remove Duplicates Assets"
+msgstr "Over Dubbele items verwijderen"
+
+msgid "About Remove Empty Albums"
+msgstr "Over Lege albums verwijderen"
+
+msgid "About Rename Albums"
+msgstr "Over Albums hernoemen"
+
+msgid "About Upload Albums"
+msgstr "Over Albums uploaden"
+
+msgid "About Upload All"
+msgstr "Over Alles uploaden"
+
+msgid "About Upload to Server"
+msgstr "Over Uploaden naar server"
+
+msgid "About iCloud Takeout"
+msgstr "Over iCloud Takeout"
+
+msgid "About {0}"
+msgstr "Over {0}"
+
+msgid "Access Logs"
+msgstr "Toegangslogboeken"
+
+msgid "Access logs: loaded {0} entries"
+msgstr "Toegangslogboeken: {0} items geladen"
+
+msgid "Access logs: loading..."
+msgstr "Toegangslogboeken: laden..."
+
+msgid "Access logs: {0}"
+msgstr "Toegangslogboeken: {0}"
+
+msgid "Account"
+msgstr "Account"
+
+msgid "Account ID"
+msgstr "Account-ID"
+
+msgid "Account name"
+msgstr "Accountnaam"
+
+msgid "Account request"
+msgstr "Accountaanvraag"
+
+msgid "Account request from {0}"
+msgstr "Accountaanvraag van {0}"
+
+msgid "Account {0}"
+msgstr "Account {0}"
+
+msgid "Action"
+msgstr "Actie"
+
+msgid "Actions"
+msgstr "Acties"
+
+msgid "Active"
+msgstr "Actief"
+
+msgid "Activity"
+msgstr "Activiteit"
+
+msgid "Activity · PhotoMigrator"
+msgstr "Activiteit · PhotoMigrator"
+
+msgid "Add the URL and credentials of each account in"
+msgstr "Voeg de URL en inloggegevens van elk account toe in"
+
+msgid "Add them in Settings"
+msgstr "Voeg ze toe in Instellingen"
+
+msgid "Admin"
+msgstr "Beheerder"
+
+msgid "Admin Authorization Failed"
+msgstr "Beheerdersautorisatie mislukt"
+
+msgid "Admin Authorization Required"
+msgstr "Beheerdersautorisatie vereist"
+
+msgid "Admin Panel"
+msgstr "Beheerpaneel"
+
+msgid "Admin password"
+msgstr "Beheerderswachtwoord"
+
+msgid "Admin username"
+msgstr "Gebruikersnaam beheerder"
+
+msgid "Administration Panel"
+msgstr "Beheerpaneel"
+
+msgid "Administration sections"
+msgstr "Beheeronderdelen"
+
+msgid "Advanced options"
+msgstr "Geavanceerde opties"
+
+msgid "Advanced · push recovery"
+msgstr "Geavanceerd · push-herstel"
+
+msgid "Album creation date lower bound. Example: 2024-01-01"
+msgstr "Ondergrens van de aanmaakdatum van het album. Voorbeeld: 2024-01-01"
+
+msgid "Album creation date upper bound. Example: 2024-12-31"
+msgstr "Bovengrens van de aanmaakdatum van het album. Voorbeeld: 2024-12-31"
+
+msgid "Album name pattern (text, wildcard, or regex)"
+msgstr "Patroon voor albumnaam (tekst, jokerteken of regex)"
+
+msgid "Album name pattern (text, wildcard, or regex). Example: *Temp* or ^Temp|^Test"
+msgstr "Patroon voor albumnaam (tekst, jokerteken of regex). Voorbeeld: *Temp* of ^Temp|^Test"
+
+msgid "Albums Folder"
+msgstr "Albummap"
+
+msgid "Albums Folders"
+msgstr "Albummappen"
+
+msgid "Albums Name Pattern"
+msgstr "Patroon voor albumnamen"
+
+msgid "Albums Name(s)"
+msgstr "Albumnaam/-namen"
+
+msgid "Albums and assets"
+msgstr "Albums en bestanden"
+
+msgid "Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened)."
+msgstr "Albums worden gedownload naar <OUTPUT_FOLDER>/Albums/<AlbumName> (zonder submappen)."
+
+msgid "Albums folder"
+msgstr "Albummap"
+
+msgid "Albums folder structure"
+msgstr "Structuur van de albummap"
+
+msgid "Albums matching a pattern"
+msgstr "Albums die aan een patroon voldoen"
+
+msgid "Albums whose names match this text, wildcard or regex are renamed."
+msgstr "Albums waarvan de naam overeenkomt met deze tekst, dit jokerteken of deze regex, worden hernoemd."
+
+msgid "Albums with no assets"
+msgstr "Albums zonder items"
+
+msgid "Albums with the same name"
+msgstr "Albums met dezelfde naam"
+
+msgid "All Users"
+msgstr "Alle gebruikers"
+
+msgid "All photos folder name"
+msgstr "Mapnaam voor alle foto's"
+
+msgid "All photos folder structure"
+msgstr "Structuur van de map met alle foto's"
+
+msgid "Allow login into Synology Photos using 2FA with an OTP token."
+msgstr "Sta aanmelden bij Synology Photos toe met 2FA via een OTP-token."
+
+msgid "Allow login into Synology Photos using 2FA with an OTP token. Example: --download-all ./MyLibrary --one-time-password"
+msgstr "Sta aanmelden bij Synology Photos toe met 2FA via een OTP-token. Voorbeeld: --download-all ./MyLibrary --one-time-password"
+
+msgid "Also reconstruct iCloud 'Memories' CSV collections as folders."
+msgstr "Reconstrueer ook iCloud 'Memories'-CSV-collecties als mappen."
+
+msgid "Also requires module selector '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'."
+msgstr "Vereist ook de modulekeuze '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'."
+
+msgid "An administrator reviews every request. You will get an email when your account is active."
+msgstr "Een beheerder beoordeelt elke aanvraag. Je ontvangt een e-mail zodra je account actief is."
+
+msgid "Any value saved here is kept in the database but ignored while that override remains set."
+msgstr "Elke hier opgeslagen waarde blijft in de database bewaard, maar wordt genegeerd zolang die overschrijving actief is."
+
+msgid "App settings"
+msgstr "App-instellingen"
+
+msgid "App settings status:"
+msgstr "Status van app-instellingen:"
+
+msgid "App settings status: loaded (db://users/admin/Config.ini)"
+msgstr "Status van app-instellingen: geladen (db://users/admin/Config.ini)"
+
+msgid "Apple Photos"
+msgstr "Apple Photos"
+
+msgid "Apple iCloud Photos export"
+msgstr "Apple iCloud Photos-export"
+
+msgid "Apply a reviewed duplicates CSV"
+msgstr "Een gecontroleerd duplicaten-CSV toepassen"
+
+msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
+msgstr "Keur de aanvraag goed door het account te activeren in het Beheerpaneel, of wijs haar af in dezelfde lijst."
+
+msgid "Are you sure?"
+msgstr "Weet je het zeker?"
+
+msgid "Arguments must be passed as two values separated by comma."
+msgstr "Argumenten moeten worden opgegeven als twee waarden, gescheiden door een komma."
+
+msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
+msgstr "Items worden na de migratie uit de bron verwijderd. Schakel 'Items verplaatsen' uit om ze te kopiëren."
+
+msgid "Authorize"
+msgstr "Autoriseren"
+
+msgid "Auto Rename Folders Content Based"
+msgstr "Mappen automatisch hernoemen op basis van inhoud"
+
+msgid "Auto Scroll"
+msgstr "Automatisch scrollen"
+
+msgid "Automatic Migration"
+msgstr "Automatische migratie"
+
+msgid "Automatic Migration Live Dashboard"
+msgstr "Live-dashboard voor automatische migratie"
+
+msgid "Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run, with a live dashboard."
+msgstr "Automatische migratie kopieert (of verplaatst) alle foto's, video's en albums in één keer van een bron naar een doel, met een live-dashboard."
+
+msgid "Automatic Migration · PhotoMigrator"
+msgstr "Automatische migratie · PhotoMigrator"
+
+msgid "Avoid special folder names: {0}."
+msgstr "Vermijd speciale mapnamen: {0}."
+
+msgid "Back to Web UI"
+msgstr "Terug naar webinterface"
+
+msgid "Back to sign in"
+msgstr "Terug naar aanmelden"
+
+msgid "Backup Error"
+msgstr "Back-upfout"
+
+msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
+msgstr "Back-upstatus: inactief | Modus: daily_2am | Laatste uitvoering: - | Volgende: -"
+
+msgid "Backup status: schedule saved | Next: {0}"
+msgstr "Back-upstatus: schema opgeslagen | Volgende: {0}"
+
+msgid "Backup status: {0}"
+msgstr "Back-upstatus: {0}"
+
+msgid "Backup status: {0} | File: {1}"
+msgstr "Back-upstatus: {0} | Bestand: {1}"
+
+msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
+msgstr "Back-upstatus: {0} | Modus: {1} | Laatste uitvoering: {2} | Volgende: {3}"
+
+msgid "Backups Scheduler"
+msgstr "Back-upplanner"
+
+msgid "Blue palette"
+msgstr "Blauw palet"
+
+msgid "Browse"
+msgstr "Bladeren"
+
+msgid "By default migration runs in parallel with live dashboard enabled."
+msgstr "Standaard draait de migratie parallel met ingeschakeld live-dashboard."
+
+msgid "By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided."
+msgstr "Standaard gebruikt de uitvoer de structuur 'year/month' en wordt die opgeslagen in '<INPUT_FOLDER>_processed_<TIMESTAMP>', tenzij '-o/--output-folder' is opgegeven."
+
+msgid "CSV endpoint not available in backend. Restart/update the web backend."
+msgstr "CSV-endpoint niet beschikbaar in de backend. Herstart of werk de webbackend bij."
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "Change Email"
+msgstr "E-mailadres wijzigen"
+
+msgid "Change Email: {0}"
+msgstr "E-mailadres wijzigen: {0}"
+
+msgid "Changes your library"
+msgstr "Wijzigt je bibliotheek"
+
+msgid "Check the command preview, press Run and watch it live in"
+msgstr "Controleer het voorbeeld van de opdracht, klik op Uitvoeren en volg het live in"
+
+msgid "Check the command, press Run and watch it live in"
+msgstr "Controleer de opdracht, druk op Run en volg hem live in"
+
+msgid "Choose a subfolder inside one of your assigned roots."
+msgstr "Kies een submap in een van je toegewezen hoofdmappen."
+
+msgid "Choose a task"
+msgstr "Kies een taak"
+
+msgid "Choose a tool"
+msgstr "Kies een hulpmiddel"
+
+msgid "Choose an action"
+msgstr "Kies een actie"
+
+msgid "Choose the retained asset for '--remove-duplicates-assets'."
+msgstr "Kies het te behouden item voor '--remove-duplicates-assets'."
+
+msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
+msgstr "Kies het te behouden item voor '--remove-duplicates-assets'. De strategieën more-people/tags behouden het item met de meeste verschillende personen, daarna de meeste tags, en passen vervolgens hun genoemde tiebreaker toe. 'better-quality' gebruikt de eigen suggestie van Immich; 'oldest' en 'newest' gebruiken de uploaddatum (standaard: more-people/tags-then-better-quality voor het eigen duplicatenalgoritme van Immich, of more-people/tags-then-oldest voor het duplicatenalgoritme van PhotoMigrator)."
+
+msgid "Clean up"
+msgstr "Opruimen"
+
+msgid "Client ID"
+msgstr "Client-ID"
+
+msgid "Client secret"
+msgstr "Client secret"
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "Close menu"
+msgstr "Menu sluiten"
+
+msgid "Collapse panel"
+msgstr "Paneel samenvouwen"
+
+msgid "Comma-separated folder paths to scan for duplicates."
+msgstr "Mappaden, gescheiden door komma's, die op duplicaten worden gescand."
+
+msgid "Comma-separated folders"
+msgstr "Mappen, gescheiden door komma's"
+
+msgid "Command"
+msgstr "Opdracht"
+
+msgid "Command copied"
+msgstr "Opdracht gekopieerd"
+
+msgid "Config status: auto-save failed ({0})"
+msgstr "Configuratiestatus: automatisch opslaan mislukt ({0})"
+
+msgid "Config status: auto-saved ({0}) at {1}"
+msgstr "Configuratiestatus: automatisch opgeslagen ({0}) om {1}"
+
+msgid "Config status: auto-saving app settings..."
+msgstr "Configuratiestatus: app-instellingen worden automatisch opgeslagen..."
+
+msgid "Config status: export canceled"
+msgstr "Configuratiestatus: exporteren geannuleerd"
+
+msgid "Config status: export failed ({0})"
+msgstr "Configuratiestatus: exporteren mislukt ({0})"
+
+msgid "Config status: exported ({0})"
+msgstr "Configuratiestatus: geëxporteerd ({0})"
+
+msgid "Config status: import canceled"
+msgstr "Configuratiestatus: importeren geannuleerd"
+
+msgid "Config status: import failed ({0})"
+msgstr "Configuratiestatus: importeren mislukt ({0})"
+
+msgid "Config status: imported ({0})"
+msgstr "Configuratiestatus: geïmporteerd ({0})"
+
+msgid "Config status: loaded (db://users/admin/Config.ini)"
+msgstr "Configuratiestatus: geladen (db://users/admin/Config.ini)"
+
+msgid "Config status: loaded ({0})"
+msgstr "Configuratiestatus: geladen ({0})"
+
+msgid "Config status: save canceled by user"
+msgstr "Configuratiestatus: opslaan geannuleerd door gebruiker"
+
+msgid "Config status: save failed ({0})"
+msgstr "Configuratiestatus: opslaan mislukt ({0})"
+
+msgid "Config status: saved ({0})"
+msgstr "Configuratiestatus: opgeslagen ({0})"
+
+msgid "Config status: saving with demo restrictions (only TimeZone/Theme changes are allowed)"
+msgstr "Configuratiestatus: opslaan met demobeperkingen (alleen wijzigingen van TimeZone/Theme zijn toegestaan)"
+
+msgid "Config.ini has been overwritten successfully in the user database."
+msgstr "Config.ini is succesvol overschreven in de gebruikersdatabase."
+
+msgid "Configuration File"
+msgstr "Configuratiebestand"
+
+msgid "Configuration Saved"
+msgstr "Configuratie opgeslagen"
+
+msgid "Configuration file"
+msgstr "Configuratiebestand"
+
+msgid "Configuration for Google Photos"
+msgstr "Configuratie voor Google Photos"
+
+msgid "Configured"
+msgstr "Geconfigureerd"
+
+msgid "Confirm"
+msgstr "Bevestigen"
+
+msgid "Confirm Action"
+msgstr "Actie bevestigen"
+
+msgid "Confirm new password"
+msgstr "Bevestig nieuw wachtwoord"
+
+msgid "Confirm password"
+msgstr "Bevestig wachtwoord"
+
+msgid "Connect your services"
+msgstr "Verbind je services"
+
+msgid "Connection security"
+msgstr "Verbindingsbeveiliging"
+
+msgid "Consolidate Albums Names"
+msgstr "Albumnamen samenvoegen"
+
+msgid "Consolidate Similar Albums"
+msgstr "Vergelijkbare albums samenvoegen"
+
+msgid "Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets."
+msgstr "Voeg gelijkwaardige bestaande groepen albumnamen in de cloud rechtstreeks samen in de doelservice, zonder nieuwe items te uploaden."
+
+msgid "Copy album files instead of symlinks"
+msgstr "Albumbestanden kopiëren in plaats van symlinks"
+
+msgid "Copy command"
+msgstr "Opdracht kopiëren"
+
+msgid "Copy failed"
+msgstr "Kopiëren mislukt"
+
+msgid "Copy log"
+msgstr "Logboek kopiëren"
+
+msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
+msgstr "Kopieer of verplaats alle foto's, video's en albums in één keer van een bron naar een doel. Albums worden op het doel opnieuw aangemaakt."
+
+msgid "Create"
+msgstr "Maken"
+
+msgid "Create Folder"
+msgstr "Map maken"
+
+msgid "Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an Automatic Migration with an Immich destination."
+msgstr "Maak Immich-stapels voor burst-achtige foto's na Alles uploaden, Albums uploaden of een automatische migratie naar Immich."
+
+msgid "Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an Automatic Migration with an Immich destination. (default: True)."
+msgstr "Maak Immich-stapels voor burst-achtige foto's na Alles uploaden, Albums uploaden of een automatische migratie naar Immich. (standaard: True)."
+
+msgid "Create User"
+msgstr "Gebruiker maken"
+
+msgid "Create User Error"
+msgstr "Fout bij maken van gebruiker"
+
+msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date."
+msgstr "Maak een verwerkte kopie (of verplaatste kloon) van <INPUT_FOLDER> en orden de bestanden op datum."
+
+msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date. By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided. Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy. Example: --organize-local-folder-by-date ./UnsortedLibrary"
+msgstr "Maak een verwerkte kopie (of verplaatste kloon) van <INPUT_FOLDER> en orden de bestanden op datum. Standaard gebruikt de uitvoer de structuur 'year/month' en wordt die opgeslagen in '<INPUT_FOLDER>_processed_<TIMESTAMP>', tenzij '-o/--output-folder' is opgegeven. Gebruik '--organize-folder-structure' om de indeling te wijzigen, '--organize-output-folder-suffix' om het gegenereerde achtervoegsel te wijzigen wanneer geen expliciete uitvoermap is opgegeven, en '--move-original-files' om te verplaatsen in plaats van te kopiëren. Voorbeeld: --organize-local-folder-by-date ./UnsortedLibrary"
+
+msgid "Create failed: {0}"
+msgstr "Maken mislukt: {0}"
+
+msgid "Create stacks"
+msgstr "Stapels maken"
+
+msgid "Created From"
+msgstr "Gemaakt vanaf"
+
+msgid "Created To"
+msgstr "Gemaakt tot"
+
+msgid "Created: {0}"
+msgstr "Gemaakt: {0}"
+
+msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
+msgstr "Inloggegevens en service-instellingen worden per gebruiker opgeslagen in de webdatabase. Gevoelige waarden blijven versleuteld opgeslagen en worden door alle functies gebruikt."
+
+msgid "Credentials for account {0} found in Settings"
+msgstr "Inloggegevens voor account {0} gevonden in Instellingen"
+
+msgid "Current run"
+msgstr "Huidige uitvoering"
+
+msgid "Current: {0}"
+msgstr "Huidig: {0}"
+
+msgid "Current: {0} | Error: {1}"
+msgstr "Huidig: {0} | Fout: {1}"
+
+msgid "Current: {0} | Selected: {1}"
+msgstr "Huidig: {0} | Geselecteerd: {1}"
+
+msgid "Current: {0} | {1}"
+msgstr "Huidig: {0} | {1}"
+
+msgid "DB Delete Error"
+msgstr "Databasefout bij verwijderen"
+
+msgid "DB Insert Error"
+msgstr "Databasefout bij invoegen"
+
+msgid "DB Update Error"
+msgstr "Databasefout bij bijwerken"
+
+msgid "Dangerous Module"
+msgstr "Gevaarlijke module"
+
+msgid "Dark UI palette"
+msgstr "Donker interfacepalet"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Database Manager"
+msgstr "Databasebeheer"
+
+msgid "Date and range separators"
+msgstr "Scheidingstekens voor datums en bereiken"
+
+msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
+msgstr "Scheidingstekens voor datums en bereiken kunnen worden aangepast met '--date-separator' en '--range-separator'."
+
+msgid "Date separator"
+msgstr "Datumscheidingsteken"
+
+msgid "Default account available:"
+msgstr "Standaardaccount beschikbaar:"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Delete DB Row"
+msgstr "Databaserij verwijderen"
+
+msgid "Delete Failed"
+msgstr "Verwijderen mislukt"
+
+msgid "Delete Row"
+msgstr "Rij verwijderen"
+
+msgid "Delete Selected Folders?"
+msgstr "Geselecteerde mappen verwijderen?"
+
+msgid "Delete User"
+msgstr "Gebruiker verwijderen"
+
+msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
+msgstr "Verwijder-endpoint niet beschikbaar. Herstart de backend van de webinterface en probeer het opnieuw."
+
+msgid "Delete row"
+msgstr "Rij verwijderen"
+
+msgid "Delete row {0} from '{1}'?"
+msgstr "Rij {0} uit '{1}' verwijderen?"
+
+msgid "Demo"
+msgstr "Demo"
+
+msgid "Demo Role Restricted"
+msgstr "Demorol beperkt"
+
+msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
+msgstr "De demorol kan deze configuratieactie niet rechtstreeks uitvoeren. Voer de gebruikersnaam en het wachtwoord van een actieve beheerder in."
+
+msgid "Destination Required"
+msgstr "Bestemming vereist"
+
+msgid "Destination folder"
+msgstr "Bestemmingsmap"
+
+msgid "Do not save the GPTH log"
+msgstr "Het GPTH-logboek niet opslaan"
+
+msgid "Document"
+msgstr "Document"
+
+msgid "Documentation"
+msgstr "Documentatie"
+
+msgid "Download Albums"
+msgstr "Albums downloaden"
+
+msgid "Download All"
+msgstr "Alles downloaden"
+
+msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>."
+msgstr "Download alle albums en alle items buiten albums naar <OUTPUT_FOLDER>."
+
+msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened). - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure. Example: --download-all ./MyLibrary"
+msgstr "Download alle albums en alle items buiten albums naar <OUTPUT_FOLDER>. - Albums worden gedownload naar <OUTPUT_FOLDER>/Albums/<AlbumName> (zonder submappen). - Items buiten albums komen in <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ met de structuur year/month. Voorbeeld: --download-all ./MyLibrary"
+
+msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
+msgstr "Download specifieke albums naar <OUTPUT_FOLDER> (vereist: -o/--output-folder)."
+
+msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder). - Use 'ALL' to download ALL albums. - Use patterns: e.g. --download-albums 'dron*' - Multiple albums can be separated by comma or space and quoted. Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+msgstr "Download specifieke albums naar <OUTPUT_FOLDER> (vereist: -o/--output-folder). - Gebruik 'ALL' om ALLE albums te downloaden. - Gebruik patronen: bijv. --download-albums 'dron*' - Meerdere albums kunnen worden gescheiden door een komma of spatie en tussen aanhalingstekens worden gezet. Voorbeeld: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+
+msgid "Drag from bottom edge or bottom corners to resize the log panel"
+msgstr "Sleep vanaf de onderrand of de onderhoeken om het logboekpaneel te vergroten of verkleinen"
+
+msgid "Dup asset keeper"
+msgstr "Te behouden duplicaat-item"
+
+msgid "Dup immich native algorithm"
+msgstr "Eigen Immich-duplicatenalgoritme"
+
+msgid "Dup immich native deletion"
+msgstr "Eigen Immich-duplicatenverwijdering"
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>."
+msgstr "Dupliceer albumitems in plaats van symlinks naar het originele item in <ALL_PHOTOS_FOLDER> te maken."
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>. (Makes your output portable but requires more HDD space). IMPORTANT: This can considerably increase output size, especially if you have many albums."
+msgstr "Dupliceer albumitems in plaats van symlinks naar het originele item in <ALL_PHOTOS_FOLDER> te maken. (Maakt je uitvoer draagbaar, maar vereist meer schijfruimte). BELANGRIJK: Dit kan de omvang van de uitvoer aanzienlijk vergroten, vooral als je veel albums hebt."
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>. (Makes your output portable but requires more HDD space). IMPORTANT: This can considerably increase output size, especially if you have many albums. Example: if one asset belongs to 3 albums, you will end up with 4 copies (original + 3)."
+msgstr "Dupliceer albumitems in plaats van symlinks naar het originele item in <ALL_PHOTOS_FOLDER> te maken. (Maakt je uitvoer draagbaar, maar vereist meer schijfruimte). BELANGRIJK: Dit kan de omvang van de uitvoer aanzienlijk vergroten, vooral als je veel albums hebt. Voorbeeld: als één item in 3 albums zit, krijg je 4 kopieën (origineel + 3)."
+
+msgid "Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>."
+msgstr "Dupliceer gereconstrueerde iCloud-albumitems in plaats van symlinks naar het originele item in <ALL_PHOTOS_FOLDER> te maken."
+
+msgid "Duplicates"
+msgstr "Duplicaten"
+
+msgid "Duplicates CSV"
+msgstr "Duplicaten-CSV"
+
+msgid "Duplicates, folders"
+msgstr "Duplicaten, mappen"
+
+msgid "Duration: <b>{0}</b>. Last lines of the log:"
+msgstr "Duur: <b>{0}</b>. Laatste regels van het logboek:"
+
+msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper."
+msgstr "Behandel tijdens het uploaden gelijkwaardige bestaande albumnamen als één groep en voeg hun items samen in het canonieke album dat behouden blijft."
+
+msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
+msgstr "Behandel tijdens het uploaden gelijkwaardige bestaande albumnamen als één groep en voeg hun items samen in het canonieke album dat behouden blijft. Overbodige albums worden alleen verwijderd als de service het verwijderen van albums ondersteunt."
+
+msgid "Elapsed Time"
+msgstr "Verstreken tijd"
+
+msgid "Elapsed Time: 00:00:00"
+msgstr "Verstreken tijd: 00:00:00"
+
+msgid "Elapsed Time: {0}"
+msgstr "Verstreken tijd: {0}"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Email (SMTP)"
+msgstr "E-mail (SMTP)"
+
+msgid "Email check"
+msgstr "E-mailcontrole"
+
+msgid "Email is not configured on this server yet."
+msgstr "E-mail is op deze server nog niet geconfigureerd."
+
+msgid "Email me when it finishes"
+msgstr "Mail me wanneer het klaar is"
+
+msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
+msgstr "E-mailstatus: niet geconfigureerd, er worden geen e-mails verzonden; accountaanvragen vanaf de aanmeldpagina zijn ingeschakeld."
+
+msgid "Email status: saving..."
+msgstr "E-mailstatus: opslaan..."
+
+msgid "Email status: sending test email..."
+msgstr "E-mailstatus: testmail verzenden..."
+
+msgid "Email status: test email sent to {0}."
+msgstr "E-mailstatus: testmail verzonden naar {0}."
+
+msgid "Email status: {0}"
+msgstr "E-mailstatus: {0}"
+
+msgid "Enable or disable Error messages during GPTH Processing."
+msgstr "Schakel foutmeldingen tijdens de GPTH-verwerking in of uit."
+
+msgid "Enable or disable Error messages during GPTH Processing. (default: True)."
+msgstr "Schakel foutmeldingen tijdens de GPTH-verwerking in of uit. (standaard: True)."
+
+msgid "Enable or disable Info messages during GPTH Processing."
+msgstr "Schakel infomeldingen tijdens de GPTH-verwerking in of uit."
+
+msgid "Enable or disable Info messages during GPTH Processing. (default: True)."
+msgstr "Schakel infomeldingen tijdens de GPTH-verwerking in of uit. (standaard: True)."
+
+msgid "Enable or disable Live Dashboard feature during Automated Migration job."
+msgstr "Schakel het live-dashboard tijdens een automatische migratie in of uit."
+
+msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
+msgstr "Schakel het live-dashboard tijdens een automatische migratie in of uit. Dit argument is alleen van toepassing als zowel '--source' als '--target' zijn opgegeven. (standaard: True)."
+
+msgid "Enabled"
+msgstr "Ingeschakeld"
+
+msgid "Enter a folder name, or an absolute path inside"
+msgstr "Voer een mapnaam in, of een absoluut pad binnen"
+
+msgid "Env override"
+msgstr "Omgevingsoverschrijving"
+
+msgid "Error: {0}"
+msgstr "Fout: {0}"
+
+msgid "Estimated End"
+msgstr "Geschat einde"
+
+msgid "Every album and asset"
+msgstr "Elk album en item"
+
+msgid "Every album, optionally its assets"
+msgstr "Elk album, eventueel met de items"
+
+msgid "Every asset and album"
+msgstr "Elk item en album"
+
+msgid "Every day (2:00 AM)"
+msgstr "Elke dag (02:00)"
+
+msgid "Every hour"
+msgstr "Elk uur"
+
+msgid "Every week (Monday 2:00 AM)"
+msgstr "Elke week (maandag 02:00)"
+
+msgid "Example: --consolidate-albums-names --preview-album-actions"
+msgstr "Voorbeeld: --consolidate-albums-names --preview-album-actions"
+
+msgid "Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+msgstr "Voorbeeld: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+
+msgid "Example: --download-all ./MyLibrary"
+msgstr "Voorbeeld: --download-all ./MyLibrary"
+
+msgid "Example: --find-duplicates move ./Albums ./ALL_PHOTOS"
+msgstr "Voorbeeld: --find-duplicates move ./Albums ./ALL_PHOTOS"
+
+msgid "Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
+msgstr "Voorbeeld: --fix-symlinks-broken ./OUTPUT_FOLDER"
+
+msgid "Example: --merge-duplicates-albums"
+msgstr "Voorbeeld: --merge-duplicates-albums"
+
+msgid "Example: --organize-local-folder-by-date ./UnsortedLibrary"
+msgstr "Voorbeeld: --organize-local-folder-by-date ./UnsortedLibrary"
+
+msgid "Example: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+msgstr "Voorbeeld: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+
+msgid "Example: --remove-albums \"^Temp\" --remove-albums-assets"
+msgstr "Voorbeeld: --remove-albums \"^Temp\" --remove-albums-assets"
+
+msgid "Example: --remove-all-albums --remove-albums-assets"
+msgstr "Voorbeeld: --remove-all-albums --remove-albums-assets"
+
+msgid "Example: --remove-all-assets"
+msgstr "Voorbeeld: --remove-all-assets"
+
+msgid "Example: --remove-duplicates-albums"
+msgstr "Voorbeeld: --remove-duplicates-albums"
+
+msgid "Example: --remove-duplicates-assets --dup-asset-keeper newest"
+msgstr "Voorbeeld: --remove-duplicates-assets --dup-asset-keeper newest"
+
+msgid "Example: --remove-empty-albums"
+msgstr "Voorbeeld: --remove-empty-albums"
+
+msgid "Example: --rename-albums \"*-*, --\" (single comma-separated value, useful when replacement starts with '--')"
+msgstr "Voorbeeld: --rename-albums \"*-*, --\" (één waarde met komma, handig wanneer de vervanging met '--' begint)"
+
+msgid "Example: --rename-albums \"*--*\", \"-\""
+msgstr "Voorbeeld: --rename-albums \"*--*\", \"-\""
+
+msgid "Example: --rename-albums \"--\", \"-\""
+msgstr "Voorbeeld: --rename-albums \"--\", \"-\""
+
+msgid "Example: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\""
+msgstr "Voorbeeld: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\""
+
+msgid "Example: --rename-folders-content-based ./MyLocalPhotoLibrary"
+msgstr "Voorbeeld: --rename-folders-content-based ./MyLocalPhotoLibrary"
+
+msgid "Example: --source=/homes/MyTakeout --target=synology-1"
+msgstr "Voorbeeld: --source=/homes/MyTakeout --target=synology-1"
+
+msgid "Example: --source=synology-2 --target=google-photos-1"
+msgstr "Voorbeeld: --source=synology-2 --target=google-photos-1"
+
+msgid "Example: --upload-albums ./My_Albums_Folder"
+msgstr "Voorbeeld: --upload-albums ./My_Albums_Folder"
+
+msgid "Example: --upload-all ./MyLibrary"
+msgstr "Voorbeeld: --upload-all ./MyLibrary"
+
+msgid "Example: 2024-01-31, 31/01/2024, 2024"
+msgstr "Voorbeeld: 2024-01-31, 31/01/2024, 2024"
+
+msgid "Example: 2025-12-31, 31/12/2025, 2025"
+msgstr "Voorbeeld: 2025-12-31, 31/12/2025, 2025"
+
+msgid "Example: @eaDir, .@__thumb, @Recycle"
+msgstr "Voorbeeld: @eaDir, .@__thumb, @Recycle"
+
+msgid "Example: Madrid"
+msgstr "Voorbeeld: Madrid"
+
+msgid "Example: Peter"
+msgstr "Voorbeeld: Peter"
+
+msgid "Example: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store"
+msgstr "Voorbeeld: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store"
+
+msgid "Example: Spain"
+msgstr "Voorbeeld: Spanje"
+
+msgid "Exclude Files"
+msgstr "Bestanden uitsluiten"
+
+msgid "Exclude Folders"
+msgstr "Mappen uitsluiten"
+
+msgid "Exclude files"
+msgstr "Bestanden uitsluiten"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration."
+msgstr "Sluit bestanden uit die overeenkomen met een of meer glob-patronen tijdens de verwerking of migratie van een lokale fotomap."
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration. --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+msgstr "Sluit bestanden uit die overeenkomen met een of meer glob-patronen tijdens de verwerking of migratie van een lokale fotomap. --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration. Examples: --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+msgstr "Sluit bestanden uit die overeenkomen met een of meer glob-patronen tijdens de verwerking of migratie van een lokale fotomap. Voorbeelden: --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+
+msgid "Exclude folders"
+msgstr "Mappen uitsluiten"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration."
+msgstr "Sluit mappen uit die overeenkomen met een of meer glob-patronen tijdens de verwerking of migratie van een lokale fotomap."
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration. --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+msgstr "Sluit mappen uit die overeenkomen met een of meer glob-patronen tijdens de verwerking of migratie van een lokale fotomap. --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration. Examples: --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+msgstr "Sluit mappen uit die overeenkomen met een of meer glob-patronen tijdens de verwerking of migratie van een lokale fotomap. Voorbeelden: --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+
+msgid "Exec EXIF tool"
+msgstr "EXIF-tool uitvoeren"
+
+msgid "Exec GPTH tool"
+msgstr "GPTH-tool uitvoeren"
+
+msgid "Execution"
+msgstr "Uitvoering"
+
+msgid "Expand panel"
+msgstr "Paneel uitvouwen"
+
+msgid "Expand/collapse section"
+msgstr "Sectie uitvouwen/samenvouwen"
+
+msgid "Export Config"
+msgstr "Configuratie exporteren"
+
+msgid "Extract ZIPs on upload"
+msgstr "ZIP-bestanden uitpakken bij uploaden"
+
+msgid "Extracted ZIPs: {0} ({1} files) |"
+msgstr "Uitgepakte ZIP-bestanden: {0} ({1} bestanden) |"
+
+msgid "Extracted ZIPs: {0}\\n"
+msgstr "Uitgepakte ZIP-bestanden: {0}\\n"
+
+msgid "Failed: {0}"
+msgstr "Mislukt: {0}"
+
+msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
+msgstr "Vul de verplichte velden in. Geavanceerde opties behouden hun standaardwaarden tenzij je ze opent."
+
+msgid "Filter by city"
+msgstr "Filteren op stad"
+
+msgid "Filter by country"
+msgstr "Filteren op land"
+
+msgid "Filter by person"
+msgstr "Filteren op persoon"
+
+msgid "Filter by type"
+msgstr "Filteren op type"
+
+msgid "Filter from date"
+msgstr "Filteren vanaf datum"
+
+msgid "Filter to date"
+msgstr "Filteren tot datum"
+
+msgid "Filters"
+msgstr "Filters"
+
+msgid "Find Duplicates"
+msgstr "Duplicaten zoeken"
+
+msgid "Find Duplicates Input"
+msgstr "Invoer voor duplicaten zoeken"
+
+msgid "Find duplicates"
+msgstr "Duplicaten zoeken"
+
+msgid "Find duplicates in one or more folders using file size and content checks."
+msgstr "Zoek duplicaten in een of meer mappen aan de hand van bestandsgrootte en inhoudscontroles."
+
+msgid "Fix Broken Symlinks"
+msgstr "Verbroken symlinks herstellen"
+
+msgid "Fix a Google Takeout"
+msgstr "Een Google Takeout herstellen"
+
+msgid "Fix a Google export"
+msgstr "Een Google-export herstellen"
+
+msgid "Fix an Apple export"
+msgstr "Een Apple-export herstellen"
+
+msgid "Fix an export from Google or Apple"
+msgstr "Een export van Google of Apple herstellen"
+
+msgid "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."
+msgstr "Herstel datums en metadata van een Google Photos Takeout-export en bouw de albums opnieuw op in een nette bibliotheek."
+
+msgid "Fix symlinks · Rename folders · Organize by date · Duplicates"
+msgstr "Symlinks herstellen · Mappen hernoemen · Ordenen op datum · Duplicaten"
+
+msgid "Folder"
+msgstr "Map"
+
+msgid "Folder Structure"
+msgstr "Mapstructuur"
+
+msgid "Folder path"
+msgstr "Mappad"
+
+msgid "Folder structure"
+msgstr "Mapstructuur"
+
+msgid "Folder to fix"
+msgstr "Te herstellen map"
+
+msgid "Folder(s)"
+msgstr "Map(pen)"
+
+msgid "Foldername albums"
+msgstr "Mapnaam albums"
+
+msgid "Foldername duplicates output"
+msgstr "Mapnaam uitvoer duplicaten"
+
+msgid "Foldername extracted dates"
+msgstr "Mapnaam uitgelezen datums"
+
+msgid "Foldername logs"
+msgstr "Mapnaam logboeken"
+
+msgid "Foldername no albums"
+msgstr "Mapnaam zonder albums"
+
+msgid "Folders"
+msgstr "Mappen"
+
+msgid "Folders to scan"
+msgstr "Te scannen mappen"
+
+msgid "Follow its live progress and log in Activity."
+msgstr "Volg de voortgang en het logboek live in Activiteit."
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0})."
+msgstr "Stel voor Albumnamen samenvoegen het maximale aantal items in waarbij een album als klein geldt (standaard: {0})."
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0}). Only used when '--try-small-albums-grouping' is enabled."
+msgstr "Stel voor Albumnamen samenvoegen het maximale aantal items in waarbij een album als klein geldt (standaard: {0}). Wordt alleen gebruikt als '--try-small-albums-grouping' is ingeschakeld."
+
+msgid "For Consolidate Albums Names, try canonical/equivalent album-name grouping (default: True)."
+msgstr "Probeer voor Albumnamen samenvoegen te groeperen op canonieke/gelijkwaardige albumnamen (standaard: True)."
+
+msgid "For Consolidate Albums Names, try compatible YYYY/YYYY-MM/YYYY-MM-DD date-prefix grouping (default: True)."
+msgstr "Probeer voor Albumnamen samenvoegen te groeperen op compatibele datumvoorvoegsels YYYY/YYYY-MM/YYYY-MM-DD (standaard: True)."
+
+msgid "For Consolidate Albums Names, try grouping small albums into larger similarly named albums with matching capture dates (default: True)."
+msgstr "Probeer voor Albumnamen samenvoegen kleine albums te groeperen in grotere, gelijk benoemde albums met overeenkomstige opnamedatums (standaard: True)."
+
+msgid "For Consolidate Albums Names, try guarded truncated album-name grouping (default: True)."
+msgstr "Probeer voor Albumnamen samenvoegen te groeperen op ingekorte albumnamen, met voorzorgsmaatregelen (standaard: True)."
+
+msgid "For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper location from duplicates."
+msgstr "Sta alleen bij handmatige oplossing van Dubbele items verwijderen in Immich toe dat een ontbrekende locatie van het te behouden item uit duplicaten wordt gekopieerd."
+
+msgid "For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper location from duplicates. Disabled by default to avoid propagating an incorrect GPS location. When enabled, at least two redundant assets must have the same complete coordinate pair; this option does not apply to Immich native duplicate deletion."
+msgstr "Sta alleen bij handmatige oplossing van Dubbele items verwijderen in Immich toe dat een ontbrekende locatie van het te behouden item uit duplicaten wordt gekopieerd. Standaard uitgeschakeld om te voorkomen dat een onjuiste GPS-locatie wordt doorgegeven. Wanneer ingeschakeld, moeten minstens twee overbodige items hetzelfde volledige coördinatenpaar hebben; deze optie geldt niet voor de eigen duplicatenverwijdering van Immich."
+
+msgid "For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, merge albums, favorites, highest rating, combined descriptions, most restrictive visibility, matching locations, and tags, then trash redundant assets. This uses Immich's Alpha duplicate-resolution API and is available only with native detection and '--dup-asset-keeper=better-quality'. All other keeper strategies use PhotoMigrator's guarded merge and are sent to trash only after the selected keeper is verified. When enabled, the keeper must be 'better-quality'. It is enabled by default only for that supported combination and disabled otherwise."
+msgstr "Laat Immich bij Dubbele items verwijderen elke eigen duplicatengroep oplossen: albums, favorieten, hoogste beoordeling, gecombineerde beschrijvingen, meest beperkende zichtbaarheid, overeenkomende locaties en tags worden samengevoegd, waarna overbodige items naar de prullenbak gaan. Dit gebruikt de Alpha-API van Immich voor het oplossen van duplicaten en is alleen beschikbaar met eigen detectie en '--dup-asset-keeper=better-quality'. Alle andere strategieën voor het te behouden item gebruiken de beveiligde samenvoeging van PhotoMigrator en gaan pas naar de prullenbak nadat het gekozen item is gecontroleerd. Wanneer ingeschakeld, moet het te behouden item 'better-quality' zijn. Standaard is dit alleen ingeschakeld voor die ondersteunde combinatie en anders uitgeschakeld."
+
+msgid "For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, merge albums, favorites, highest rating, combined descriptions, most restrictive visibility, m…"
+msgstr "Laat Immich bij Dubbele items verwijderen elke eigen duplicatengroep oplossen: albums, favorieten, hoogste beoordeling, gecombineerde beschrijvingen, meest beperkende zichtbaarheid, m…"
+
+msgid "For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of same-filename-and-size grouping."
+msgstr "Gebruik bij Dubbele items verwijderen in Immich de eigen visuele duplicatengroepen van Immich in plaats van groepering op dezelfde bestandsnaam en grootte."
+
+msgid "For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of same-filename-and-size grouping. Native detection is based on asset similarity rather than file size. When disabled, PhotoMigrator groups exact filename-and-size matches; this is useful for repeated uploads of the same processed Takeout on different dates when an EXIF tag value prevented Immich from rejecting the later upload (default: True)."
+msgstr "Gebruik bij Dubbele items verwijderen in Immich de eigen visuele duplicatengroepen van Immich in plaats van groepering op dezelfde bestandsnaam en grootte. Eigen detectie is gebaseerd op gelijkenis van items in plaats van bestandsgrootte. Wanneer uitgeschakeld, groepeert PhotoMigrator exacte overeenkomsten van bestandsnaam en grootte; dit is nuttig bij herhaalde uploads van dezelfde verwerkte Takeout op verschillende datums, wanneer een EXIF-tagwaarde voorkwam dat Immich de latere upload weigerde (standaard: True)."
+
+msgid "For Immich, native duplicate detection is enabled by default and the selector defaults to 'more-people/tags-then-better-quality'. Google Photos cannot delete library media through its public API."
+msgstr "Voor Immich is de eigen duplicatendetectie standaard ingeschakeld en is de keuze standaard 'more-people/tags-then-better-quality'. Google Photos kan geen media uit de bibliotheek verwijderen via de openbare API."
+
+msgid "For Remove Albums, only match albums created on or after <DATE>."
+msgstr "Selecteer bij Albums verwijderen alleen albums die op of na <DATE> zijn gemaakt."
+
+msgid "For Remove Albums, only match albums created on or after <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "Selecteer bij Albums verwijderen alleen albums die op of na <DATE> zijn gemaakt. Te gebruiken met '--remove-albums'; geaccepteerde formaten zijn onder meer YYYY, YYYY-MM en YYYY-MM-DD."
+
+msgid "For Remove Albums, only match albums created on or before <DATE>."
+msgstr "Selecteer bij Albums verwijderen alleen albums die op of vóór <DATE> zijn gemaakt."
+
+msgid "For Remove Albums, only match albums created on or before <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "Selecteer bij Albums verwijderen alleen albums die op of vóór <DATE> zijn gemaakt. Te gebruiken met '--remove-albums'; geaccepteerde formaten zijn onder meer YYYY, YYYY-MM en YYYY-MM-DD."
+
+msgid "Force Password Change"
+msgstr "Wachtwoordwijziging afdwingen"
+
+msgid "Force password change on first login"
+msgstr "Wachtwoordwijziging afdwingen bij eerste aanmelding"
+
+msgid "GPTH messages"
+msgstr "GPTH-meldingen"
+
+msgid "General arguments"
+msgstr "Algemene argumenten"
+
+msgid "Get started in three steps"
+msgstr "Aan de slag in drie stappen"
+
+msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
+msgstr "Globale argumenten die door elke functie worden gedeeld: logboekregistratie, uitvoering, mapnamen en filters."
+
+msgid "Global arguments shared by every feature: logging, execution, folder names and filters. They are the baseline for each run; a feature can override some of them, for example the migration filters."
+msgstr "Globale argumenten die door elke functie worden gedeeld: logboekregistratie, uitvoering, mapnamen en filters. Ze vormen de basis voor elke uitvoering; een functie kan sommige ervan overschrijven, bijvoorbeeld de migratiefilters."
+
+msgid "Go to first line"
+msgstr "Naar eerste regel"
+
+msgid "Go to last line"
+msgstr "Naar laatste regel"
+
+msgid "Go to parent folder"
+msgstr "Naar bovenliggende map"
+
+msgid "Good afternoon"
+msgstr "Goedemiddag"
+
+msgid "Good evening"
+msgstr "Goedenavond"
+
+msgid "Good morning"
+msgstr "Goedemorgen"
+
+msgid "Google"
+msgstr "Google"
+
+msgid "Google Photos"
+msgstr "Google Photos"
+
+msgid "Google Photos accounts"
+msgstr "Google Photos-accounts"
+
+msgid "Google Photos export"
+msgstr "Google Photos-export"
+
+msgid "Google Photos · PhotoMigrator"
+msgstr "Google Photos · PhotoMigrator"
+
+msgid "Google Photos, Synology, Immich, NextCloud, local folders and Takeout exports, in one place."
+msgstr "Google Photos, Synology, Immich, NextCloud, lokale mappen en Takeout-exports op één plek."
+
+msgid "Google Takeout"
+msgstr "Google Takeout"
+
+msgid "Google Takeout · PhotoMigrator"
+msgstr "Google Takeout · PhotoMigrator"
+
+msgid "Green palette"
+msgstr "Groen palet"
+
+msgid "Help"
+msgstr "Help"
+
+msgid "Help index empty"
+msgstr "Helpindex is leeg"
+
+msgid "Help index unavailable"
+msgstr "Helpindex niet beschikbaar"
+
+msgid "Hi {0},"
+msgstr "Hallo {0},"
+
+msgid "Hide password"
+msgstr "Wachtwoord verbergen"
+
+msgid "Home"
+msgstr "Start"
+
+msgid "Home (data)"
+msgstr "Start (data)"
+
+msgid "Home (volumes)"
+msgstr "Start (volumes)"
+
+msgid "How to migrate"
+msgstr "Hoe te migreren"
+
+msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
+msgstr "BELANGRIJK: 'move' en 'remove' wijzigen bestanden; begin met 'list' als je eerst wilt controleren."
+
+msgid "IMPORTANT: Configure Config.ini credentials/API keys before running cloud migrations."
+msgstr "BELANGRIJK: Configureer de inloggegevens/API-sleutels in Config.ini voordat je cloudmigraties uitvoert."
+
+msgid "IMPORTANT: Links are only fixed when a valid target can be inferred from current files."
+msgstr "BELANGRIJK: Links worden alleen hersteld wanneer uit de huidige bestanden een geldig doel kan worden afgeleid."
+
+msgid "IMPORTANT: This modifies original folder names in place; create a backup if needed."
+msgstr "BELANGRIJK: Dit wijzigt de oorspronkelijke mapnamen ter plekke; maak indien nodig een back-up."
+
+msgid "IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "BELANGRIJK: Deze module is een lokale voorverwerkingspijplijn. Ze stuurt zelf niets naar een clouddoel."
+
+msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
+msgstr "BELANGRIJK: remove_duplicate en replace_duplicate zijn onomkeerbare bewerkingen."
+
+msgid "IP Address"
+msgstr "IP-adres"
+
+msgid "Idle"
+msgstr "Inactief"
+
+msgid "If"
+msgstr "Als"
+
+msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
+msgstr "Als ook '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' wordt opgegeven, worden ook voor die mappen albums gemaakt."
+
+msgid "If empty, the value from Settings › General arguments is used."
+msgstr "Indien leeg, wordt de waarde uit Instellingen › Algemene argumenten gebruikt."
+
+msgid "If set to No, .zip files are kept as uploaded."
+msgstr "Indien ingesteld op Nee, blijven .zip-bestanden zoals ze zijn geüpload."
+
+msgid "If the target supports album deletion (Immich, Synology, NextCloud), the redundant variants are then removed. Google Photos keeps them because the public API cannot delete albums."
+msgstr "Als het doel het verwijderen van albums ondersteunt (Immich, Synology, NextCloud), worden de overbodige varianten daarna verwijderd. Google Photos behoudt ze omdat de openbare API geen albums kan verwijderen."
+
+msgid "If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied."
+msgstr "Als dit argument aanwezig is, worden de items van <SOURCE> naar <TARGET> verplaatst in plaats van gekopieerd."
+
+msgid "If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied. (default: False)."
+msgstr "Als dit argument aanwezig is, worden de items van <SOURCE> naar <TARGET> verplaatst in plaats van gekopieerd. (standaard: False)."
+
+msgid "If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album."
+msgstr "In combinatie met '-rAllAlb, --remove-all-albums' of '-rAlb, --remove-albums' worden ook de items (foto's/video's) in elk album verwijderd."
+
+msgid "If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>."
+msgstr "In combinatie met '-uAll, --upload-all' wordt voor elke submap in <ALBUMS_FOLDER> een album gemaakt."
+
+msgid "Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc.), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamps."
+msgstr "Negeer de controle van de Google Takeout-structuur ('.json'-bestanden, submappen 'Photos from ', enz.) en herstel alle bestanden in <TAKEOUT_FOLDER> door te proberen tijdstempels te raden."
+
+msgid "Ignore the Takeout structure check"
+msgstr "De controle van de Takeout-structuur negeren"
+
+msgid "Immich"
+msgstr "Immich"
+
+msgid "Immich Photos"
+msgstr "Immich Photos"
+
+msgid "Immich Photos · PhotoMigrator"
+msgstr "Immich Photos · PhotoMigrator"
+
+msgid "Immich Upload Timeout (seconds)"
+msgstr "Time-out voor Immich-upload (seconden)"
+
+msgid "Immich upload read timeout in seconds for Upload All, Upload Albums, and Automatic Migration when Immich is the target (default: {0})."
+msgstr "Leestime-out voor Immich-uploads in seconden voor Alles uploaden, Albums uploaden en Automatische migratie wanneer Immich het doel is (standaard: {0})."
+
+msgid "Import Config"
+msgstr "Configuratie importeren"
+
+msgid "Import Google Takeout person labels into Immich when a Takeout people map is available."
+msgstr "Importeer persoonslabels uit Google Takeout in Immich wanneer een personenkaart van Takeout beschikbaar is."
+
+msgid "Import Google Takeout person labels into Immich when a Takeout people map is available. Only applies to an Immich destination or Immich Upload All/Upload Albums. (default: True)."
+msgstr "Importeer persoonslabels uit Google Takeout in Immich wanneer een personenkaart van Takeout beschikbaar is. Alleen van toepassing op een Immich-bestemming of Immich Alles uploaden/Albums uploaden. (standaard: True)."
+
+msgid "Import people"
+msgstr "Personen importeren"
+
+msgid "Include Memories as albums"
+msgstr "Memories als albums opnemen"
+
+msgid "Input Folder"
+msgstr "Invoermap"
+
+msgid "Insert Row"
+msgstr "Rij invoegen"
+
+msgid "Invalid --google-takeout path: contains '{0}'."
+msgstr "Ongeldig pad voor --google-takeout: bevat '{0}'."
+
+msgid "Invalid --source path: contains '{0}'."
+msgstr "Ongeldig pad voor --source: bevat '{0}'."
+
+msgid "Invalid --{0} path: the user root folder cannot be used directly ({1})."
+msgstr "Ongeldig pad voor --{0}: de hoofdmap van de gebruiker kan niet rechtstreeks worden gebruikt ({1})."
+
+msgid "Invalid Folder Selection"
+msgstr "Ongeldige mapselectie"
+
+msgid "Invalid JSON format."
+msgstr "Ongeldig JSON-formaat."
+
+msgid "Invalid admin credentials or insufficient permissions."
+msgstr "Ongeldige beheerdersgegevens of onvoldoende rechten."
+
+msgid "Invalid credentials"
+msgstr "Ongeldige inloggegevens"
+
+msgid "Job linked to your session"
+msgstr "Taak gekoppeld aan je sessie"
+
+msgid "Keep an untouched Takeout copy"
+msgstr "Een onaangetaste Takeout-kopie bewaren"
+
+msgid "Keep an untouched copy of original Takeout (requires double space)."
+msgstr "Bewaar een onaangetaste kopie van de originele Takeout (vereist dubbele ruimte)."
+
+msgid "Keep an untouched copy of original Takeout (requires double space). TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
+msgstr "Bewaar een onaangetaste kopie van de originele Takeout (vereist dubbele ruimte). TIP: Als <TAKEOUT_FOLDER> de originele zip-bestanden bevat, blijven die sowieso behouden."
+
+msgid "Keep last N backups"
+msgstr "Laatste N back-ups bewaren"
+
+msgid "Keep the best copy of each"
+msgstr "De beste kopie van elk bewaren"
+
+msgid "Language"
+msgstr "Taal"
+
+msgid "Last Updated"
+msgstr "Laatst bijgewerkt"
+
+msgid "Last Updated: -"
+msgstr "Laatst bijgewerkt: -"
+
+msgid "Last Updated: {0}"
+msgstr "Laatst bijgewerkt: {0}"
+
+msgid "Letters, numbers, dots, hyphens or underscores"
+msgstr "Letters, cijfers, punten, koppeltekens of underscores"
+
+msgid "Libraries & tools"
+msgstr "Bibliotheken en hulpmiddelen"
+
+msgid "List only, move the duplicates to a folder, or delete them."
+msgstr "Alleen weergeven, de duplicaten naar een map verplaatsen, of ze verwijderen."
+
+msgid "List, move or remove duplicates"
+msgstr "Duplicaten weergeven, verplaatsen of verwijderen"
+
+msgid "Load Table"
+msgstr "Tabel laden"
+
+msgid "Local Photos Folder"
+msgstr "Lokale fotomap"
+
+msgid "Local Photos Folder · PhotoMigrator"
+msgstr "Lokale fotomap · PhotoMigrator"
+
+msgid "Local folder"
+msgstr "Lokale map"
+
+msgid "Local helpers"
+msgstr "Lokale hulpmiddelen"
+
+msgid "Local helpers: repair symlinks, rename or organize folders, and find or process duplicates."
+msgstr "Lokale hulpmiddelen: symlinks herstellen, mappen hernoemen of ordenen, en duplicaten zoeken of verwerken."
+
+msgid "Log"
+msgstr "Logboek"
+
+msgid "Log format"
+msgstr "Logboekformaat"
+
+msgid "Log level"
+msgstr "Logboekniveau"
+
+msgid "Logout"
+msgstr "Afmelden"
+
+msgid "Logs"
+msgstr "Logboeken"
+
+msgid "Main navigation"
+msgstr "Hoofdnavigatie"
+
+msgid "Manage a library"
+msgstr "Een bibliotheek beheren"
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB."
+msgstr "Maximale itemgrootte in MB die in aanmerking komt voor push-nieuwe pogingen bij Automatische migratie."
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB. Use {0} for no size limit (default: {1}). Retry count and delay settings still apply."
+msgstr "Maximale itemgrootte in MB die in aanmerking komt voor push-nieuwe pogingen bij Automatische migratie. Gebruik {0} voor geen groottelimiet (standaard: {1}). De instellingen voor het aantal pogingen en de vertraging blijven van toepassing."
+
+msgid "Merge Duplicate Locations"
+msgstr "Dubbele locaties samenvoegen"
+
+msgid "Merge Duplicates Albums"
+msgstr "Dubbele albums samenvoegen"
+
+msgid "Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates."
+msgstr "Voeg dubbele albums (dezelfde naam) samen: verplaats items naar het meest relevante album en verwijder de duplicaten."
+
+msgid "Merge equivalent album families"
+msgstr "Gelijkwaardige albumgroepen samenvoegen"
+
+msgid "Message"
+msgstr "Bericht"
+
+msgid "Message for the administrator (optional)"
+msgstr "Bericht voor de beheerder (optioneel)"
+
+msgid "Message: {0}"
+msgstr "Bericht: {0}"
+
+msgid "Migrate"
+msgstr "Migreren"
+
+msgid "Missing Required Arguments"
+msgstr "Verplichte argumenten ontbreken"
+
+msgid "Missing required argument: --{0}"
+msgstr "Verplicht argument ontbreekt: --{0}"
+
+msgid "Missing tab."
+msgstr "Tabblad ontbreekt."
+
+msgid "Move Assets"
+msgstr "Items verplaatsen"
+
+msgid "Move Original Files"
+msgstr "Originele bestanden verplaatsen"
+
+msgid "Move a whole library in one run"
+msgstr "Verplaats een hele bibliotheek in één keer"
+
+msgid "Move mode is on"
+msgstr "Verplaatsmodus is aan"
+
+msgid "Move the original folder into the processed output instead of copying it first."
+msgstr "Verplaats de oorspronkelijke map naar de verwerkte uitvoer in plaats van hem eerst te kopiëren."
+
+msgid "Move the original folder into the processed output instead of copying it first. Useful to avoid duplicating disk usage for large local libraries."
+msgstr "Verplaats de oorspronkelijke map naar de verwerkte uitvoer in plaats van hem eerst te kopiëren. Handig om dubbel schijfgebruik bij grote lokale bibliotheken te voorkomen."
+
+msgid "Move your photo library. Keep every memory."
+msgstr "Verplaats je fotobibliotheek. Bewaar elke herinnering."
+
+msgid "Move your whole library to another service"
+msgstr "Verplaats je hele bibliotheek naar een andere service"
+
+msgid "Multiple albums can be separated by comma or space and quoted."
+msgstr "Meerdere albums kunnen worden gescheiden door een komma of spatie en tussen aanhalingstekens worden gezet."
+
+msgid "Naming & Folders"
+msgstr "Naamgeving en mappen"
+
+msgid "New account request"
+msgstr "Nieuwe accountaanvraag"
+
+msgid "New here?"
+msgstr "Nieuw hier?"
+
+msgid "New name for each matching album."
+msgstr "Nieuwe naam voor elk overeenkomend album."
+
+msgid "New password"
+msgstr "Nieuw wachtwoord"
+
+msgid "NextCloud"
+msgstr "NextCloud"
+
+msgid "NextCloud Photos"
+msgstr "NextCloud Photos"
+
+msgid "NextCloud Photos · PhotoMigrator"
+msgstr "NextCloud Photos · PhotoMigrator"
+
+msgid "No"
+msgstr "Nee"
+
+msgid "No additional help for this field."
+msgstr "Geen extra hulp voor dit veld."
+
+msgid "No credentials for account {0} yet."
+msgstr "Nog geen inloggegevens voor account {0}."
+
+msgid "No extra arguments required"
+msgstr "Geen extra argumenten nodig"
+
+msgid "No files found in selected local folder."
+msgstr "Geen bestanden gevonden in de geselecteerde lokale map."
+
+msgid "No job is running. When you run a feature, its live progress and log appear in Activity."
+msgstr "Er is geen taak actief. Wanneer je een functie uitvoert, verschijnen de live voortgang en het logboek in Activiteit."
+
+msgid "No job running"
+msgstr "Geen taak actief"
+
+msgid "No log file"
+msgstr "Geen logbestand"
+
+msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
+msgstr "Items buiten albums komen in <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ met de structuur year/month."
+
+msgid "None"
+msgstr "Geen"
+
+msgid "Not Found"
+msgstr "Niet gevonden"
+
+msgid "Not configured"
+msgstr "Niet geconfigureerd"
+
+msgid "Not set"
+msgstr "Niet ingesteld"
+
+msgid "Notice"
+msgstr "Melding"
+
+msgid "OAuth Client ID for Google Photos account {0}"
+msgstr "OAuth-client-ID voor Google Photos-account {0}"
+
+msgid "OAuth Client Secret for Google Photos account {0}"
+msgstr "OAuth-client secret voor Google Photos-account {0}"
+
+msgid "OAuth Refresh Token for Google Photos account {0}"
+msgstr "OAuth-vernieuwingstoken voor Google Photos-account {0}"
+
+msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
+msgstr "Bij ondersteunde clouddoelen worden overbodige varianten samengevoegd in het gewenste album dat behouden blijft. Als de API het verwijderen van albums ondersteunt (Immich, Synology, NextCloud), worden overbodige albums daarna verwijderd. Google Photos behoudt de overbodige varianten omdat de openbare API geen albums kan verwijderen."
+
+msgid "On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it."
+msgstr "Bij ondersteunde clouddoelen wordt de gewenste schone naam gebruikt en worden de items van overbodige varianten daarin samengevoegd."
+
+msgid "One album per subfolder"
+msgstr "Eén album per submap"
+
+msgid "One file pattern per line or comma-separated"
+msgstr "Eén bestandspatroon per regel, of gescheiden door komma's"
+
+msgid "One folder pattern per line or comma-separated"
+msgstr "Eén mappatroon per regel, of gescheiden door komma's"
+
+msgid "One time password"
+msgstr "Eenmalig wachtwoord"
+
+msgid "One value per line or comma-separated"
+msgstr "Eén waarde per regel, of gescheiden door komma's"
+
+msgid "Only an active admin can authorize this action. Enter admin username and password."
+msgstr "Alleen een actieve beheerder kan deze actie autoriseren. Voer de gebruikersnaam en het wachtwoord van de beheerder in."
+
+msgid "Open Activity"
+msgstr "Activiteit openen"
+
+msgid "Open Activity{0}"
+msgstr "Activiteit openen{0}"
+
+msgid "Open CSV selector"
+msgstr "CSV-kiezer openen"
+
+msgid "Open Help"
+msgstr "Help openen"
+
+msgid "Open PhotoMigrator"
+msgstr "PhotoMigrator openen"
+
+msgid "Open Readme"
+msgstr "Readme openen"
+
+msgid "Open Release Notes"
+msgstr "Release-opmerkingen openen"
+
+msgid "Open Roadmap"
+msgstr "Roadmap openen"
+
+msgid "Open folder selector"
+msgstr "Mapkiezer openen"
+
+msgid "Open menu"
+msgstr "Menu openen"
+
+msgid "Optional"
+msgstr "Optioneel"
+
+msgid "Optional arguments:"
+msgstr "Optionele argumenten:"
+
+msgid "Optional display label for account {0} (used in dashboards/logs)"
+msgstr "Optioneel weergavelabel voor account {0} (gebruikt in dashboards/logboeken)"
+
+msgid "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'."
+msgstr "Verwijder optioneel ook de items in albums met '-rAlbAsset, --remove-albums-assets'."
+
+msgid "Options for Auto Rename Folders Content Based"
+msgstr "Opties voor Mappen automatisch hernoemen op basis van inhoud"
+
+msgid "Options for Consolidate Albums Names"
+msgstr "Opties voor Albumnamen samenvoegen"
+
+msgid "Options for Download Albums"
+msgstr "Opties voor Albums downloaden"
+
+msgid "Options for Download All"
+msgstr "Opties voor Alles downloaden"
+
+msgid "Options for Find Duplicates"
+msgstr "Opties voor Duplicaten zoeken"
+
+msgid "Options for Fix Broken Symlinks"
+msgstr "Opties voor Verbroken symlinks herstellen"
+
+msgid "Options for Merge Duplicates Albums"
+msgstr "Opties voor Dubbele albums samenvoegen"
+
+msgid "Options for Organize Local Folder By Date"
+msgstr "Opties voor Lokale map ordenen op datum"
+
+msgid "Options for Process Duplicates"
+msgstr "Opties voor Duplicaten verwerken"
+
+msgid "Options for Remove Albums"
+msgstr "Opties voor Albums verwijderen"
+
+msgid "Options for Remove All Albums"
+msgstr "Opties voor Alle albums verwijderen"
+
+msgid "Options for Remove All Assets"
+msgstr "Opties voor Alle items verwijderen"
+
+msgid "Options for Remove Duplicates Albums"
+msgstr "Opties voor Dubbele albums verwijderen"
+
+msgid "Options for Remove Duplicates Assets"
+msgstr "Opties voor Dubbele items verwijderen"
+
+msgid "Options for Remove Empty Albums"
+msgstr "Opties voor Lege albums verwijderen"
+
+msgid "Options for Rename Albums"
+msgstr "Opties voor Albums hernoemen"
+
+msgid "Options for Upload Albums"
+msgstr "Opties voor Albums uploaden"
+
+msgid "Options for Upload All"
+msgstr "Opties voor Alles uploaden"
+
+msgid "Options for {0}"
+msgstr "Opties voor {0}"
+
+msgid "Organize"
+msgstr "Ordenen"
+
+msgid "Organize Local Folder By Date"
+msgstr "Lokale map ordenen op datum"
+
+msgid "Other Features"
+msgstr "Andere functies"
+
+msgid "Other Features · PhotoMigrator"
+msgstr "Andere functies · PhotoMigrator"
+
+msgid "Output Folder"
+msgstr "Uitvoermap"
+
+msgid "Output Folder Suffix"
+msgstr "Achtervoegsel van uitvoermap"
+
+msgid "Output Status: idle"
+msgstr "Uitvoerstatus: inactief"
+
+msgid "Output folder suffix"
+msgstr "Achtervoegsel van uitvoermap"
+
+msgid "Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected."
+msgstr "Het uitvoerformaat is: 'yyyy - Albumnaam' of 'yyyy--yyyy - Albumnaam' wanneer een bereik wordt gedetecteerd."
+
+msgid "Overridden at runtime by environment variable '{0}'."
+msgstr "Tijdens uitvoering overschreven door omgevingsvariabele '{0}'."
+
+msgid "Overwrite Configuration?"
+msgstr "Configuratie overschrijven?"
+
+msgid "Parallel Migration"
+msgstr "Parallelle migratie"
+
+msgid "Password"
+msgstr "Wachtwoord"
+
+msgid "Password (at least {0} characters)"
+msgstr "Wachtwoord (minstens {0} tekens)"
+
+msgid "Pattern and replacement"
+msgstr "Patroon en vervanging"
+
+msgid "Photo libraries"
+msgstr "Fotobibliotheken"
+
+msgid "PhotoMigrator"
+msgstr "PhotoMigrator"
+
+msgid "PhotoMigrator Admin"
+msgstr "PhotoMigrator-beheer"
+
+msgid "PhotoMigrator Login"
+msgstr "PhotoMigrator-aanmelding"
+
+msgid "PhotoMigrator website"
+msgstr "PhotoMigrator-website"
+
+msgid "Photos, videos and albums from a source to a target, with a live dashboard."
+msgstr "Foto's, video's en albums van een bron naar een doel, met een live dashboard."
+
+msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
+msgstr "Kies een taak. PhotoMigrator toont alleen de opties die voor die taak nodig zijn en de exacte opdracht voordat er iets wordt uitgevoerd."
+
+msgid "Please choose a path that does not contain: {0}."
+msgstr "Kies een pad dat het volgende niet bevat: {0}."
+
+msgid "Please confirm this action."
+msgstr "Bevestig deze actie."
+
+msgid "Please select a destination folder inside container first."
+msgstr "Selecteer eerst een bestemmingsmap in de container."
+
+msgid "Please select a feature/module to run."
+msgstr "Selecteer een functie/module om uit te voeren."
+
+msgid "Please verify username/password and try again."
+msgstr "Controleer de gebruikersnaam en het wachtwoord en probeer het opnieuw."
+
+msgid "Port ({0}, {1} or {2})"
+msgstr "Poort ({0}, {1} of {2})"
+
+msgid "Prefer Canonical Album Names"
+msgstr "Canonieke albumnamen verkiezen"
+
+msgid "Prefer the native EXIF writer"
+msgstr "Voorkeur voor de ingebouwde EXIF-schrijver"
+
+msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool."
+msgstr "Geef voor ondersteunde iCloud-fotobestanden de voorkeur aan de ingebouwde EXIF-schrijver, voordat wordt teruggevallen op ExifTool."
+
+msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool. Disabled by default in CLI."
+msgstr "Geef voor ondersteunde iCloud-fotobestanden de voorkeur aan de ingebouwde EXIF-schrijver, voordat wordt teruggevallen op ExifTool. Standaard uitgeschakeld in de CLI."
+
+msgid "Preferences for how the Web Interface looks and behaves for your user. Theme and time zone changes are applied immediately."
+msgstr "Voorkeuren voor het uiterlijk en gedrag van de webinterface voor jouw gebruiker. Wijzigingen van thema en tijdzone worden direct toegepast."
+
+msgid "Prefix album folders with their dates"
+msgstr "Albummappen voorzien van hun datums als voorvoegsel"
+
+msgid "Preview Album Actions"
+msgstr "Voorbeeld van albumacties"
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes."
+msgstr "Toon een voorbeeld van de overeenkomsten voor Albums hernoemen / Albums verwijderen / Albumnamen samenvoegen voordat wijzigingen worden toegepast."
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes. Enabled by default; use '--no-preview-album-actions' to disable it."
+msgstr "Toon een voorbeeld van de overeenkomsten voor Albums hernoemen / Albums verwijderen / Albumnamen samenvoegen voordat wijzigingen worden toegepast. Standaard ingeschakeld; gebruik '--no-preview-album-actions' om dit uit te schakelen."
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes. Enabled by default; use '--no-preview-album-actions' to disable it. Example: --rename-albums \"--\" \"-\""
+msgstr "Toon een voorbeeld van de overeenkomsten voor Albums hernoemen / Albums verwijderen / Albumnamen samenvoegen voordat wijzigingen worden toegepast. Standaard ingeschakeld; gebruik '--no-preview-album-actions' om dit uit te schakelen. Voorbeeld: --rename-albums \"--\" \"-\""
+
+msgid "Preview unavailable"
+msgstr "Voorbeeld niet beschikbaar"
+
+msgid "Preview unavailable: {0}"
+msgstr "Voorbeeld niet beschikbaar: {0}"
+
+msgid "Process Duplicates"
+msgstr "Duplicaten verwerken"
+
+msgid "Process Input: idle"
+msgstr "Invoerverwerking: inactief"
+
+msgid "Process Input: ready"
+msgstr "Invoerverwerking: gereed"
+
+msgid "Process Input: waiting for input"
+msgstr "Invoerverwerking: wacht op invoer"
+
+msgid "Process Takeout"
+msgstr "Takeout verwerken"
+
+msgid "Process a raw Apple iCloud Photos export before importing it into another photo service."
+msgstr "Verwerk een ruwe Apple iCloud Photos-export voordat je die in een andere fotoservice importeert."
+
+msgid "Process a raw Apple iCloud Photos export before importing it into another photo service. This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections, and writes a portable output library with ALL_PHOTOS and Albums. When enabled, Memories CSV collections are also reconstructed as album-like folders. IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "Verwerk een ruwe Apple iCloud Photos-export voordat je die in een andere fotoservice importeert. Deze functie leest de metadata uit Photo Details.csv, herstelt datums in foto's en video's, bouwt albums opnieuw op uit Apple-CSV-collecties en schrijft een draagbare uitvoerbibliotheek met ALL_PHOTOS en Albums. Wanneer ingeschakeld, worden ook Memories-CSV-collecties gereconstrueerd als albumachtige mappen. BELANGRIJK: Deze module is een lokale voorverwerkingspijplijn. Ze stuurt zelf niets naar een clouddoel."
+
+msgid "Process a raw Google Photos Takeout export before importing it into another photo service."
+msgstr "Verwerk een ruwe Google Photos Takeout-export voordat je die in een andere fotoservice importeert."
+
+msgid "Process a raw Google Photos Takeout export before importing it into another photo service. This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files, organizes the output into ALL_PHOTOS and Albums, and can optionally create symbolic album entries instead of duplicating files. When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow. IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "Verwerk een ruwe Google Photos Takeout-export voordat je die in een andere fotoservice importeert. Deze functie herstelt datums en metadata, bouwt het albumlidmaatschap opnieuw op uit JSON-sidecarbestanden, ordent de uitvoer in ALL_PHOTOS en Albums en kan optioneel symbolische albumitems maken in plaats van bestanden te dupliceren. Wanneer de invoer een Takeout met alleen albums zonder jaarmappen is, detecteert PhotoMigrator dit automatisch en schakelt GPTH over op de juiste herstelprocedure. BELANGRIJK: Deze module is een lokale voorverwerkingspijplijn. Ze stuurt zelf niets naar een clouddoel."
+
+msgid "Process a revised duplicates CSV and execute actions from the 'Action' column."
+msgstr "Verwerk een gecontroleerd duplicaten-CSV en voer de acties uit de kolom 'Action' uit."
+
+msgid "Process a revised duplicates CSV and execute actions from the 'Action' column. Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV. Valid actions: restore_duplicate / remove_duplicate / replace_duplicate. IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations. Example: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+msgstr "Verwerk een gecontroleerd duplicaten-CSV en voer de acties uit de kolom 'Action' uit. Gebruik dit na '--find-duplicates' om handmatige beslissingen uit je gecontroleerde CSV toe te passen. Geldige acties: restore_duplicate / remove_duplicate / replace_duplicate. BELANGRIJK: remove_duplicate en replace_duplicate zijn onomkeerbare bewerkingen. Voorbeeld: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+
+msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets."
+msgstr "Verwerk een Apple iCloud Photos-exportmap <ICLOUD_EXPORT_FOLDER> om datums uit 'Photo Details.csv'-bestanden te herstellen, die datums aan de mediabestanden toe te wijzen en de items te ordenen."
+
+msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets. If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
+msgstr "Verwerk een Apple iCloud Photos-exportmap <ICLOUD_EXPORT_FOLDER> om datums uit 'Photo Details.csv'-bestanden te herstellen, die datums aan de mediabestanden toe te wijzen en de items te ordenen. Als er ZIP-bestanden in staan, worden die eerst uitgepakt naar '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>' en wordt die map als invoer gebruikt. De verwerkte export wordt opgeslagen in de map '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
+
+msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it."
+msgstr "Verwerk de Takeout-map <TAKEOUT_FOLDER> om alle metadata te herstellen en de items erin te ordenen."
+
+msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'. This argument is mandatory to run the Google Takeout Processor feature."
+msgstr "Verwerk de Takeout-map <TAKEOUT_FOLDER> om alle metadata te herstellen en de items erin te ordenen. Als er een ZIP-bestand in staat, wordt dat uitgepakt naar de map '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>' en wordt die map als invoer gebruikt. De verwerkte Takeout wordt opgeslagen in de map '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'. Dit argument is verplicht om de functie Google Takeout-verwerker uit te voeren."
+
+msgid "Processing"
+msgstr "Verwerken"
+
+msgid "Provide JSON values to insert."
+msgstr "Geef de in te voegen JSON-waarden op."
+
+msgid "Push Asset Max Size (MB)"
+msgstr "Maximale itemgrootte voor push (MB)"
+
+msgid "Quick tools"
+msgstr "Snelle hulpmiddelen"
+
+msgid "Range separator"
+msgstr "Bereikscheidingsteken"
+
+msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output."
+msgstr "Lees persoonslabels van Google Takeout uit JSON-sidecarbestanden en sla de personenkaart op in de verwerkte uitvoer."
+
+msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
+msgstr "Lees persoonslabels van Google Takeout uit JSON-sidecarbestanden en sla de personenkaart op in de verwerkte uitvoer. (standaard: True)."
+
+msgid "Readme"
+msgstr "Readme"
+
+msgid "Ready to run"
+msgstr "Klaar om te starten"
+
+msgid "Reason: {0}"
+msgstr "Reden: {0}"
+
+msgid "Refresh Logs"
+msgstr "Logboeken vernieuwen"
+
+msgid "Refresh Tables"
+msgstr "Tabellen vernieuwen"
+
+msgid "Refresh token"
+msgstr "Vernieuwingstoken"
+
+msgid "Reject Account Request"
+msgstr "Accountaanvraag afwijzen"
+
+msgid "Reject Request"
+msgstr "Aanvraag afwijzen"
+
+msgid "Release Notes"
+msgstr "Release-opmerkingen"
+
+msgid "Remaining Time"
+msgstr "Resterende tijd"
+
+msgid "Remove ALL albums."
+msgstr "ALLE albums verwijderen."
+
+msgid "Remove ALL assets (photos/videos) and ALL albums."
+msgstr "ALLE items (foto's/video's) en ALLE albums verwijderen."
+
+msgid "Remove Albums"
+msgstr "Albums verwijderen"
+
+msgid "Remove All Albums"
+msgstr "Alle albums verwijderen"
+
+msgid "Remove All Assets"
+msgstr "Alle items verwijderen"
+
+msgid "Remove Duplicates Albums"
+msgstr "Dubbele albums verwijderen"
+
+msgid "Remove Duplicates Assets"
+msgstr "Dubbele items verwijderen"
+
+msgid "Remove Empty Albums"
+msgstr "Lege albums verwijderen"
+
+msgid "Remove Orphan Assets"
+msgstr "Verweesde items verwijderen"
+
+msgid "Remove Selected"
+msgstr "Selectie verwijderen"
+
+msgid "Remove Selected ({0})"
+msgstr "Selectie verwijderen ({0})"
+
+msgid "Remove album assets"
+msgstr "Albumitems verwijderen"
+
+msgid "Remove albums matching a text, wildcard, or regex pattern."
+msgstr "Verwijder albums die overeenkomen met een tekst-, jokerteken- of regexpatroon."
+
+msgid "Remove albums matching a text, wildcard, or regex pattern. Use '--preview-album-actions' to preview matches and request confirmation before applying changes. Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'. Example: --remove-albums \"^Temp\" --remove-albums-assets"
+msgstr "Verwijder albums die overeenkomen met een tekst-, jokerteken- of regexpatroon. Gebruik '--preview-album-actions' om een voorbeeld van de overeenkomsten te zien en bevestiging te vragen voordat wijzigingen worden toegepast. Verwijder optioneel ook de items in albums met '-rAlbAsset, --remove-albums-assets'. Voorbeeld: --remove-albums \"^Temp\" --remove-albums-assets"
+
+msgid "Remove duplicate assets while preserving available metadata and people on the selected keeper asset."
+msgstr "Verwijder dubbele items en behoud daarbij de beschikbare metadata en personen op het gekozen te behouden item."
+
+msgid "Remove duplicate files"
+msgstr "Dubbele bestanden verwijderen"
+
+msgid "Remove duplicate files in <OUTPUT_TAKEOUT_FOLDER> after fixing them."
+msgstr "Verwijder dubbele bestanden in <OUTPUT_TAKEOUT_FOLDER> nadat ze zijn hersteld."
+
+msgid "Remove duplicated albums (same name and size)."
+msgstr "Verwijder dubbele albums (dezelfde naam en grootte)."
+
+msgid "Remove empty albums."
+msgstr "Verwijder lege albums."
+
+msgid "Removed: {0} | Failed: {1}"
+msgstr "Verwijderd: {0} | Mislukt: {1}"
+
+msgid "Rename Albums"
+msgstr "Albums hernoemen"
+
+msgid "Rename Pattern"
+msgstr "Hernoempatroon"
+
+msgid "Rename album folders by date"
+msgstr "Albummappen hernoemen op datum"
+
+msgid "Rename album folders in <OUTPUT_TAKEOUT_FOLDER> based on content dates after fixing them."
+msgstr "Hernoem albummappen in <OUTPUT_TAKEOUT_FOLDER> op basis van de datums van de inhoud nadat ze zijn hersteld."
+
+msgid "Rename albums using a text, wildcard, or regex pattern with a replacement value."
+msgstr "Hernoem albums met een tekst-, jokerteken- of regexpatroon en een vervangende waarde."
+
+msgid "Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates."
+msgstr "Hernoem en uniformeer albummapnamen in <ALBUMS_FOLDER> op basis van de datums van de inhoud."
+
+msgid "Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates. Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected. Date and range separators can be customized with '--date-separator' and '--range-separator'. IMPORTANT: This modifies original folder names in place; create a backup if needed. Example: --rename-folders-content-based ./MyLocalPhotoLibrary"
+msgstr "Hernoem en uniformeer albummapnamen in <ALBUMS_FOLDER> op basis van de datums van de inhoud. Het uitvoerformaat is: 'yyyy - Albumnaam' of 'yyyy--yyyy - Albumnaam' wanneer een bereik wordt gedetecteerd. Scheidingstekens voor datums en bereiken kunnen worden aangepast met '--date-separator' en '--range-separator'. BELANGRIJK: Dit wijzigt de oorspronkelijke mapnamen ter plekke; maak indien nodig een back-up. Voorbeeld: --rename-folders-content-based ./MyLocalPhotoLibrary"
+
+msgid "Rename pattern"
+msgstr "Hernoempatroon"
+
+msgid "Repair broken album links"
+msgstr "Verbroken albumlinks herstellen"
+
+msgid "Repair, rename, organize and deduplicate folders, or upload files to this server."
+msgstr "Herstel, hernoem, orden en ontdubbel mappen, of upload bestanden naar deze server."
+
+msgid "Replacement Pattern"
+msgstr "Vervangingspatroon"
+
+msgid "Replacement pattern"
+msgstr "Vervangingspatroon"
+
+msgid "Replacement text"
+msgstr "Vervangende tekst"
+
+msgid "Request User Confirmation"
+msgstr "Bevestiging van gebruiker vragen"
+
+msgid "Request an account"
+msgstr "Een account aanvragen"
+
+msgid "Request failed"
+msgstr "Aanvraag mislukt"
+
+msgid "Request user confirmation before executing a feature (default: True)."
+msgstr "Vraag bevestiging van de gebruiker voordat een functie wordt uitgevoerd (standaard: True)."
+
+msgid "Requested from the login page"
+msgstr "Aangevraagd vanaf de aanmeldpagina"
+
+msgid "Required"
+msgstr "Verplicht"
+
+msgid "Required arguments:"
+msgstr "Verplichte argumenten:"
+
+msgid "Reset Password"
+msgstr "Wachtwoord opnieuw instellen"
+
+msgid "Reset Password: {0}"
+msgstr "Wachtwoord opnieuw instellen: {0}"
+
+msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
+msgstr "Herstel datums en albums van een Apple iCloud Photos-export in een draagbare bibliotheek."
+
+msgid "Restore dates and metadata and rebuild albums into a clean library."
+msgstr "Herstel datums en metadata en bouw albums opnieuw op in een nette bibliotheek."
+
+msgid "Restore defaults"
+msgstr "Standaardwaarden herstellen"
+
+msgid "Restore the default values of the fields shown for this feature"
+msgstr "Herstel de standaardwaarden van de velden die voor deze functie worden getoond"
+
+msgid "Result is exported to a CSV to review duplicates and selected action per item."
+msgstr "Het resultaat wordt geëxporteerd naar een CSV om duplicaten en de gekozen actie per item te controleren."
+
+msgid "Review the request"
+msgstr "De aanvraag beoordelen"
+
+msgid "Roadmap"
+msgstr "Roadmap"
+
+msgid "Role"
+msgstr "Rol"
+
+msgid "Run"
+msgstr "Uitvoeren"
+
+msgid "Run Backup Now"
+msgstr "Nu een back-up uitvoeren"
+
+msgid "Run Error"
+msgstr "Uitvoeringsfout"
+
+msgid "Run an end-to-end migration from <SOURCE> to <TARGET> including albums and non-album assets."
+msgstr "Voer een volledige migratie uit van <SOURCE> naar <TARGET>, inclusief albums en items buiten albums."
+
+msgid "Run and follow the progress"
+msgstr "Uitvoeren en de voortgang volgen"
+
+msgid "Run this feature"
+msgstr "Deze functie uitvoeren"
+
+msgid "Running"
+msgstr "Actief"
+
+msgid "Runtime override active from environment variable {0}"
+msgstr "Overschrijving tijdens uitvoering actief via omgevingsvariabele {0}"
+
+msgid "SMTP password"
+msgstr "SMTP-wachtwoord"
+
+msgid "SMTP password (saved, leave empty to keep it)"
+msgstr "SMTP-wachtwoord (opgeslagen, laat leeg om het te behouden)"
+
+msgid "SMTP server (for example mail.example.com)"
+msgstr "SMTP-server (bijvoorbeeld mail.example.com)"
+
+msgid "SMTP username"
+msgstr "SMTP-gebruikersnaam"
+
+msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
+msgstr "SOURCE en TARGET kunnen cloud-endpoints zijn (synology/immich/nextcloud/google met account) of lokale mappen."
+
+msgid "Same name and size"
+msgstr "Dezelfde naam en grootte"
+
+msgid "Save Email"
+msgstr "E-mail opslaan"
+
+msgid "Save Email Settings"
+msgstr "E-mailinstellingen opslaan"
+
+msgid "Save Failed"
+msgstr "Opslaan mislukt"
+
+msgid "Save Password"
+msgstr "Wachtwoord opslaan"
+
+msgid "Save Schedule"
+msgstr "Schema opslaan"
+
+msgid "Save app settings"
+msgstr "App-instellingen opslaan"
+
+msgid "Save config"
+msgstr "Configuratie opslaan"
+
+msgid "Save people labels"
+msgstr "Persoonslabels opslaan"
+
+msgid "Save row"
+msgstr "Rij opslaan"
+
+msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
+msgstr "Scan <FOLDER_TO_FIX> recursief en probeer verbroken symbolische links te herstellen."
+
+msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
+msgstr "Scan <FOLDER_TO_FIX> recursief en probeer verbroken symbolische links te herstellen. Handig na het verplaatsen of hernoemen van mappen in OUTPUT_TAKEOUT_FOLDER wanneer sommige albums leeg lijken. De tool zoekt geldige doelbestanden in dezelfde mapstructuur en legt waar mogelijk de link opnieuw. BELANGRIJK: Links worden alleen hersteld wanneer uit de huidige bestanden een geldig doel kan worden afgeleid. Voorbeeld: --fix-symlinks-broken ./OUTPUT_FOLDER"
+
+msgid "Scroll log to the first line"
+msgstr "Logboek naar de eerste regel scrollen"
+
+msgid "Scroll log to the last line"
+msgstr "Logboek naar de laatste regel scrollen"
+
+msgid "Segoe UI"
+msgstr "Segoe UI"
+
+msgid "Select CSV File"
+msgstr "CSV-bestand selecteren"
+
+msgid "Select File"
+msgstr "Bestand selecteren"
+
+msgid "Select Parallel/Sequential migration during Automatic Migration job."
+msgstr "Kies parallelle of sequentiële migratie tijdens een automatische migratie."
+
+msgid "Select Parallel/Sequential migration during Automatic Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
+msgstr "Kies parallelle of sequentiële migratie tijdens een automatische migratie. Dit argument is alleen van toepassing als zowel '--source' als '--target' zijn opgegeven. (standaard: True)."
+
+msgid "Select a table first."
+msgstr "Selecteer eerst een tabel."
+
+msgid "Select at least one folder first."
+msgstr "Selecteer eerst minstens één map."
+
+msgid "Select destination folder"
+msgstr "Bestemmingsmap selecteren"
+
+msgid "Select folder"
+msgstr "Map selecteren"
+
+msgid "Select the time zone used by PhotoMigrator to display timestamps and process date/time-based operations."
+msgstr "Selecteer de tijdzone die PhotoMigrator gebruikt om tijdstempels weer te geven en op datum/tijd gebaseerde bewerkingen te verwerken."
+
+msgid "Select the visual theme used by your web interface."
+msgstr "Selecteer het visuele thema van je webinterface."
+
+msgid "Select user role"
+msgstr "Gebruikersrol selecteren"
+
+msgid "Select {0}"
+msgstr "{0} selecteren"
+
+msgid "Selected albums to a folder"
+msgstr "Geselecteerde albums naar een map"
+
+msgid "Selected folders (comma-separated)"
+msgstr "Geselecteerde mappen (gescheiden door komma's)"
+
+msgid "Selected option"
+msgstr "Geselecteerde optie"
+
+msgid "Selected root: {0}\\n\\n"
+msgstr "Geselecteerde hoofdmap: {0}\\n\\n"
+
+msgid "Selected: {0}"
+msgstr "Geselecteerd: {0}"
+
+msgid "Send"
+msgstr "Verzenden"
+
+msgid "Send Test Email"
+msgstr "Testmail verzenden"
+
+msgid "Send a local folder or ZIP file to the server"
+msgstr "Een lokale map of ZIP-bestand naar de server sturen"
+
+msgid "Send files here"
+msgstr "Stuur bestanden hierheen"
+
+msgid "Send request"
+msgstr "Aanvraag verzenden"
+
+msgid "Send the test email to (default: your email)"
+msgstr "Stuur de testmail naar (standaard: je e-mailadres)"
+
+msgid "Sender email"
+msgstr "E-mailadres afzender"
+
+msgid "Sender name (PhotoMigrator)"
+msgstr "Naam afzender (PhotoMigrator)"
+
+msgid "Service credentials"
+msgstr "Servicegegevens"
+
+msgid "Set a new password and confirm it."
+msgstr "Stel een nieuw wachtwoord in en bevestig het."
+
+msgid "Settings"
+msgstr "Instellingen"
+
+msgid "Settings · PhotoMigrator"
+msgstr "Instellingen · PhotoMigrator"
+
+msgid "Settings › Service credentials"
+msgstr "Instellingen › Servicegegevens"
+
+msgid "Shared arguments, service credentials and preferences used by every feature."
+msgstr "Gedeelde argumenten, servicegegevens en voorkeuren die door elke functie worden gebruikt."
+
+msgid "Show"
+msgstr "Tonen"
+
+msgid "Show Client secret"
+msgstr "Client secret tonen"
+
+msgid "Show GPTH error messages"
+msgstr "GPTH-foutmeldingen tonen"
+
+msgid "Show GPTH info messages"
+msgstr "GPTH-infomeldingen tonen"
+
+msgid "Show Refresh token"
+msgstr "Vernieuwingstoken tonen"
+
+msgid "Show password"
+msgstr "Wachtwoord tonen"
+
+msgid "Show {0}"
+msgstr "{0} tonen"
+
+msgid "Sign in"
+msgstr "Aanmelden"
+
+msgid "Sign in to PhotoMigrator"
+msgstr "Aanmelden bij PhotoMigrator"
+
+msgid "Skip GPTH tool (not recommended)"
+msgstr "GPTH-tool overslaan (niet aanbevolen)"
+
+msgid "Skip extra files (-edited, -effects)"
+msgstr "Extra bestanden overslaan (-edited, -effects)"
+
+msgid "Skip moving albums"
+msgstr "Verplaatsen van albums overslaan"
+
+msgid "Skip moving albums to '<ALBUMS_FOLDER>'."
+msgstr "Sla het verplaatsen van albums naar '<ALBUMS_FOLDER>' over."
+
+msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums folders vs original assets {3}) Organize assets by year/month {4}) Auto rename album folders based on content dates {5}) Detect and remove duplicates {6}) Count albums {7}) Remove empty folders {8}) Clean final media library {9}) Show files without dates Not recommended to skip."
+msgstr "Sla de nabewerking van Google Takeout over, die bestaat uit: {0}) MP4-bestanden van Live Photos synchroniseren met bijbehorende HEIC/JPG {1}) Conflicterende XMP-datums van video's herstellen {2}) Albummappen scheiden van originele items {3}) Items ordenen op jaar/maand {4}) Albummappen automatisch hernoemen op basis van datums van de inhoud {5}) Duplicaten detecteren en verwijderen {6}) Albums tellen {7}) Lege mappen verwijderen {8}) De uiteindelijke mediabibliotheek opschonen {9}) Bestanden zonder datum tonen. Overslaan wordt niet aanbevolen."
+
+msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums fo…"
+msgstr "Sla de nabewerking van Google Takeout over, die bestaat uit: {0}) MP4-bestanden van Live Photos synchroniseren met bijbehorende HEIC/JPG {1}) Conflicterende XMP-datums van video's herstellen {2}) Albummappen sc…"
+
+msgid "Skip post-processing"
+msgstr "Nabewerking overslaan"
+
+msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accuracy. If you already pre-processed the same Takeout using '-gKeepTakeout,--google-keep-takeout-folder', you can skip it."
+msgstr "Sla de voorbewerking van Google Takeout over, die bestaat uit: {0}) Takeout-map opschonen {1}) MP4/Live Photo-koppelingen herstellen {2}) Ingekorte bestandsnamen/extensies herstellen. Dit is belangrijk voor een hoge nauwkeurigheid. Als je dezelfde Takeout al hebt voorbewerkt met '-gKeepTakeout,--google-keep-takeout-folder', kun je dit overslaan."
+
+msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accur…"
+msgstr "Sla de voorbewerking van Google Takeout over, die bestaat uit: {0}) Takeout-map opschonen {1}) MP4/Live Photo-koppelingen herstellen {2}) Ingekorte bestandsnamen/extensies herstellen. Dit is belangrijk voor een hoge nauwkeur…"
+
+msgid "Skip pre-processing"
+msgstr "Voorbewerking overslaan"
+
+msgid "Skip processing extra photos such as -edited, -effects photos."
+msgstr "Sla de verwerking van extra foto's zoals -edited- en -effects-foto's over."
+
+msgid "Skip processing files with GPTH Tool."
+msgstr "Sla de verwerking van bestanden met de GPTH-tool over."
+
+msgid "Skip processing files with GPTH Tool. CAUTION: NOT RECOMMENDED (core of the Google Takeout process). Use only for testing."
+msgstr "Sla de verwerking van bestanden met de GPTH-tool over. LET OP: NIET AANBEVOLEN (kern van het Google Takeout-proces). Alleen gebruiken om te testen."
+
+msgid "Skip saving GPTH log messages into output folder."
+msgstr "Sla het opslaan van GPTH-logmeldingen in de uitvoermap over."
+
+msgid "Skip saving output messages to execution log file."
+msgstr "Sla het opslaan van uitvoermeldingen in het uitvoeringslogboek over."
+
+msgid "Small Album Max Assets"
+msgstr "Maximaal aantal items voor klein album"
+
+msgid "Sort a folder into date subfolders"
+msgstr "Een map sorteren in submappen per datum"
+
+msgid "Source"
+msgstr "Bron"
+
+msgid "Source Client"
+msgstr "Bronclient"
+
+msgid "Source endpoint or local folder to migrate from."
+msgstr "Bron-endpoint of lokale map om vanuit te migreren."
+
+msgid "Source service"
+msgstr "Bronservice"
+
+msgid "Source to target"
+msgstr "Van bron naar doel"
+
+msgid "Specify Date Separator used by feature `Auto-Rename Albums Content Based`."
+msgstr "Geef het datumscheidingsteken op dat door de functie `Auto-Rename Albums Content Based` wordt gebruikt."
+
+msgid "Specify Range of Dates Separator used by feature `Auto-Rename Albums Content Based`."
+msgstr "Geef het scheidingsteken voor datumbereiken op dat door de functie `Auto-Rename Albums Content Based` wordt gebruikt."
+
+msgid "Specify an external version of EXIF Tool binary."
+msgstr "Geef een externe versie van het EXIF Tool-binary op."
+
+msgid "Specify an external version of EXIF Tool binary. PhotoMigrator contains an embedded version of EXIF Tool, but if you want to use a different version, you can use this argument."
+msgstr "Geef een externe versie van het EXIF Tool-binary op. PhotoMigrator bevat een ingebouwde versie van EXIF Tool, maar als je een andere versie wilt gebruiken, kun je dit argument gebruiken."
+
+msgid "Specify an external version of GPTH Tool binary."
+msgstr "Geef een externe versie van het GPTH Tool-binary op."
+
+msgid "Specify an external version of GPTH Tool binary. PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
+msgstr "Geef een externe versie van het GPTH Tool-binary op. PhotoMigrator bevat een ingebouwde versie van GPTH Tool, maar als je een andere versie wilt gebruiken, kun je dit argument gebruiken."
+
+msgid "Specify the Asset Type to filter assets in the different Photo Clients."
+msgstr "Geef het itemtype op om items in de verschillende fotoclients te filteren."
+
+msgid "Specify the Asset Type to filter assets in the different Photo Clients. (default: all)"
+msgstr "Geef het itemtype op om items in de verschillende fotoclients te filteren. (standaard: all)"
+
+msgid "Specify the City Name to filter assets in the different Photo Clients."
+msgstr "Geef de plaatsnaam op om items in de verschillende fotoclients te filteren."
+
+msgid "Specify the Country Name to filter assets in the different Photo Clients."
+msgstr "Geef de landnaam op om items in de verschillende fotoclients te filteren."
+
+msgid "Specify the Person Name to filter assets in the different Photo Clients."
+msgstr "Geef de naam van de persoon op om items in de verschillende fotoclients te filteren."
+
+msgid "Specify the Takeout master-library folder name containing all assets."
+msgstr "Geef de mapnaam op van de Takeout-hoofdbibliotheek die alle items bevat."
+
+msgid "Specify the Takeout master-library folder name containing all assets. Default: 'ALL_PHOTOS'."
+msgstr "Geef de mapnaam op van de Takeout-hoofdbibliotheek die alle items bevat. Standaard: 'ALL_PHOTOS'."
+
+msgid "Specify the final date to filter assets in the different Photo Clients."
+msgstr "Geef de einddatum op om items in de verschillende fotoclients te filteren."
+
+msgid "Specify the folder name to save the Metadata outputs of 'Extracted Dates'."
+msgstr "Geef de mapnaam op om de metadata-uitvoer van 'Extracted Dates' in op te slaan."
+
+msgid "Specify the folder name to save the execution Logs."
+msgstr "Geef de mapnaam op om de uitvoeringslogboeken in op te slaan."
+
+msgid "Specify the folder name to save the outputs of 'Find Duplicates' Feature."
+msgstr "Geef de mapnaam op om de uitvoer van de functie 'Find Duplicates' in op te slaan."
+
+msgid "Specify the folder name to store all your processed photos associated to any Album."
+msgstr "Geef de mapnaam op om al je verwerkte foto's die bij een album horen in op te slaan."
+
+msgid "Specify the folder name used by cloud and local-library workflows for assets not associated to an album."
+msgstr "Geef de mapnaam op die door cloud- en lokale bibliotheekwerkstromen wordt gebruikt voor items die niet bij een album horen."
+
+msgid "Specify the folder structure type for each Album folder (Default: 'flatten')."
+msgstr "Geef het type mapstructuur op voor elke albummap (standaard: 'flatten')."
+
+msgid "Specify the folder structure type for each reconstructed iCloud Album folder (Default: 'flatten')."
+msgstr "Geef het type mapstructuur op voor elke gereconstrueerde iCloud-albummap (standaard: 'flatten')."
+
+msgid "Specify the folder structure type for the Google Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month')."
+msgstr "Geef het type mapstructuur op voor de Google Takeout-hoofdbibliotheek '<ALL_PHOTOS_FOLDER>' (standaard: 'year/month')."
+
+msgid "Specify the folder structure type for the iCloud Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month')."
+msgstr "Geef het type mapstructuur op voor de iCloud Takeout-hoofdbibliotheek '<ALL_PHOTOS_FOLDER>' (standaard: 'year/month')."
+
+msgid "Specify the folder structure type for the organized local-folder output (Default: 'year/month')."
+msgstr "Geef het type mapstructuur op voor de geordende uitvoer van de lokale map (standaard: 'year/month')."
+
+msgid "Specify the initial date to filter assets in the different Photo Clients."
+msgstr "Geef de begindatum op om items in de verschillende fotoclients te filteren."
+
+msgid "Specify the log file format."
+msgstr "Geef het formaat van het logbestand op."
+
+msgid "Specify the log level for logging and screen messages."
+msgstr "Geef het logniveau op voor logboek- en schermmeldingen."
+
+msgid "Specify the managed Local Photos Folder root when '--client=local-photos-folder'."
+msgstr "Geef de beheerde hoofdmap van de lokale fotomap op wanneer '--client=local-photos-folder'."
+
+msgid "Specify the managed Local Photos Folder root when '--client=local-photos-folder'. It contains the Albums and No_Albums folders used by Local Photos Folder modules."
+msgstr "Geef de beheerde hoofdmap van de lokale fotomap op wanneer '--client=local-photos-folder'. Deze bevat de mappen Albums en No_Albums die door de modules voor de lokale fotomap worden gebruikt."
+
+msgid "Specify the output folder to save the result of the processing action."
+msgstr "Geef de uitvoermap op om het resultaat van de verwerking in op te slaan."
+
+msgid "Specify the suffix for the iCloud processed output folder."
+msgstr "Geef het achtervoegsel op voor de verwerkte iCloud-uitvoermap."
+
+msgid "Specify the suffix for the iCloud processed output folder. Default: 'processed'."
+msgstr "Geef het achtervoegsel op voor de verwerkte iCloud-uitvoermap. Standaard: 'processed'."
+
+msgid "Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided."
+msgstr "Geef het achtervoegsel op voor de geordende uitvoer van de lokale map wanneer '-o/--output-folder' niet is opgegeven."
+
+msgid "Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided. Default: 'processed'."
+msgstr "Geef het achtervoegsel op voor de geordende uitvoer van de lokale map wanneer '-o/--output-folder' niet is opgegeven. Standaard: 'processed'."
+
+msgid "Specify the suffix for the output folder."
+msgstr "Geef het achtervoegsel op voor de uitvoermap."
+
+msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
+msgstr "Geef het achtervoegsel op voor de uitvoermap. Standaard: 'processed'. De uitvoermap krijgt dezelfde naam als de invoermap, gevolgd door dit achtervoegsel en de tijdstempel van de uitvoering."
+
+msgid "Start Time: -"
+msgstr "Starttijd: -"
+
+msgid "Start Time: {0}"
+msgstr "Starttijd: {0}"
+
+msgid "Start a migration"
+msgstr "Een migratie starten"
+
+msgid "Start a migration{0}"
+msgstr "Een migratie starten{0}"
+
+msgid "Start here"
+msgstr "Begin hier"
+
+msgid "Status: authenticating..."
+msgstr "Status: authenticeren..."
+
+msgid "Status: creating user..."
+msgstr "Status: gebruiker maken..."
+
+msgid "Status: enter admin username and password"
+msgstr "Status: voer de gebruikersnaam en het wachtwoord van de beheerder in"
+
+msgid "Status: idle"
+msgstr "Status: inactief"
+
+msgid "Status: loaded {0} users · email is not configured, no notices are sent"
+msgstr "Status: {0} gebruikers geladen · e-mail is niet geconfigureerd, er worden geen meldingen verzonden"
+
+msgid "Status: loaded {0} users${notes.length ?"
+msgstr "Status: loaded {0} users${notes.length ?"
+
+msgid "Status: loading users..."
+msgstr "Status: gebruikers laden..."
+
+msgid "Status: login successful"
+msgstr "Status: aanmelding geslaagd"
+
+msgid "Status: passwords do not match"
+msgstr "Status: wachtwoorden komen niet overeen"
+
+msgid "Status: ready"
+msgstr "Status: gereed"
+
+msgid "Status: reconnecting"
+msgstr "Status: opnieuw verbinden"
+
+msgid "Status: request sent. You will get an email when an administrator activates your account."
+msgstr "Status: aanvraag verzonden. Je ontvangt een e-mail zodra een beheerder je account activeert."
+
+msgid "Status: running"
+msgstr "Status: actief"
+
+msgid "Status: saving..."
+msgstr "Status: opslaan..."
+
+msgid "Status: sending request..."
+msgstr "Status: aanvraag verzenden..."
+
+msgid "Status: stop error (network failure)"
+msgstr "Status: fout bij stoppen (netwerkfout)"
+
+msgid "Status: stop error ({0})"
+msgstr "Status: fout bij stoppen ({0})"
+
+msgid "Status: stopping"
+msgstr "Status: stoppen"
+
+msgid "Status: the passwords do not match"
+msgstr "Status: de wachtwoorden komen niet overeen"
+
+msgid "Status: validating admin credentials..."
+msgstr "Status: beheerdersgegevens valideren..."
+
+msgid "Status: validation error ({0})"
+msgstr "Status: validatiefout ({0})"
+
+msgid "Status: waiting for credentials"
+msgstr "Status: wacht op inloggegevens"
+
+msgid "Status: {0}"
+msgstr "Status: {0}"
+
+msgid "Stop"
+msgstr "Stoppen"
+
+msgid "Stop Running Module?"
+msgstr "Actieve module stoppen?"
+
+msgid "Synology"
+msgstr "Synology"
+
+msgid "Synology Photos"
+msgstr "Synology Photos"
+
+msgid "Synology Photos · PhotoMigrator"
+msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table status: 'access_logs' loaded (2/2 rows)"
+msgstr "Tabelstatus: 'access_logs' geladen (2/2 rijen)"
+
+msgid "Table status: 'access_logs' loaded (9/9 rows)"
+msgstr "Tabelstatus: 'access_logs' geladen (9/9 rijen)"
+
+msgid "Table status: '{0}' loaded (0 rows)"
+msgstr "Tabelstatus: '{0}' geladen (0 rijen)"
+
+msgid "Table status: '{0}' loaded ({1}/{2} rows)"
+msgstr "Tabelstatus: '{0}' geladen ({1}/{2} rijen)"
+
+msgid "Table status: loaded {0} tables"
+msgstr "Tabelstatus: {0} tabellen geladen"
+
+msgid "Table status: loading '{0}'..."
+msgstr "Tabelstatus: '{0}' laden..."
+
+msgid "Table status: loading table list..."
+msgstr "Tabelstatus: tabellijst laden..."
+
+msgid "Table status: no table selected"
+msgstr "Tabelstatus: geen tabel geselecteerd"
+
+msgid "Table status: row {0} updated"
+msgstr "Tabelstatus: rij {0} bijgewerkt"
+
+msgid "Table status: {0}"
+msgstr "Tabelstatus: {0}"
+
+msgid "Takeout"
+msgstr "Takeout"
+
+msgid "Takeout folder"
+msgstr "Takeout-map"
+
+msgid "Takeout input and output"
+msgstr "Takeout-invoer en -uitvoer"
+
+msgid "Target"
+msgstr "Doel"
+
+msgid "Target Client"
+msgstr "Doelclient"
+
+msgid "Target endpoint or local folder to migrate into."
+msgstr "Doel-endpoint of lokale map om naartoe te migreren."
+
+msgid "Target service"
+msgstr "Doelservice"
+
+msgid "The account is not active yet. We will email you when it is."
+msgstr "Het account is nog niet actief. We sturen je een e-mail zodra het actief is."
+
+msgid "The demo role cannot save configuration changes except TimeZone and Theme."
+msgstr "De demorol kan geen configuratiewijzigingen opslaan, behalve TimeZone en Theme."
+
+msgid "The demo role cannot {0} configuration directly."
+msgstr "De demorol kan de configuratie niet rechtstreeks {0}."
+
+msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
+msgstr "Het geselecteerde pad bevat '{0}', wat is gereserveerd als speciale mapnaam van Google.\\n\\n"
+
+msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
+msgstr "De tool zoekt geldige doelbestanden in dezelfde mapstructuur en legt waar mogelijk de link opnieuw."
+
+msgid "The user can sign in with this email and receives account and task notices there."
+msgstr "De gebruiker kan met dit e-mailadres aanmelden en ontvangt daar account- en taakmeldingen."
+
+msgid "Theme"
+msgstr "Thema"
+
+msgid "Theme used by the PhotoMigrator web interface."
+msgstr "Thema van de PhotoMigrator-webinterface."
+
+msgid "This argument only accepts one folder. Select exactly one."
+msgstr "Dit argument accepteert maar één map. Selecteer er precies één."
+
+msgid "This converts dates from YYYY.MM.DD format to YYYY-MM-DD."
+msgstr "Dit zet datums van het formaat YYYY.MM.DD om naar YYYY-MM-DD."
+
+msgid "This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections,"
+msgstr "Deze functie leest de metadata uit Photo Details.csv, herstelt datums in foto's en video's, bouwt albums opnieuw op uit Apple-CSV-collecties,"
+
+msgid "This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files,"
+msgstr "Deze functie herstelt datums en metadata, bouwt het albumlidmaatschap opnieuw op uit JSON-sidecarbestanden,"
+
+msgid "This module will consolidate equivalent album-name families already existing in Google Photos without uploading new assets."
+msgstr "Deze module voegt gelijkwaardige groepen albumnamen die al in Google Photos bestaan samen, zonder nieuwe items te uploaden."
+
+msgid "This module will consolidate equivalent album-name families already existing in Immich Photos without uploading new assets."
+msgstr "Deze module voegt gelijkwaardige groepen albumnamen die al in Immich Photos bestaan samen, zonder nieuwe items te uploaden."
+
+msgid "This module will consolidate equivalent album-name families already existing in Local Photos Folder without uploading new assets."
+msgstr "Deze module voegt gelijkwaardige groepen albumnamen die al in de lokale fotomap bestaan samen, zonder nieuwe items te uploaden."
+
+msgid "This module will consolidate equivalent album-name families already existing in NextCloud Photos without uploading new assets."
+msgstr "Deze module voegt gelijkwaardige groepen albumnamen die al in NextCloud Photos bestaan samen, zonder nieuwe items te uploaden."
+
+msgid "This module will consolidate equivalent album-name families already existing in Synology Photos without uploading new assets."
+msgstr "Deze module voegt gelijkwaardige groepen albumnamen die al in Synology Photos bestaan samen, zonder nieuwe items te uploaden."
+
+msgid "This module will consolidate equivalent album-name families already existing in {0} without uploading new assets."
+msgstr "Deze module voegt gelijkwaardige groepen albumnamen die al in {0} bestaan samen, zonder nieuwe items te uploaden."
+
+msgid "This module will delete ALL albums in Immich Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert ALLE albums in Immich Photos. Bijbehorende items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete ALL albums in Local Photos Folder. Associated assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert ALLE albums in de lokale fotomap. Bijbehorende items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete ALL albums in NextCloud Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert ALLE albums in NextCloud Photos. Bijbehorende items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete ALL albums in Synology Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert ALLE albums in Synology Photos. Bijbehorende items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete ALL albums in {0} and also delete all assets associated with those albums."
+msgstr "Deze module verwijdert ALLE albums in {0} en ook alle items die bij die albums horen."
+
+msgid "This module will delete ALL albums in {0}. Associated assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert ALLE albums in {0}. Bijbehorende items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Immich Photos."
+msgstr "Deze module verwijdert ALLE items (foto's/video's) en ALLE albums in Immich Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Local Photos Folder."
+msgstr "Deze module verwijdert ALLE items (foto's/video's) en ALLE albums in de lokale fotomap."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in NextCloud Photos."
+msgstr "Deze module verwijdert ALLE items (foto's/video's) en ALLE albums in NextCloud Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Synology Photos."
+msgstr "Deze module verwijdert ALLE items (foto's/video's) en ALLE albums in Synology Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in {0}."
+msgstr "Deze module verwijdert ALLE items (foto's/video's) en ALLE albums in {0}."
+
+msgid "This module will delete albums in Immich Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert albums in Immich Photos waarvan de naam overeenkomt met je patroon. Items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete albums in Local Photos Folder whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert albums in de lokale fotomap waarvan de naam overeenkomt met je patroon. Items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete albums in NextCloud Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert albums in NextCloud Photos waarvan de naam overeenkomt met je patroon. Items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete albums in Synology Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert albums in Synology Photos waarvan de naam overeenkomt met je patroon. Items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete albums in {0} whose names match your pattern, and it will also delete all assets inside those albums."
+msgstr "Deze module verwijdert albums in {0} waarvan de naam overeenkomt met je patroon, en ook alle items in die albums."
+
+msgid "This module will delete albums in {0} whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Deze module verwijdert albums in {0} waarvan de naam overeenkomt met je patroon. Items blijven behouden, tenzij ze door andere bewerkingen worden verwijderd."
+
+msgid "This module will delete all empty albums in Immich Photos."
+msgstr "Deze module verwijdert alle lege albums in Immich Photos."
+
+msgid "This module will delete all empty albums in Local Photos Folder."
+msgstr "Deze module verwijdert alle lege albums in de lokale fotomap."
+
+msgid "This module will delete all empty albums in NextCloud Photos."
+msgstr "Deze module verwijdert alle lege albums in NextCloud Photos."
+
+msgid "This module will delete all empty albums in Synology Photos."
+msgstr "Deze module verwijdert alle lege albums in Synology Photos."
+
+msgid "This module will delete all empty albums in {0}."
+msgstr "Deze module verwijdert alle lege albums in {0}."
+
+msgid "This module will delete duplicated albums in Immich Photos (same name and size)."
+msgstr "Deze module verwijdert dubbele albums in Immich Photos (dezelfde naam en grootte)."
+
+msgid "This module will delete duplicated albums in Local Photos Folder (same name and size)."
+msgstr "Deze module verwijdert dubbele albums in de lokale fotomap (dezelfde naam en grootte)."
+
+msgid "This module will delete duplicated albums in NextCloud Photos (same name and size)."
+msgstr "Deze module verwijdert dubbele albums in NextCloud Photos (dezelfde naam en grootte)."
+
+msgid "This module will delete duplicated albums in Synology Photos (same name and size)."
+msgstr "Deze module verwijdert dubbele albums in Synology Photos (dezelfde naam en grootte)."
+
+msgid "This module will delete duplicated albums in {0} (same name and size)."
+msgstr "Deze module verwijdert dubbele albums in {0} (dezelfde naam en grootte)."
+
+msgid "This module will delete orphan assets from the Immich database (assets referenced in DB but missing on disk)."
+msgstr "Deze module verwijdert verweesde items uit de Immich-database (items waarnaar in de database wordt verwezen maar die op schijf ontbreken)."
+
+msgid "This module will keep the selected oldest/newest asset for every same-name/same-size group and permanently delete redundant assets when the selected cloud API supports deletion."
+msgstr "Deze module behoudt per groep met dezelfde naam en grootte het gekozen oudste/nieuwste item en verwijdert overbodige items definitief wanneer de gekozen cloud-API verwijderen ondersteunt."
+
+msgid "This module will merge duplicated albums in Immich Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Deze module voegt dubbele albums in Immich Photos samen door items naar het meest relevante album te verplaatsen en de duplicaten te verwijderen."
+
+msgid "This module will merge duplicated albums in Local Photos Folder by moving assets into the most relevant album and removing duplicates."
+msgstr "Deze module voegt dubbele albums in de lokale fotomap samen door items naar het meest relevante album te verplaatsen en de duplicaten te verwijderen."
+
+msgid "This module will merge duplicated albums in NextCloud Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Deze module voegt dubbele albums in NextCloud Photos samen door items naar het meest relevante album te verplaatsen en de duplicaten te verwijderen."
+
+msgid "This module will merge duplicated albums in Synology Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Deze module voegt dubbele albums in Synology Photos samen door items naar het meest relevante album te verplaatsen en de duplicaten te verwijderen."
+
+msgid "This module will merge duplicated albums in {0} by moving assets into the most relevant album and removing duplicates."
+msgstr "Deze module voegt dubbele albums in {0} samen door items naar het meest relevante album te verplaatsen en de duplicaten te verwijderen."
+
+msgid "This module will move the original local folder into the processed output before reorganizing it by date. The source folder path will no longer exist after the move. Do you want to continue?"
+msgstr "Deze module verplaatst de oorspronkelijke lokale map naar de verwerkte uitvoer voordat die op datum wordt geordend. Het pad van de bronmap bestaat na het verplaatsen niet meer. Wil je doorgaan?"
+
+msgid "This module will rename albums in Immich Photos whose names match your pattern, using the replacement pattern."
+msgstr "Deze module hernoemt albums in Immich Photos waarvan de naam overeenkomt met je patroon, met behulp van het vervangingspatroon."
+
+msgid "This module will rename albums in Local Photos Folder whose names match your pattern, using the replacement pattern."
+msgstr "Deze module hernoemt albums in de lokale fotomap waarvan de naam overeenkomt met je patroon, met behulp van het vervangingspatroon."
+
+msgid "This module will rename albums in NextCloud Photos whose names match your pattern, using the replacement pattern."
+msgstr "Deze module hernoemt albums in NextCloud Photos waarvan de naam overeenkomt met je patroon, met behulp van het vervangingspatroon."
+
+msgid "This module will rename albums in Synology Photos whose names match your pattern, using the replacement pattern."
+msgstr "Deze module hernoemt albums in Synology Photos waarvan de naam overeenkomt met je patroon, met behulp van het vervangingspatroon."
+
+msgid "This module will rename albums in {0} whose names match your pattern, using the replacement pattern."
+msgstr "Deze module hernoemt albums in {0} waarvan de naam overeenkomt met je patroon, met behulp van het vervangingspatroon."
+
+msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk."
+msgstr "Deze module hernoemt lokale albummappen ter plekke op basis van de datums van de inhoud. De oorspronkelijke mapnamen worden op schijf gewijzigd."
+
+msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
+msgstr "Deze module hernoemt lokale albummappen ter plekke op basis van de datums van de inhoud. De oorspronkelijke mapnamen worden op schijf gewijzigd. Wil je doorgaan?"
+
+msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
+msgstr "Dit verwijdert de accountaanvraag van '{0}' en stuurt een e-mail dat de aanvraag niet is goedgekeurd. Wil je doorgaan?"
+
+msgid "This will interrupt the current execution. Do you want to stop the running module?"
+msgstr "Dit onderbreekt de huidige uitvoering. Wil je de actieve module stoppen?"
+
+msgid "This will overwrite your user Config.ini stored in database."
+msgstr "Dit overschrijft je gebruikers-Config.ini die in de database is opgeslagen."
+
+msgid "This will permanently delete user '{0}'. Do you want to continue?"
+msgstr "Dit verwijdert gebruiker '{0}' definitief. Wil je doorgaan?"
+
+msgid "This will permanently delete {0} selected folder(s) and all their contents."
+msgstr "Dit verwijdert {0} geselecteerde map(pen) en alle inhoud daarvan definitief."
+
+msgid "Time zone"
+msgstr "Tijdzone"
+
+msgid "Time zone used by PhotoMigrator to interpret and display date/time values in logs and date-based operations."
+msgstr "Tijdzone die PhotoMigrator gebruikt om datum- en tijdwaarden in logboeken en op datum gebaseerde bewerkingen te interpreteren en weer te geven."
+
+msgid "TimeZone"
+msgstr "TimeZone"
+
+msgid "Timestamp ▼"
+msgstr "Tijdstempel ▼"
+
+msgid "To save any other configuration field, enter active admin credentials."
+msgstr "Voer de gegevens van een actieve beheerder in om andere configuratievelden op te slaan."
+
+msgid "Toggle {0}"
+msgstr "{0} omschakelen"
+
+msgid "Tools"
+msgstr "Hulpmiddelen"
+
+msgid "Transfer"
+msgstr "Overdragen"
+
+msgid "Treat a local folder as a photo library and run the same album and asset actions used for cloud services."
+msgstr "Behandel een lokale map als fotobibliotheek en voer dezelfde album- en itemacties uit als voor cloudservices."
+
+msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album."
+msgstr "Behandel gelijkwaardige albumnamen op de bestemming als één groep en voeg hun items samen in het canonieke album dat behouden blijft."
+
+msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album. Redundant albums are removed only when the target service supports album deletion."
+msgstr "Behandel gelijkwaardige albumnamen op de bestemming als één groep en voeg hun items samen in het canonieke album dat behouden blijft. Overbodige albums worden alleen verwijderd als de doelservice het verwijderen van albums ondersteunt."
+
+msgid "Try Date Prefix Albums Grouping"
+msgstr "Groeperen van albums op datumvoorvoegsel proberen"
+
+msgid "Try Equivalent Albums Grouping"
+msgstr "Groeperen van gelijkwaardige albums proberen"
+
+msgid "Try Small Albums Grouping"
+msgstr "Groeperen van kleine albums proberen"
+
+msgid "Try Truncated Albums Grouping"
+msgstr "Groeperen van ingekorte albums proberen"
+
+msgid "Type an answer when the running job asks for input"
+msgstr "Typ een antwoord wanneer de actieve taak om invoer vraagt"
+
+msgid "Unable to create folder"
+msgstr "Map kan niet worden gemaakt"
+
+msgid "Unable to create user."
+msgstr "Gebruiker kan niet worden gemaakt."
+
+msgid "Unable to load document."
+msgstr "Document kan niet worden geladen."
+
+msgid "Unable to remove selected folder(s)."
+msgstr "Geselecteerde map(pen) kunnen niet worden verwijderd."
+
+msgid "Unable to remove selected folder(s): {0}"
+msgstr "Geselecteerde map(pen) kunnen niet worden verwijderd: {0}"
+
+msgid "Unable to run command"
+msgstr "Opdracht kan niet worden uitgevoerd"
+
+msgid "Unable to send the request"
+msgstr "Aanvraag kan niet worden verzonden"
+
+msgid "Unable to stop job"
+msgstr "Taak kan niet worden gestopt"
+
+msgid "Upload Albums"
+msgstr "Albums uploaden"
+
+msgid "Upload All"
+msgstr "Alles uploaden"
+
+msgid "Upload Completed with Warnings"
+msgstr "Upload voltooid met waarschuwingen"
+
+msgid "Upload Failed"
+msgstr "Upload mislukt"
+
+msgid "Upload Here"
+msgstr "Hier uploaden"
+
+msgid "Upload Local Folder"
+msgstr "Lokale map uploaden"
+
+msgid "Upload Local Zip"
+msgstr "Lokaal ZIP-bestand uploaden"
+
+msgid "Upload a folder"
+msgstr "Een map uploaden"
+
+msgid "Upload a local folder or ZIP file to the server so the features can use it."
+msgstr "Upload een lokale map of ZIP-bestand naar de server zodat de functies het kunnen gebruiken."
+
+msgid "Upload albums from <ALBUMS_FOLDER>."
+msgstr "Upload albums uit <ALBUMS_FOLDER>."
+
+msgid "Upload albums from <ALBUMS_FOLDER>. One album per subfolder."
+msgstr "Upload albums uit <ALBUMS_FOLDER>. Eén album per submap."
+
+msgid "Upload albums from <ALBUMS_FOLDER>. One album per subfolder. Example: --upload-albums ./My_Albums_Folder"
+msgstr "Upload albums uit <ALBUMS_FOLDER>. Eén album per submap. Voorbeeld: --upload-albums ./My_Albums_Folder"
+
+msgid "Upload all assets from <INPUT_FOLDER> to the selected client."
+msgstr "Upload alle items uit <INPUT_FOLDER> naar de geselecteerde client."
+
+msgid "Upload all assets from <INPUT_FOLDER> to the selected client. - A new Album will be created per subfolder found in 'Albums' subfolder. - If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too. Example: --upload-all ./MyLibrary"
+msgstr "Upload alle items uit <INPUT_FOLDER> naar de geselecteerde client. - Er wordt een nieuw album gemaakt voor elke submap in de submap 'Albums'. - Als ook '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' wordt opgegeven, worden ook voor die mappen albums gemaakt. Voorbeeld: --upload-all ./MyLibrary"
+
+msgid "Upload behavior: ZIP extraction follows the \"Extract ZIPs on upload\" option (Yes/No) in Upload to Server."
+msgstr "Uploadgedrag: het uitpakken van ZIP-bestanden volgt de optie 'ZIP-bestanden uitpakken bij uploaden' (Ja/Nee) in Uploaden naar server."
+
+msgid "Upload from this computer"
+msgstr "Uploaden vanaf deze computer"
+
+msgid "Upload local content (a folder or a ZIP file) into the selected destination folder on the server, so the other features can use it."
+msgstr "Upload lokale inhoud (een map of ZIP-bestand) naar de geselecteerde bestemmingsmap op de server, zodat de andere functies het kunnen gebruiken."
+
+msgid "Upload mode active: this feature runs direct upload (no CLI command preview)."
+msgstr "Uploadmodus actief: deze functie voert een rechtstreekse upload uit (geen voorbeeld van een CLI-opdracht)."
+
+msgid "Upload status: done | Uploaded: {0} |"
+msgstr "Uploadstatus: klaar | Geüpload: {0} |"
+
+msgid "Upload status: failed ({0})"
+msgstr "Uploadstatus: mislukt ({0})"
+
+msgid "Upload status: idle"
+msgstr "Uploadstatus: inactief"
+
+msgid "Upload status: uploading..."
+msgstr "Uploadstatus: uploaden..."
+
+msgid "Upload to Server"
+msgstr "Uploaden naar server"
+
+msgid "Upload to Server · PhotoMigrator"
+msgstr "Uploaden naar server · PhotoMigrator"
+
+msgid "Upload, download, organize and clean up albums and assets in your Google Photos library."
+msgstr "Upload, download, orden en ruim albums en items in je Google Photos-bibliotheek op."
+
+msgid "Upload, download, organize and clean up albums and assets in your Immich library."
+msgstr "Upload, download, orden en ruim albums en items in je Immich-bibliotheek op."
+
+msgid "Upload, download, organize and clean up albums and assets in your NextCloud Photos library."
+msgstr "Upload, download, orden en ruim albums en items in je NextCloud Photos-bibliotheek op."
+
+msgid "Upload, download, organize and clean up albums and assets in your Synology Photos library."
+msgstr "Upload, download, orden en ruim albums en items in je Synology Photos-bibliotheek op."
+
+msgid "Upload, download, rename, clean up and deduplicate albums and assets."
+msgstr "Upload, download, hernoem, ruim op en ontdubbel albums en items."
+
+msgid "Uploaded: {0}\\n"
+msgstr "Geüpload: {0}\\n"
+
+msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
+msgstr "Gebruik '--organize-folder-structure' om de indeling te wijzigen, '--organize-output-folder-suffix' om het gegenereerde achtervoegsel te wijzigen wanneer geen expliciete uitvoermap is opgegeven, en '--move-original-files' om te verplaatsen in plaats van te kopiëren."
+
+msgid "Use '--preview-album-actions' to preview and confirm the detected album families before applying changes."
+msgstr "Gebruik '--preview-album-actions' om een voorbeeld van de gedetecteerde albumgroepen te zien en te bevestigen voordat wijzigingen worden toegepast."
+
+msgid "Use '--preview-album-actions' to preview matches and request confirmation before applying changes."
+msgstr "Gebruik '--preview-album-actions' om een voorbeeld van de overeenkomsten te zien en bevestiging te vragen voordat wijzigingen worden toegepast."
+
+msgid "Use 'ALL' to download ALL albums."
+msgstr "Gebruik 'ALL' om ALLE albums te downloaden."
+
+msgid "Use --consolidate-similar-albums if you want cloud targets to reuse and consolidate equivalent album families such as 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album', or 'New_Album {1}' instead of only exact matches."
+msgstr "Gebruik --consolidate-similar-albums als je wilt dat clouddoelen gelijkwaardige albumgroepen zoals 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album' of 'New_Album {1}' hergebruiken en samenvoegen, in plaats van alleen exacte overeenkomsten."
+
+msgid "Use --prefer-canonical-album-names if you want new destination albums to be created with the preferred clean keeper form even when the target does not already contain any similar variant, for example 'Album_1' -> 'Album' or 'New_Album {0}' -> 'New Album'."
+msgstr "Gebruik --prefer-canonical-album-names als je wilt dat nieuwe bestemmingsalbums worden gemaakt met de gewenste schone naamvorm, ook wanneer het doel nog geen vergelijkbare variant bevat, bijvoorbeeld 'Album_1' -> 'Album' of 'New_Album {0}' -> 'New Album'."
+
+msgid "Use Current"
+msgstr "Huidige gebruiken"
+
+msgid "Use Selected"
+msgstr "Selectie gebruiken"
+
+msgid "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
+msgstr "Gebruik Lokale map uploaden of Lokaal ZIP-bestand uploaden in het paneel Uploaden naar server."
+
+msgid "Use patterns: e.g. --download-albums 'dron*'"
+msgstr "Gebruik patronen: bijv. --download-albums 'dron*'"
+
+msgid "Use the password your administrator gave you."
+msgstr "Gebruik het wachtwoord dat je beheerder je heeft gegeven."
+
+msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
+msgstr "Gebruik dit na '--find-duplicates' om handmatige beslissingen uit je gecontroleerde CSV toe te passen."
+
+msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
+msgstr "Wordt gebruikt voor accountmeldingen (aanvragen, activeringen, wachtwoordwijzigingen) en voor de e-mails over voltooide taken. Lege velden gebruiken de"
+
+msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
+msgstr "Handig na het verplaatsen of hernoemen van mappen in OUTPUT_TAKEOUT_FOLDER wanneer sommige albums leeg lijken."
+
+msgid "User"
+msgstr "Gebruiker"
+
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+msgid "Username or email"
+msgstr "Gebruikersnaam of e-mailadres"
+
+msgid "Users"
+msgstr "Gebruikers"
+
+msgid "Uses the configured cloud account ID."
+msgstr "Gebruikt de geconfigureerde cloudaccount-ID."
+
+msgid "Uses the configured cloud account ID. If omitted, account ID {0} is used."
+msgstr "Gebruikt de geconfigureerde cloudaccount-ID. Indien weggelaten, wordt account-ID {0} gebruikt."
+
+msgid "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album')."
+msgstr "Gebruikt dezelfde logica voor albumgroepen als '--consolidate-similar-albums' (bijvoorbeeld 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album')."
+
+msgid "Using Settings defaults"
+msgstr "Standaardwaarden uit Instellingen worden gebruikt"
+
+msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
+msgstr "Geldige acties: restore_duplicate / remove_duplicate / replace_duplicate."
+
+msgid "Version v5.0.0 · Sign in to continue"
+msgstr "Versie v5.0.0 · Meld je aan om verder te gaan"
+
+msgid "Warm palette"
+msgstr "Warm palet"
+
+msgid "We received your account request"
+msgstr "We hebben je accountaanvraag ontvangen"
+
+msgid "Web Interface"
+msgstr "Webinterface"
+
+msgid "Website"
+msgstr "Website"
+
+msgid "Welcome back, admin"
+msgstr "Welkom terug, admin"
+
+msgid "Welcome back, {0}"
+msgstr "Welkom terug, {0}"
+
+msgid "What do you want to move today?"
+msgstr "Wat wil je vandaag verplaatsen?"
+
+msgid "What to do with detected duplicates: list, move, or delete."
+msgstr "Wat te doen met gedetecteerde duplicaten: weergeven, verplaatsen of verwijderen."
+
+msgid "What to do with duplicates"
+msgstr "Wat te doen met duplicaten"
+
+msgid "What would you like to do today?"
+msgstr "Wat wil je vandaag doen?"
+
+msgid "When a destination album must be created, use the canonical form of its source name."
+msgstr "Wanneer een bestemmingsalbum moet worden gemaakt, gebruik dan de canonieke vorm van de bronnaam."
+
+msgid "When a destination album must be created, use the canonical form of its source name. It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+msgstr "Wanneer een bestemmingsalbum moet worden gemaakt, gebruik dan de canonieke vorm van de bronnaam. Dit normaliseert onschuldige varianten met underscore/spatie en achtervoegsels in duplicaatstijl, maar voegt geen bestaande albums samen."
+
+msgid "When an uploaded album must be created, use the canonical form of its source name."
+msgstr "Wanneer een geüpload album moet worden gemaakt, gebruik dan de canonieke vorm van de bronnaam."
+
+msgid "When an uploaded album must be created, use the canonical form of its source name. It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+msgstr "Wanneer een geüpload album moet worden gemaakt, gebruik dan de canonieke vorm van de bronnaam. Dit normaliseert onschuldige varianten met underscore/spatie en achtervoegsels in duplicaatstijl, maar voegt geen bestaande albums samen."
+
+msgid "When enabled, Memories CSV collections are also reconstructed as album-like folders."
+msgstr "Wanneer ingeschakeld, worden ook Memories-CSV-collecties gereconstrueerd als albumachtige mappen."
+
+msgid "When enabled, uploaded .zip files are extracted on the server and the .zip file is removed."
+msgstr "Wanneer ingeschakeld, worden geüploade .zip-bestanden op de server uitgepakt en wordt het .zip-bestand verwijderd."
+
+msgid "When multiple folders are provided, order matters: files in the first folder have priority to be kept."
+msgstr "Wanneer meerdere mappen worden opgegeven, is de volgorde belangrijk: bestanden in de eerste map hebben voorrang om behouden te blijven."
+
+msgid "When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow."
+msgstr "Wanneer de invoer een Takeout met alleen albums zonder jaarmappen is, detecteert PhotoMigrator dit automatisch en schakelt GPTH over op de juiste herstelprocedure."
+
+msgid "When the task finishes, PhotoMigrator emails {0} with the result and the last lines of the log."
+msgstr "Wanneer de taak klaar is, stuurt PhotoMigrator een e-mail naar {0} met het resultaat en de laatste regels van het logboek."
+
+msgid "When you run a feature, its progress and log appear here."
+msgstr "Wanneer je een functie uitvoert, verschijnen de voortgang en het logboek hier."
+
+msgid "Where from and where to"
+msgstr "Van waar naar waar"
+
+msgid "Where to put the files on the server"
+msgstr "Waar de bestanden op de server komen"
+
+msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
+msgstr "Werkt met Google Photos, Synology Photos, Immich Photos, NextCloud Photos en lokale mappen, in elke richting."
+
+msgid "Workspace"
+msgstr "Werkruimte"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
+msgstr "Je kunt cellen bewerken en op Rij opslaan klikken, of op Rij verwijderen. Voor invoegen wordt JSON-objectsyntaxis gebruikt."
+
+msgid "You will be asked to confirm before it runs."
+msgstr "Je wordt om bevestiging gevraagd voordat het wordt uitgevoerd."
+
+msgid "Your PhotoMigrator account"
+msgstr "Je PhotoMigrator-account"
+
+msgid "Your account has been disabled"
+msgstr "Je account is uitgeschakeld"
+
+msgid "Your account has no email. Ask your administrator to add one to get task emails."
+msgstr "Je account heeft geen e-mailadres. Vraag je beheerder er een toe te voegen om e-mails over taken te ontvangen."
+
+msgid "Your account is active"
+msgstr "Je account is actief"
+
+msgid "Your account request"
+msgstr "Je accountaanvraag"
+
+msgid "Your own library"
+msgstr "Je eigen bibliotheek"
+
+msgid "Your password was changed"
+msgstr "Je wachtwoord is gewijzigd"
+
+msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
+msgstr "Je tijdelijke wachtwoord is <b>{0}</b>. Je kiest je eigen wachtwoord wanneer je de eerste keer aanmeldt."
+
+msgid "access_logs ({0})"
+msgstr "access_logs ({0})"
+
+msgid "an administrator changed the password of your PhotoMigrator account <b>{0}</b>. Ask them for the new password if you did not get it. If you did not expect this change, contact them."
+msgstr "een beheerder heeft het wachtwoord van je PhotoMigrator-account <b>{0}</b> gewijzigd. Vraag hem of haar om het nieuwe wachtwoord als je het niet hebt gekregen. Als je deze wijziging niet verwachtte, neem dan contact op."
+
+msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
+msgstr "een beheerder heeft je PhotoMigrator-account <b>{0}</b> uitgeschakeld. Als je denkt dat dit een vergissing is, beantwoord dan deze e-mail."
+
+msgid "backup_schedules ({0})"
+msgstr "backup_schedules ({0})"
+
+msgid "data subpath (default username)"
+msgstr "submap van data (standaard gebruikersnaam)"
+
+msgid "e.g. photos-2026 or /app/data/photos-2026"
+msgstr "bijv. photos-2026 of /app/data/photos-2026"
+
+msgid "environment variables."
+msgstr "omgevingsvariabelen."
+
+msgid "iCloud Takeout"
+msgstr "iCloud Takeout"
+
+msgid "iCloud Takeout · PhotoMigrator"
+msgstr "iCloud Takeout · PhotoMigrator"
+
+msgid "immich-photos-1 -> immich-photos-1"
+msgstr "immich-photos-1 -> immich-photos-1"
+
+msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
+msgstr "is ingesteld op Ja, worden geüploade .zip-bestanden op de server uitgepakt en wordt het .zip-bestand verwijderd. Indien ingesteld op Nee, blijven .zip-bestanden zoals ze zijn geüpload."
+
+msgid "max size {0} MB"
+msgstr "maximale grootte {0} MB"
+
+msgid "max size {0} MB · timeout {1} s"
+msgstr "maximale grootte {0} MB · time-out {1} s"
+
+msgid "nextcloud-photos-1 -> nextcloud-photos-1"
+msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
+
+msgid "sessions ({0})"
+msgstr "sessions ({0})"
+
+msgid "synology-photos-1 -> immich-photos-1"
+msgstr "synology-photos-1 -> immich-photos-1"
+
+msgid "synology-photos-1 -> synology-photos-1"
+msgstr "synology-photos-1 -> synology-photos-1"
+
+msgid "the password of your PhotoMigrator account <b>{0}</b> was changed. If it was not you, contact your administrator right away."
+msgstr "het wachtwoord van je PhotoMigrator-account <b>{0}</b> is gewijzigd. Als jij dat niet was, neem dan direct contact op met je beheerder."
+
+msgid "the password you chose"
+msgstr "het wachtwoord dat je hebt gekozen"
+
+msgid "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can send account notices (requests, activations and password changes) and the emails of finished tasks."
+msgstr "dit is de testmail die je hebt aangevraagd in het Beheerpaneel. Als je deze hebt ontvangen, kan PhotoMigrator accountmeldingen (aanvragen, activeringen en wachtwoordwijzigingen) en de e-mails over voltooide taken verzenden."
+
+msgid "user_configs ({0})"
+msgstr "user_configs ({0})"
+
+msgid "user_states ({0})"
+msgstr "user_states ({0})"
+
+msgid "users ({0})"
+msgstr "users ({0})"
+
+msgid "v5.0.0 · 2026-12-01"
+msgstr "v5.0.0 · 2026-12-01"
+
+msgid "volumes subpath (default username)"
+msgstr "submap van volumes (standaard gebruikersnaam)"
+
+msgid "web_settings ({0})"
+msgstr "web_settings ({0})"
+
+msgid "your PhotoMigrator account is now active. Sign in with the username <b>{0}</b> or your email address and {1}."
+msgstr "je PhotoMigrator-account is nu actief. Meld je aan met de gebruikersnaam <b>{0}</b> of je e-mailadres en {1}."
+
+msgid "your password"
+msgstr "je wachtwoord"
+
+msgid "your request for a PhotoMigrator account was not approved. If you think this is a mistake, reply to this email."
+msgstr "je aanvraag voor een PhotoMigrator-account is niet goedgekeurd. Als je denkt dat dit een vergissing is, beantwoord dan deze e-mail."
+
+msgid "your request for a PhotoMigrator account with the username <b>{0}</b> is waiting for approval. We will email you as soon as it is active."
+msgstr "je aanvraag voor een PhotoMigrator-account met de gebruikersnaam <b>{0}</b> wacht op goedkeuring. We sturen je een e-mail zodra het account actief is."
+
+msgid "your task <b>{0}</b> ended with errors (exit code {1})."
+msgstr "je taak <b>{0}</b> is met fouten beëindigd (afsluitcode {1})."
+
+msgid "your task <b>{0}</b> finished successfully."
+msgstr "je taak <b>{0}</b> is succesvol voltooid."
+
+msgid "your task <b>{0}</b> was stopped before it finished."
+msgstr "je taak <b>{0}</b> is gestopt voordat deze klaar was."
+
+msgid "{0} accounts"
+msgstr "{0}-accounts"
+
+msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
+msgstr "{0} heeft een PhotoMigrator-account voor je gemaakt. Meld je aan met de gebruikersnaam <b>{1}</b> of met dit e-mailadres."
+
+msgid "{0} failed"
+msgstr "{0} mislukt"
+
+msgid "{0} features"
+msgstr "{0} functies"
+
+msgid "{0} finished"
+msgstr "{0} voltooid"
+
+msgid "{0} options"
+msgstr "Opties voor {0}"
+
+msgid "{0} stopped"
+msgstr "{0} gestopt"
+
+msgid "⏱️ Delayed Recovered"
+msgstr "⏱️ Vertraagd hersteld"
+
+msgid "⏱️ Delayed Retries"
+msgstr "⏱️ Vertraagde nieuwe pogingen"
+
+msgid "⏱️ Delayed Retries Queue"
+msgstr "⏱️ Wachtrij vertraagde nieuwe pogingen"
+
+msgid "⏳ Remaining Time"
+msgstr "⏳ Resterende tijd"
+
+msgid "❔ Unknown Files"
+msgstr "❔ Onbekende bestanden"
+
+msgid "⬆️ Push Panel"
+msgstr "⬆️ Push-paneel"
+
+msgid "⬆️ Push Panel - -"
+msgstr "⬆️ Push-paneel - -"
+
+msgid "⬆️ Push Panel - immich-photos-1"
+msgstr "⬆️ Push-paneel - immich-photos-1"
+
+msgid "⬆️ Push Panel - nextcloud-photos-1"
+msgstr "⬆️ Push-paneel - nextcloud-photos-1"
+
+msgid "⬆️ Push Panel - synology-photos-1"
+msgstr "⬆️ Push-paneel - synology-photos-1"
+
+msgid "⬇️ Pull Panel"
+msgstr "⬇️ Pull-paneel"
+
+msgid "⬇️ Pull Panel - -"
+msgstr "⬇️ Pull-paneel - -"
+
+msgid "⬇️ Pull Panel - immich-photos-1"
+msgstr "⬇️ Pull-paneel - immich-photos-1"
+
+msgid "⬇️ Pull Panel - nextcloud-photos-1"
+msgstr "⬇️ Pull-paneel - nextcloud-photos-1"
+
+msgid "⬇️ Pull Panel - synology-photos-1"
+msgstr "⬇️ Pull-paneel - synology-photos-1"
+
+msgid "🎬 Pulled Videos"
+msgstr "🎬 Opgehaalde video's"
+
+msgid "🎬 Pushed Videos"
+msgstr "🎬 Gepushte video's"
+
+msgid "🎬 Total Videos"
+msgstr "🎬 Totaal video's"
+
+msgid "🎯 Pulled Assets"
+msgstr "🎯 Opgehaalde items"
+
+msgid "🎯 Pushed Assets"
+msgstr "🎯 Gepushte items"
+
+msgid "🎯 Total Assets"
+msgstr "🎯 Totaal items"
+
+msgid "📂 Pulled Albums"
+msgstr "📂 Opgehaalde albums"
+
+msgid "📂 Pushed Albums"
+msgstr "📂 Gepushte albums"
+
+msgid "📂 Total Albums"
+msgstr "📂 Totaal albums"
+
+msgid "📅 Estimated End"
+msgstr "📅 Geschat einde"
+
+msgid "📊 Assets in Queue"
+msgstr "📊 Items in wachtrij"
+
+msgid "📊 Info Panel"
+msgstr "📊 Infopaneel"
+
+msgid "📜 Total Metadata"
+msgstr "📜 Totaal metadata"
+
+msgid "📷 Pulled Photos"
+msgstr "📷 Opgehaalde foto's"
+
+msgid "📷 Pushed Photos"
+msgstr "📷 Gepushte foto's"
+
+msgid "📷 Total Photos"
+msgstr "📷 Totaal foto's"
+
+msgid "🔒 Blocked Albums"
+msgstr "🔒 Geblokkeerde albums"
+
+msgid "🔒 Blocked Assets"
+msgstr "🔒 Geblokkeerde items"
+
+msgid "🔗 Total Sidecar"
+msgstr "🔗 Totaal sidecars"
+
+msgid "🔢 Total Albums (New / Duplicates / Failed)"
+msgstr "🔢 Totaal albums (nieuw / duplicaten / mislukt)"
+
+msgid "🔢 Total Assets (New / Duplicates / Failed)"
+msgstr "🔢 Totaal items (nieuw / duplicaten / mislukt)"
+
+msgid "🔢 Total Photos (New / Duplicates / Failed)"
+msgstr "🔢 Totaal foto's (nieuw / duplicaten / mislukt)"
+
+msgid "🔢 Total Videos (New / Duplicates / Failed)"
+msgstr "🔢 Totaal video's (nieuw / duplicaten / mislukt)"
+
+msgid "🕒 Elapsed Time"
+msgstr "🕒 Verstreken tijd"
+
+msgid "🚩 Album Assoc Failed"
+msgstr "🚩 Albumkoppeling mislukt"
+
+msgid "🚩 Failed Albums"
+msgstr "🚩 Mislukte albums"
+
+msgid "🚩 Failed Assets"
+msgstr "🚩 Mislukte items"
+
+msgid "🚩 Failed Photos"
+msgstr "🚩 Mislukte foto's"
+
+msgid "🚩 Failed Videos"
+msgstr "🚩 Mislukte video's"
+
+msgid "🧾 Album Assoc Queue"
+msgstr "🧾 Wachtrij albumkoppelingen"

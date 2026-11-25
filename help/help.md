@@ -14,6 +14,14 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 
 ## Main Web Interface Areas
 
+### Sign in and accounts
+- Sign in with your username or with the email of your account. The site root (`/`) is the PhotoMigrator website; `Sign in` there, or `/app/`, opens the Web Interface. `Website` (and the logo) on the login page goes back to the website.
+- `Request an account` asks for a username, an email (required), a password and an optional message. The account stays inactive until an admin activates it (`Approve`) or rejects it (`Reject`) in the Administration Panel.
+- When email is configured (`SMTP_*` variables or `Admin Panel > Email (SMTP)`), PhotoMigrator emails account requests to the admins and notices to the user when the request is received, the account is created, activated or disabled, the request is rejected or the password changes.
+- Every account needs an email. Admins add or change it with `Email` in the users list.
+- The Administration Panel (admins only) has one tab per section: `Users`, `Email (SMTP)`, `Database Manager`, `Backups Scheduler` and `Access Logs`.
+- Choose the language of the interface (and of your emails) with the language picker on the login page, next to your user in the sidebar, or in the Administration Panel. By default the Web Interface uses the language of your browser.
+
 ### 1. Sidebar
 - `Home` and every feature grouped by task:
   - **Migrate:** Automatic Migration
@@ -25,15 +33,16 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - On a phone, the sidebar opens from the menu button in the top bar.
 
 ### 2. Home
-- Asks "What would you like to do today?" and lists the tasks as cards.
-- Shows the three steps to get started and a shortcut to `Activity`.
+- Asks "What do you want to move today?" and shows a `Start a migration` shortcut with the source and target of your last Automatic Migration, and the state of the job linked to your session (with a link to `Activity`).
+- `Libraries & tools` shows a card for every feature, each with its own colour and icon.
+- The three steps to get started and a few quick tools.
 
 ### 3. Feature pages
-- A header with the feature name, a short description and `Restore defaults`.
+- A header in the colour of the feature with its name, a short description and `Restore defaults`.
 - For photo libraries and Other Features, a visual action picker grouped by purpose (for example Transfer, Organize and Clean up).
 - Numbered option cards with plain-language labels, a short help text and the CLI flag of each field. Advanced options are collapsed.
 - An `About` card with the full description of the selected feature or action, and a warning card for actions that delete or change data.
-- A run bar at the bottom with the live `Command` preview, a copy button, `Run` and `Stop`.
+- A run panel with the live `Command` preview, a copy button, `Email me when it finishes`, `Run` and `Stop`, at the top of the right-hand column on wide screens and as a bar at the bottom on smaller screens. With `Email me when it finishes` on, you get an email with the result, the duration and the last lines of the log when the task ends (it needs an email in your account and email configured on the server).
 
 ### 4. Activity
 - Status, start time, elapsed time and last update of the current or last job.
@@ -51,7 +60,7 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 1. Add the URL and credentials of each account in `Settings > Service credentials` (or through supported environment variables if you run the Web Interface in Docker/Compose/Kubernetes).
 2. Review `Settings > General arguments` (logs, shared filters, paths).
 3. Choose a task from `Home` or the sidebar.
-4. Validate the generated command in the `Command` preview of the run bar.
+4. Validate the generated command in the `Command` preview of the run panel.
 5. Press `Run` and follow the progress in `Activity`.
 
 ---

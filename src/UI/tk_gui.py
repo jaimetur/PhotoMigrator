@@ -166,6 +166,62 @@ TONES = {
     "tool": ("#f1f5f9", "#475569", "#1e293b", "#cbd5e1"),
 }
 
+# Colour layer: solid colour of each module (headers, sidebar chips, Run button) and its readable
+# accent for text on cards (light theme, dark theme).
+MODULE_COLORS = {
+    "mig": ("#6d28d9", "#6d28d9", "#c4b5fd"),
+    "gto": ("#c2410c", "#c2410c", "#fdba74"),
+    "ico": ("#0369a1", "#0369a1", "#7dd3fc"),
+    "gph": ("#1d4ed8", "#1d4ed8", "#93c5fd"),
+    "syn": ("#3730a3", "#4338ca", "#a5b4fc"),
+    "imm": ("#0f766e", "#0f766e", "#5eead4"),
+    "nxc": ("#0e7490", "#0e7490", "#67e8f9"),
+    "loc": ("#b45309", "#a16207", "#fcd34d"),
+    "tool": ("#be185d", "#be185d", "#f9a8d4"),
+    "home": ("#7c3aed", "#6d28d9", "#c4b5fd"),
+    "act": ("#0d9488", "#0f766e", "#5eead4"),
+    "set": ("#475569", "#334155", "#cbd5e1"),
+    "help": ("#4338ca", "#4338ca", "#a5b4fc"),
+}
+SIDEBAR_COLORS = {
+    "bg": "#1e1b4b",
+    "hover": "#2c2961",
+    "active": "#3b3672",
+    "text": "#ffffff",
+    "muted": "#c4b5fd",
+    "label": "#a5b4fc",
+    "border": "#35316b",
+}
+ACTIVITY_HEADER_COLOR = "#312e81"
+SETTINGS_HEADER_COLOR = "#4c1d95"
+ACTION_GROUP_INK = {
+    "Transfer": ("#1d4ed8", "#93c5fd"),
+    "Organize": ("#6d28d9", "#c4b5fd"),
+    "Clean up": ("#b91c1c", "#fca5a5"),
+    "Folders": ("#6d28d9", "#c4b5fd"),
+    "Duplicates": ("#be185d", "#f9a8d4"),
+}
+HOME_CARD_TEXT = {
+    "automatic_migration": "Source to target",
+    "google_takeout": "Fix a Google export",
+    "icloud_takeout": "Fix an Apple export",
+    "google_photos": "Albums and assets",
+    "synology_photos": "Albums and assets",
+    "immich_photos": "Albums and assets",
+    "nextcloud_photos": "Albums and assets",
+    "local_folder": "Your own library",
+    "standalone_features": "Duplicates, folders",
+}
+
+
+def mix_colors(color: str, other: str, amount: float) -> str:
+    """Blend two #rrggbb colours; amount=0 keeps color, amount=1 returns other."""
+    first = [int(color[i:i + 2], 16) for i in (1, 3, 5)]
+    second = [int(other[i:i + 2], 16) for i in (1, 3, 5)]
+    mixed = [round(a + (b - a) * amount) for a, b in zip(first, second)]
+    return "#" + "".join(f"{value:02x}" for value in mixed)
+
+
 MODULE_GROUPS = [
     ("Migrate", ["automatic_migration"]),
     ("Process Takeout", ["google_takeout", "icloud_takeout"]),
@@ -183,12 +239,6 @@ MODULE_META = {
     "nextcloud_photos": {"label": "NextCloud Photos", "glyph": "N", "tone": "nxc", "tagline": "Upload, download, organize and clean up albums and assets in your NextCloud Photos library."},
     "local_folder": {"label": "Local Photos Folder", "glyph": "▭", "tone": "loc", "tagline": "Treat a local folder as a photo library and run the same album and asset actions used for cloud services."},
     "standalone_features": {"label": "Other Features", "glyph": "✱", "tone": "tool", "tagline": "Local helpers: repair symlinks, rename or organize folders, and find or process duplicates."},
-}
-
-HOME_GROUP_TEXT = {
-    "Process Takeout": ("Fix an export from Google or Apple", "Restore dates and metadata and rebuild albums into a clean library."),
-    "Photo libraries": ("Manage a library", "Upload, download, rename, clean up and deduplicate albums and assets."),
-    "Tools": ("Local helpers", "Repair, rename, organize and deduplicate local folders."),
 }
 
 ACTION_GROUP_ORDER = ["Transfer", "Organize", "Clean up", "Folders", "Duplicates"]
@@ -556,6 +606,20 @@ class PhotoMigratorTkGUI:
         light_bg, light_fg, dark_bg, dark_fg = TONES.get(tone, TONES["tool"])
         return (dark_bg, dark_fg) if self.is_dark_theme() else (light_bg, light_fg)
 
+    def module_color(self, tone: str) -> str:
+        return MODULE_COLORS.get(tone, MODULE_COLORS["home"])[0]
+
+    def tone_ink(self, tone: str) -> str:
+        _solid, light_ink, dark_ink = MODULE_COLORS.get(tone, MODULE_COLORS["home"])
+        return dark_ink if self.is_dark_theme() else light_ink
+
+    def active_tone(self) -> str:
+        if self.active_general_tab == VIEW_FEATURE:
+            return MODULE_META.get(self.active_module, {}).get("tone", "home")
+        if self.active_general_tab == VIEW_ACTIVITY:
+            return MODULE_META.get(self.run_module or self.active_module, {}).get("tone", "home")
+        return "home"
+
     # ------------------------------------------------------------------
     # Layout
     # ------------------------------------------------------------------
@@ -573,7 +637,7 @@ class PhotoMigratorTkGUI:
 
         self.brand = tk.Frame(self.sidebar, bd=0)
         self.brand.pack(fill="x", padx=14, pady=(16, 10))
-        logo_path = self.project_root / "assets" / "logos" / "logo_17_1024x1024.png"
+        logo_path = self.project_root / "assets" / "logos" / "logo_18_1024x1024.png"
         self.brand_logo = tk.Label(self.brand, bd=0)
         if logo_path.exists():
             try:
@@ -594,7 +658,7 @@ class PhotoMigratorTkGUI:
         self.nav_frame = tk.Frame(self.sidebar, bd=0)
         self.nav_frame.pack(fill="both", expand=True, padx=10)
         self.nav_labels: List[Any] = []
-        self._add_nav_item(self.nav_frame, "view:home", "⌂", "Home", "tool", lambda: self.select_view(VIEW_HOME))
+        self._add_nav_item(self.nav_frame, "view:home", "⌂", "Home", "home", lambda: self.select_view(VIEW_HOME))
         for group_title, modules in MODULE_GROUPS:
             label = tk.Label(self.nav_frame, text=group_title.upper(), anchor="w", font=(UI_FONT, 8, "bold"))
             label.pack(fill="x", padx=8, pady=(12, 3))
@@ -607,10 +671,10 @@ class PhotoMigratorTkGUI:
         self.sidebar_footer.pack(fill="x", side="bottom", padx=10, pady=(6, 12))
         self.sidebar_footer_border = tk.Frame(self.sidebar_footer, height=1, bd=0)
         self.sidebar_footer_border.pack(fill="x", pady=(0, 8))
-        self._add_nav_item(self.sidebar_footer, "view:activity", "◔", "Activity", "tool", lambda: self.select_view(VIEW_ACTIVITY))
-        self._add_nav_item(self.sidebar_footer, "view:settings", "⚙", "Settings", "tool", lambda: self.select_view(self.last_settings_view()))
-        self._add_nav_item(self.sidebar_footer, "view:help", "?", "Help", "tool", self.action_open_help)
-        self.exit_button = self.ttk.Button(self.sidebar_footer, text="Exit", command=self.action_request_exit, style="PM.Secondary.TButton")
+        self._add_nav_item(self.sidebar_footer, "view:activity", "◔", "Activity", "act", lambda: self.select_view(VIEW_ACTIVITY))
+        self._add_nav_item(self.sidebar_footer, "view:settings", "⚙", "Settings", "set", lambda: self.select_view(self.last_settings_view()))
+        self._add_nav_item(self.sidebar_footer, "view:help", "?", "Help", "help", self.action_open_help)
+        self.exit_button = self.ttk.Button(self.sidebar_footer, text="Exit", command=self.action_request_exit, style="PM.Sidebar.TButton")
         self.exit_button.pack(fill="x", pady=(8, 0))
 
         self.main = tk.Frame(self.root, bd=0)
@@ -808,22 +872,19 @@ class PhotoMigratorTkGUI:
             return
         active = self._nav_item_active(key)
         if active:
-            bg = theme["accent_soft"]
-            fg = theme["accent_strong"]
+            bg = SIDEBAR_COLORS["active"]
         elif item.get("hover"):
-            bg = theme["surface_3"]
-            fg = theme["text"]
+            bg = SIDEBAR_COLORS["hover"]
         else:
-            bg = theme["sidebar_bg"]
-            fg = theme["text_2"]
-        tone_bg, tone_fg = self.tone_colors(item["tone"])
+            bg = SIDEBAR_COLORS["bg"]
+        fg = SIDEBAR_COLORS["text"]
         item["row"].configure(bg=bg)
-        item["icon"].configure(bg=tone_bg, fg=tone_fg)
+        item["icon"].configure(bg=self.module_color(item["tone"]), fg="#ffffff")
         item["text"].configure(bg=bg, fg=fg, font=(UI_FONT, 11, "bold" if active else "normal"))
         badge_text = str(item["badge"].cget("text") or "")
         item["badge"].configure(
-            bg=(theme["success_soft"] if badge_text else bg),
-            fg=theme["success"],
+            bg=("#22c55e" if badge_text else bg),
+            fg="#052e16",
         )
 
     def refresh_navigation(self) -> None:
@@ -852,16 +913,17 @@ class PhotoMigratorTkGUI:
         theme = self.current_theme()
         self.root.configure(bg=theme["root_bg"])
         self.configure_ttk_styles()
-        self.sidebar.configure(bg=theme["sidebar_bg"])
-        self.sidebar_border.configure(bg=theme["border"])
+        side_bg = SIDEBAR_COLORS["bg"]
+        self.sidebar.configure(bg=side_bg)
+        self.sidebar_border.configure(bg=side_bg)
         for widget in (self.brand, self.brand_text, self.nav_frame, self.sidebar_footer):
-            widget.configure(bg=theme["sidebar_bg"])
-        self.brand_logo.configure(bg=theme["sidebar_bg"])
-        self.brand_name.configure(bg=theme["sidebar_bg"], fg=theme["text"])
-        self.brand_version.configure(bg=theme["sidebar_bg"], fg=theme["muted"])
+            widget.configure(bg=side_bg)
+        self.brand_logo.configure(bg=side_bg)
+        self.brand_name.configure(bg=side_bg, fg=SIDEBAR_COLORS["text"])
+        self.brand_version.configure(bg=side_bg, fg=SIDEBAR_COLORS["muted"])
         for label in self.nav_labels:
-            label.configure(bg=theme["sidebar_bg"], fg=theme["muted"])
-        self.sidebar_footer_border.configure(bg=theme["border"])
+            label.configure(bg=side_bg, fg=SIDEBAR_COLORS["label"])
+        self.sidebar_footer_border.configure(bg=SIDEBAR_COLORS["border"])
         self.main.configure(bg=theme["root_bg"])
         self.header.configure(bg=theme["surface"])
         self.header_border.configure(bg=theme["border"])
@@ -970,6 +1032,9 @@ class PhotoMigratorTkGUI:
         button_style("PM.Danger.TButton", theme["surface"], theme["danger"], theme["border_strong"], theme["danger_soft"])
         button_style("PM.Segment.TButton", theme["surface"], theme["text_2"], theme["border_strong"], theme["surface_3"], bold=False, padding=(12, 6))
         button_style("PM.SegmentActive.TButton", theme["accent"], theme["accent_fg"], theme["accent"], theme["accent_strong"], padding=(12, 6))
+        button_style("PM.Sidebar.TButton", SIDEBAR_COLORS["active"], SIDEBAR_COLORS["text"], SIDEBAR_COLORS["border"], SIDEBAR_COLORS["hover"])
+        button_style("PM.OnColor.TButton", "#ffffff", "#1e1b4b", "#ffffff", "#ede9fe")
+        self.button_style = button_style
         style.configure(
             "PM.Vertical.TScrollbar",
             troughcolor=theme["root_bg"],
@@ -996,7 +1061,7 @@ class PhotoMigratorTkGUI:
             tagline = meta.get("tagline", "")
             icon_glyph = meta.get("glyph", "•")
             tone = meta.get("tone", "tool")
-            self.ttk.Button(self.header_actions, text="⟲  Restore defaults", command=self.restore_feature_defaults, style="PM.Secondary.TButton").pack(side="right")
+            self.ttk.Button(self.header_actions, text="⟲  Restore defaults", command=self.restore_feature_defaults, style="PM.OnColor.TButton").pack(side="right")
         elif view == VIEW_ACTIVITY:
             module_key = self.run_module or self.active_module
             meta = MODULE_META.get(module_key, {})
@@ -1012,14 +1077,26 @@ class PhotoMigratorTkGUI:
             icon_glyph = "⚙"
         else:
             eyebrow = "PHOTOMIGRATOR"
-            title = "What would you like to do today?"
+            title = "What do you want to move today?"
             tagline = "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
-        tone_bg, tone_fg = self.tone_colors(tone)
-        self.header_icon.configure(text=icon_glyph, bg=tone_bg, fg=tone_fg)
-        self.header_eyebrow.configure(text=eyebrow)
-        self.header_title.configure(text=title)
-        self.header_tagline.configure(text=tagline)
-        self.header.configure(bg=theme["surface"])
+        if view == VIEW_FEATURE:
+            header_bg = self.module_color(tone)
+        elif view == VIEW_ACTIVITY:
+            header_bg = ACTIVITY_HEADER_COLOR
+        elif view in SETTINGS_VIEWS:
+            header_bg = SETTINGS_HEADER_COLOR
+        else:
+            header_bg = self.module_color("home")
+        self.header_icon.configure(text=icon_glyph, bg=mix_colors(header_bg, "#ffffff", 0.22), fg="#ffffff")
+        self.header_eyebrow.configure(text=eyebrow, bg=header_bg, fg=mix_colors(header_bg, "#ffffff", 0.8))
+        self.header_title.configure(text=title, bg=header_bg, fg="#ffffff")
+        self.header_tagline.configure(text=tagline, bg=header_bg, fg=mix_colors(header_bg, "#ffffff", 0.88))
+        self.header.configure(bg=header_bg)
+        self.header_actions.configure(bg=header_bg)
+        self.header_border.configure(bg=header_bg)
+        run_color = self.module_color(self.active_tone())
+        if hasattr(self, "button_style"):
+            self.button_style("PM.Primary.TButton", run_color, "#ffffff", run_color, mix_colors(run_color, "#000000", 0.15))
         self._sync_all_wrap_labels()
 
     def module_group_title(self, module_key: str) -> str:
@@ -1125,7 +1202,7 @@ class PhotoMigratorTkGUI:
         row = self.tk.Frame(parent, bg=parent.cget("bg"))
         row.pack(fill="x", pady=(0, 12))
         if number:
-            badge = self.tk.Label(row, text=str(number), width=2, bg=theme["step_bg"], fg=theme["step_fg"], font=(UI_FONT, 10, "bold"))
+            badge = self.tk.Label(row, text=str(number), width=2, bg=self.module_color(self.active_tone()), fg="#ffffff", font=(UI_FONT, 10, "bold"))
             badge.pack(side="left", padx=(0, 10), ipady=2)
         self.tk.Label(row, text=title, bg=parent.cget("bg"), fg=theme["text"], font=(UI_FONT, 13, "bold"), anchor="w").pack(side="left")
         if extra:
@@ -1486,33 +1563,31 @@ class PhotoMigratorTkGUI:
     # ------------------------------------------------------------------
     def build_home_widgets(self, parent: Any) -> List[Any]:
         theme = self.current_theme()
-        migration = self._card(parent, pady=(0, 18))
-        top = self.tk.Frame(migration, bg=theme["surface"])
-        top.pack(fill="x")
-        tone_bg, tone_fg = self.tone_colors("mig")
-        self.tk.Label(top, text="⇄", width=3, bg=tone_bg, fg=tone_fg, font=(UI_FONT, 14, "bold")).pack(side="left", padx=(0, 12), ipady=4)
-        text = self.tk.Frame(top, bg=theme["surface"])
+        hero_bg = self.module_color("mig")
+        hero_outer = self.tk.Frame(parent, bg=hero_bg, bd=0)
+        hero_outer.pack(fill="x", pady=(0, 18))
+        hero = self.tk.Frame(hero_outer, bg=hero_bg, bd=0)
+        hero.pack(fill="x", padx=24, pady=22)
+        self.ttk.Button(hero, text="⇄  Start a migration", command=lambda: self.select_module("automatic_migration"), style="PM.OnColor.TButton").pack(side="right", padx=(16, 0))
+        text = self.tk.Frame(hero, bg=hero_bg)
         text.pack(side="left", fill="x", expand=True)
-        self.tk.Label(text, text="MIGRATE", bg=theme["surface"], fg=theme["muted"], font=(UI_FONT, 9, "bold"), anchor="w").pack(fill="x")
-        self.tk.Label(text, text="Move your whole library to another service", bg=theme["surface"], fg=theme["text"], font=(UI_FONT, 15, "bold"), anchor="w").pack(fill="x")
-        self._muted_label(text, "Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run. Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction.", size=11).pack(fill="x", pady=(4, 0))
-        self.ttk.Button(top, text="Start a migration  →", command=lambda: self.select_module("automatic_migration"), style="PM.Primary.TButton").pack(side="right", padx=(16, 0))
+        self.tk.Label(text, text="START HERE", bg=mix_colors(hero_bg, "#ffffff", 0.18), fg="#ffffff", font=(UI_FONT, 9, "bold"), padx=8, pady=2).pack(anchor="w")
+        self.tk.Label(text, text="Move a whole library in one run", bg=hero_bg, fg="#ffffff", font=(UI_FONT, 17, "bold"), anchor="w").pack(fill="x", pady=(8, 2))
+        subtitle = self.tk.Label(text, text="Photos, videos and albums from a source to a target, with a live dashboard.", bg=hero_bg, fg=mix_colors(hero_bg, "#ffffff", 0.85), font=(UI_FONT, 11), anchor="w", justify="left")
+        subtitle.pack(fill="x")
+        self.wrap_labels.append(subtitle)
 
+        self.tk.Label(parent, text="LIBRARIES & TOOLS", bg=theme["root_bg"], fg=self.tone_ink("mig"), font=(UI_FONT, 10, "bold"), anchor="w").pack(fill="x", pady=(0, 8))
         grid = self.tk.Frame(parent, bg=theme["root_bg"])
         grid.pack(fill="x")
-        groups = [(title, modules) for title, modules in MODULE_GROUPS if title != "Migrate"]
-        for index, (group_title, modules) in enumerate(groups):
-            grid.grid_columnconfigure(index, weight=1, uniform="home")
-            outer = self.tk.Frame(grid, bg=theme["surface"], highlightthickness=1, highlightbackground=theme["border"])
-            outer.grid(row=0, column=index, sticky="nsew", padx=(0 if index == 0 else 8, 0 if index == len(groups) - 1 else 8))
-            card = self.tk.Frame(outer, bg=theme["surface"])
-            card.pack(fill="both", expand=True, padx=18, pady=16)
-            heading, description = HOME_GROUP_TEXT.get(group_title, (group_title, ""))
-            self.tk.Label(card, text=group_title.upper(), bg=theme["surface"], fg=theme["muted"], font=(UI_FONT, 9, "bold"), anchor="w").pack(fill="x")
-            self.tk.Label(card, text=heading, bg=theme["surface"], fg=theme["text"], font=(UI_FONT, 13, "bold"), anchor="w").pack(fill="x", pady=(2, 0))
-            self._muted_label(card, description, size=10).pack(fill="x", pady=(2, 10))
-            for module_key in modules:
-                self._home_tile(card, module_key)
+        modules = [key for _title, keys in MODULE_GROUPS for key in keys if key in MODULE_META]
+        modules = [key for key in modules if key != "automatic_migration"] + [key for key in modules if key == "automatic_migration"]
+        available_width = max(int(self.main.winfo_width() or 0) - 80, 600)
+        columns = max(2, min(5, available_width // 230))
+        for col in range(columns):
+            grid.grid_columnconfigure(col, weight=1, uniform="home-cards")
+        for index, module_key in enumerate(modules):
+            self._home_tile(grid, module_key, index // columns, index % columns, columns)
 
         steps = self._card(parent, pady=(18, 0))
         self.tk.Label(steps, text="Get started in three steps", bg=theme["surface"], fg=theme["text"], font=(UI_FONT, 13, "bold"), anchor="w").pack(fill="x", pady=(0, 10))
@@ -1523,7 +1598,7 @@ class PhotoMigratorTkGUI:
         ):
             row = self.tk.Frame(steps, bg=theme["surface"])
             row.pack(fill="x", pady=4)
-            self.tk.Label(row, text=str(number), width=2, bg=theme["accent_soft"], fg=theme["accent_strong"], font=(UI_FONT, 10, "bold")).pack(side="left", padx=(0, 12), ipady=2)
+            self.tk.Label(row, text=str(number), width=2, bg=self.module_color("home"), fg="#ffffff", font=(UI_FONT, 10, "bold")).pack(side="left", padx=(0, 12), ipady=2)
             column = self.tk.Frame(row, bg=theme["surface"])
             column.pack(side="left", fill="x", expand=True)
             self.tk.Label(column, text=title, bg=theme["surface"], fg=theme["text"], font=(UI_FONT, 11, "bold"), anchor="w").pack(fill="x")
@@ -1534,27 +1609,33 @@ class PhotoMigratorTkGUI:
         self.ttk.Button(buttons, text="Open Activity", command=lambda: self.select_view(VIEW_ACTIVITY), style="PM.Secondary.TButton").pack(side="left", padx=(8, 0))
         return []
 
-    def _home_tile(self, parent: Any, module_key: str) -> None:
+    def _home_tile(self, parent: Any, module_key: str, row: int, column: int, columns: int) -> None:
+        """Module card (style F): coloured title, short underline and the module glyph on the right."""
         theme = self.current_theme()
         meta = MODULE_META[module_key]
+        ink = self.tone_ink(meta["tone"])
         tile = self.tk.Frame(parent, bg=theme["surface"], highlightthickness=1, highlightbackground=theme["border"], cursor="hand2")
-        tile.pack(fill="x", pady=4)
-        tone_bg, tone_fg = self.tone_colors(meta["tone"])
-        icon = self.tk.Label(tile, text=meta["glyph"], width=2, bg=tone_bg, fg=tone_fg, font=(UI_FONT, 12, "bold"), cursor="hand2")
-        icon.pack(side="left", padx=10, pady=8, ipady=3, ipadx=2)
-        name = self.tk.Label(tile, text=meta["label"], bg=theme["surface"], fg=theme["text"], font=(UI_FONT, 11, "bold"), anchor="w", cursor="hand2")
-        name.pack(side="left", fill="x", expand=True)
-        chevron = self.tk.Label(tile, text="›", bg=theme["surface"], fg=theme["muted"], font=(UI_FONT, 14), cursor="hand2")
-        chevron.pack(side="right", padx=10)
-        widgets = (tile, icon, name, chevron)
+        tile.grid(row=row, column=column, sticky="nsew", padx=(0 if column == 0 else 6, 0 if column == columns - 1 else 6), pady=6)
+        body = self.tk.Frame(tile, bg=theme["surface"], cursor="hand2")
+        body.pack(fill="both", expand=True, padx=16, pady=16)
+        text = self.tk.Frame(body, bg=theme["surface"], cursor="hand2")
+        text.pack(side="left", fill="x", expand=True)
+        name = self.tk.Label(text, text=meta["label"], bg=theme["surface"], fg=ink, font=(UI_FONT, 12, "bold"), anchor="w", cursor="hand2")
+        name.pack(fill="x")
+        desc = self.tk.Label(text, text=HOME_CARD_TEXT.get(module_key, ""), bg=theme["surface"], fg=theme["muted"], font=(UI_FONT, 10), anchor="w", cursor="hand2")
+        desc.pack(fill="x", pady=(2, 0))
+        underline_row = self.tk.Frame(text, bg=theme["surface"], cursor="hand2")
+        underline_row.pack(fill="x", pady=(8, 0))
+        underline = self.tk.Frame(underline_row, bg=ink, width=28, height=3, cursor="hand2")
+        underline.pack(side="left")
+        glyph = self.tk.Label(body, text=meta["glyph"], bg=theme["surface"], fg=ink, font=(UI_FONT, 22, "bold"), cursor="hand2")
+        glyph.pack(side="right", padx=(8, 0))
+        surfaces = (tile, body, text, name, desc, underline_row, glyph)
 
         def hover(on: bool) -> None:
-            bg = theme["surface_2"] if on else theme["surface"]
-            for widget in (tile, name, chevron):
-                widget.configure(bg=bg)
-            tile.configure(highlightbackground=theme["border_strong"] if on else theme["border"])
+            tile.configure(highlightbackground=ink if on else theme["border"])
 
-        for widget in widgets:
+        for widget in surfaces + (underline,):
             widget.bind("<Button-1>", lambda _e, key=module_key: self.select_module(key), add="+")
             widget.bind("<Enter>", lambda _e: hover(True), add="+")
             widget.bind("<Leave>", lambda _e: hover(False), add="+")
@@ -1748,18 +1829,22 @@ class PhotoMigratorTkGUI:
         for index, (kind, label, glyph, tone) in enumerate(MIGRATION_ENDPOINT_KINDS):
             picker.grid_columnconfigure(index, weight=1, uniform=f"svc-{dest}")
             selected = state.get("kind") == kind
+            tone_solid = self.module_color(tone)
             option = self.tk.Frame(
                 picker,
-                bg=(theme["accent_soft"] if selected else theme["surface"]),
+                bg=(tone_solid if selected else theme["surface"]),
                 highlightthickness=(2 if selected else 1),
-                highlightbackground=(theme["accent"] if selected else theme["border"]),
+                highlightbackground=(tone_solid if selected else theme["border"]),
                 cursor="hand2",
             )
             option.grid(row=0, column=index, sticky="nsew", padx=(0 if index == 0 else 3, 0 if index == len(MIGRATION_ENDPOINT_KINDS) - 1 else 3))
-            tone_bg, tone_fg = self.tone_colors(tone)
-            icon = self.tk.Label(option, text=glyph, width=2, bg=tone_bg, fg=tone_fg, font=(UI_FONT, 11, "bold"), cursor="hand2")
+            if selected:
+                icon_bg, icon_fg = mix_colors(tone_solid, "#ffffff", 0.22), "#ffffff"
+            else:
+                icon_bg, icon_fg = tone_solid, "#ffffff"
+            icon = self.tk.Label(option, text=glyph, width=2, bg=icon_bg, fg=icon_fg, font=(UI_FONT, 11, "bold"), cursor="hand2")
             icon.pack(pady=(8, 4), ipady=2)
-            name = self.tk.Label(option, text=label, bg=option.cget("bg"), fg=(theme["accent_strong"] if selected else theme["text_2"]), font=(UI_FONT, 9, "bold"), cursor="hand2")
+            name = self.tk.Label(option, text=label, bg=option.cget("bg"), fg=("#ffffff" if selected else self.tone_ink(tone)), font=(UI_FONT, 9, "bold"), cursor="hand2")
             name.pack(pady=(0, 8))
             for widget in (option, icon, name):
                 widget.bind("<Button-1>", lambda _e, k=kind: choose(k), add="+")
@@ -1943,6 +2028,7 @@ class PhotoMigratorTkGUI:
 
     def _action_picker(self, parent: Any, actions: List[Dict[str, Any]], selected_dest: str, on_select: Callable[[str], None]) -> None:
         theme = self.current_theme()
+        module_ink = self.tone_ink(self.active_tone())
         grouped: Dict[str, List[Dict[str, Any]]] = {}
         for action in actions:
             group = ACTION_META.get(action["dest"], ("Other", "•", "", False))[0]
@@ -1950,7 +2036,8 @@ class PhotoMigratorTkGUI:
         order = [group for group in ACTION_GROUP_ORDER if group in grouped] + [group for group in grouped if group not in ACTION_GROUP_ORDER]
         for group in order:
             if len(grouped) > 1:
-                self.tk.Label(parent, text=group.upper(), bg=parent.cget("bg"), fg=theme["muted"], font=(UI_FONT, 9, "bold"), anchor="w").pack(fill="x", pady=(4, 6))
+                light_ink, dark_ink = ACTION_GROUP_INK.get(group, (theme["muted"], theme["muted"]))
+                self.tk.Label(parent, text=group.upper(), bg=parent.cget("bg"), fg=(dark_ink if self.is_dark_theme() else light_ink), font=(UI_FONT, 9, "bold"), anchor="w").pack(fill="x", pady=(4, 6))
             grid = self.tk.Frame(parent, bg=parent.cget("bg"))
             grid.pack(fill="x", pady=(0, 8))
             columns = 3
@@ -1959,26 +2046,32 @@ class PhotoMigratorTkGUI:
             for index, action in enumerate(grouped[group]):
                 _group, glyph, description, danger = ACTION_META.get(action["dest"], ("Other", "•", "", False))
                 selected = action["dest"] == selected_dest
-                tile_bg = theme["accent_soft"] if selected else theme["surface"]
+                light_ink, dark_ink = ACTION_GROUP_INK.get(group, ("#6d28d9", "#c4b5fd"))
+                group_ink = dark_ink if self.is_dark_theme() else light_ink
+                ink = module_ink if selected else group_ink
+                tile_bg = theme["surface"]
                 tile = self.tk.Frame(
                     grid,
                     bg=tile_bg,
                     highlightthickness=(2 if selected else 1),
-                    highlightbackground=(theme["accent"] if selected else theme["border"]),
+                    highlightbackground=(module_ink if selected else theme["border"]),
                     cursor="hand2",
                 )
                 tile.grid(row=index // columns, column=index % columns, sticky="nsew", padx=(0 if index % columns == 0 else 4, 0 if index % columns == columns - 1 else 4), pady=4)
-                head = self.tk.Frame(tile, bg=tile_bg)
-                head.pack(fill="x", padx=12, pady=(10, 2))
-                icon_bg = theme["danger_soft"] if danger else (theme["accent_soft"] if group == "Transfer" else theme["surface_3"])
-                icon_fg = theme["danger"] if danger else (theme["accent_strong"] if group == "Transfer" else theme["text_2"])
-                icon = self.tk.Label(head, text=glyph, width=2, bg=icon_bg, fg=icon_fg, font=(UI_FONT, 11, "bold"), cursor="hand2")
-                icon.pack(side="left", ipady=1)
-                name = self.tk.Label(tile, text=FEATURE_LABELS.get(action["dest"], humanize_label(action["dest"])), bg=tile_bg, fg=(theme["danger"] if danger else theme["text"]), font=(UI_FONT, 11, "bold"), anchor="w", cursor="hand2")
-                name.pack(fill="x", padx=12)
-                desc = self.tk.Label(tile, text=description or short_help_text(str(action.get("help") or ""), 60), bg=tile_bg, fg=theme["muted"], font=(UI_FONT, 9), anchor="w", justify="left", cursor="hand2")
-                desc.pack(fill="x", padx=12, pady=(0, 10))
-                for widget in (tile, head, icon, name, desc):
+                head = self.tk.Frame(tile, bg=tile_bg, cursor="hand2")
+                head.pack(fill="both", expand=True, padx=14, pady=12)
+                text = self.tk.Frame(head, bg=tile_bg, cursor="hand2")
+                text.pack(side="left", fill="x", expand=True)
+                name = self.tk.Label(text, text=FEATURE_LABELS.get(action["dest"], humanize_label(action["dest"])), bg=tile_bg, fg=ink, font=(UI_FONT, 11, "bold"), anchor="w", justify="left", cursor="hand2")
+                name.pack(fill="x")
+                desc = self.tk.Label(text, text=description or short_help_text(str(action.get("help") or ""), 60), bg=tile_bg, fg=theme["muted"], font=(UI_FONT, 9), anchor="w", justify="left", cursor="hand2")
+                desc.pack(fill="x", pady=(1, 0))
+                underline_row = self.tk.Frame(text, bg=tile_bg, cursor="hand2")
+                underline_row.pack(fill="x", pady=(6, 0))
+                self.tk.Frame(underline_row, bg=ink, width=28, height=3).pack(side="left")
+                icon = self.tk.Label(head, text=glyph, bg=tile_bg, fg=ink, font=(UI_FONT, 16, "bold"), cursor="hand2")
+                icon.pack(side="right", padx=(8, 0))
+                for widget in (tile, head, text, icon, name, desc, underline_row):
                     widget.bind("<Button-1>", lambda _e, dest=action["dest"]: on_select(dest), add="+")
                 self._bind_help(tile, str(action.get("help") or ""))
 
@@ -2444,7 +2537,7 @@ class PhotoMigratorTkGUI:
         if disabled:
             track_fill = theme["surface_3"]
         else:
-            track_fill = theme["accent"] if value else theme["switch_off"]
+            track_fill = self.tone_ink(self.active_tone()) if value else theme["switch_off"]
         thumb_fill = "#ffffff"
         switch.configure(cursor="arrow" if disabled else "hand2")
         switch.delete("all")

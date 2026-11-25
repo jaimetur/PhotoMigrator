@@ -246,6 +246,28 @@ IMMICH_API_KEY_ADMIN=your_admin_api_key
 
 Environment variables override the values stored in `Config.ini` at runtime.
 
+### Optional email (account notices and finished tasks)
+
+The Web Interface can send emails when someone requests an account, when an account is created, activated, disabled or its request is rejected, when a password changes, and when a task finishes (if the user turned on **Email me when it finishes** next to **Run**). Configure an SMTP account in `.env`:
+
+```env
+SMTP_HOST=mail.example.com
+SMTP_PORT=465
+SMTP_SECURITY=ssl
+SMTP_USERNAME=photomigrator@example.com
+SMTP_PASSWORD=your-smtp-password
+SMTP_FROM=photomigrator@example.com
+SMTP_FROM_NAME=PhotoMigrator
+PHOTOMIGRATOR_WEB_PUBLIC_URL=https://photomigrator.example.com
+PHOTOMIGRATOR_WEB_ACCOUNT_REQUESTS=true
+```
+
+- `SMTP_SECURITY`: `ssl` (port 465 by default), `starttls` (587) or `none` (25).
+- Without `SMTP_HOST` and `SMTP_FROM` no emails are sent; everything else keeps working.
+- The **Email (SMTP)** section of the Administration Panel can override these values (the password is stored encrypted and never shown) and send a test email.
+- `PHOTOMIGRATOR_WEB_PUBLIC_URL`: address used in the links of the emails. If it is empty, links use the address the browser used to open the Web Interface.
+- `PHOTOMIGRATOR_WEB_ACCOUNT_REQUESTS`: shows **Request an account** on the login page (default `true`; set `false` to hide it). Requested accounts stay inactive until an admin activates them.
+
 ---
 ## 5. Cross-platform notes
 

@@ -3,24 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{ i18n_head(request) }}
     <title>{{ tool_name }} Login</title>
-    <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
-    <link rel="apple-touch-icon" href="/assets/logos/logo_17_1024x1024.png?v=1">
-    <link rel="stylesheet" href="/static/style.css?v=20261201-v5-redesign">
+    <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
+    <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-colour">
 </head>
 <body class="login-page" data-theme="ocean">
+<div class="login-split">
+<aside class="login-hero" aria-hidden="true">
+    <div class="login-hero__brand"><img src="/assets/logos/logo_18_1024x1024.png?v=18" alt=""><span>{{ tool_name }}</span></div>
+    <div class="login-hero__text">
+        <h2>Move your photo library. Keep every memory.</h2>
+        <p>Google Photos, Synology, Immich, NextCloud, local folders and Takeout exports, in one place.</p>
+    </div>
+    <div class="login-hero__tiles">
+        <span class="login-hero__tile tv-gph"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 9h28a2 2 0 0 1 2 2v26a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2zM8 30l9-9 8 8 5-5 10 10M28.5 17a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0"/></svg><span>Google Photos</span></span>
+        <span class="login-hero__tile tv-syn"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 9h26a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2zM11 27h26a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2zM15 15h.01M15 33h.01M27 15h6M27 33h6"/></svg><span>Synology</span></span>
+        <span class="login-hero__tile tv-imm"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 17a3 3 0 0 1 3-3h6l3-4h8l3 4h6a3 3 0 0 1 3 3v19a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3zM16 27a8 8 0 1 0 16 0a8 8 0 1 0-16 0M35 19h.01"/></svg><span>Immich</span></span>
+        <span class="login-hero__tile tv-nxc"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 24a7 7 0 1 0 14 0a7 7 0 1 0-14 0M5 24a4 4 0 1 0 8 0a4 4 0 1 0-8 0M35 24a4 4 0 1 0 8 0a4 4 0 1 0-8 0"/></svg><span>NextCloud</span></span>
+        <span class="login-hero__tile tv-gto"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10h34v7H7zM9 17v21a2 2 0 0 0 2 2h26a2 2 0 0 0 2-2V17M20 25h8"/></svg><span>Takeout</span></span>
+    </div>
+</aside>
+<div class="login-shell">
+<div class="login-top">
+    <span class="login-lang" data-lang-picker></span>
+    <a id="login-website-link" class="login-website-link" href="{{ website_url }}" target="_top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+        Website
+    </a>
+</div>
 <main class="login-card">
-    <div class="login-brand">
-        <img src="/assets/logos/logo_17_1024x1024.png" alt="">
+    <a class="login-brand" href="{{ website_url }}" target="_top" title="{{ tool_name }} website">
+        <img src="/assets/logos/logo_18_1024x1024.png?v=18" alt="">
         <div>
             <h1>{{ tool_name }}</h1>
             <p class="login-subtitle">Version {{ tool_version }} · Sign in to continue</p>
         </div>
-    </div>
+    </a>
     <form id="login-form" class="login-form" autocomplete="off">
         <label>
-            <span>Username</span>
-            <input id="username" type="text" required autocomplete="off" spellcheck="false">
+            <span>Username or email</span>
+            <input id="username" type="text" required autocomplete="off" autocapitalize="none" spellcheck="false">
         </label>
         <label>
             <span>Password</span>
@@ -37,8 +61,45 @@
     {% if show_demo_hint %}
     <p class="login-default-note">Demo account available: <code>demo</code> / <code>demo</code>.</p>
     {% endif %}
+    {% if account_requests_enabled %}
+    <p id="login-request-switch" class="login-switch">
+        <span>New here?</span>
+        <button type="button" id="show-request-form" class="login-link-btn">Request an account</button>
+    </p>
+    <form id="request-form" class="login-form" autocomplete="off" hidden>
+        <p class="login-request-intro">An administrator reviews every request. You will get an email when your account is active.</p>
+        <label>
+            <span>Username</span>
+            <input id="request-username" type="text" required maxlength="64" pattern="[A-Za-z0-9._\-]{1,64}" title="Letters, numbers, dots, hyphens or underscores" autocomplete="off" autocapitalize="none" spellcheck="false">
+        </label>
+        <label>
+            <span>Email</span>
+            <input id="request-email" type="email" required maxlength="254" autocomplete="off" autocapitalize="none" spellcheck="false">
+        </label>
+        <label>
+            <span>Password (at least 8 characters)</span>
+            <input id="request-password" type="password" required minlength="8" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+        </label>
+        <label>
+            <span>Confirm password</span>
+            <input id="request-password-confirm" type="password" required minlength="8" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+        </label>
+        <label>
+            <span>Message for the administrator (optional)</span>
+            <textarea id="request-note" class="field__input" maxlength="500" rows="2"></textarea>
+        </label>
+        <label class="login-honeypot" aria-hidden="true">
+            <span>Website</span>
+            <input id="request-website" type="text" tabindex="-1" autocomplete="off">
+        </label>
+        <button type="submit" class="run-btn run-btn--primary">Send request</button>
+        <button type="button" id="show-login-form" class="login-link-btn">Back to sign in</button>
+    </form>
+    {% endif %}
     <p id="login-status" class="status">Status: ready</p>
 </main>
+</div>
+</div>
 
 <script>
     const form = document.getElementById("login-form");
@@ -52,6 +113,54 @@
         togglePasswordEl.textContent = isVisible ? "Hide" : "Show";
         togglePasswordEl.setAttribute("aria-label", isVisible ? "Hide password" : "Show password");
         togglePasswordEl.setAttribute("aria-pressed", isVisible ? "true" : "false");
+    }
+
+    const requestForm = document.getElementById("request-form");
+    if (requestForm) {
+        const loginOnlyEls = [form, document.getElementById("login-request-switch"), ...document.querySelectorAll(".login-default-note")];
+
+        function showRequestForm(visible) {
+            requestForm.hidden = !visible;
+            loginOnlyEls.forEach((el) => { if (el) el.hidden = visible; });
+            statusEl.textContent = "Status: ready";
+            const focusTarget = document.getElementById(visible ? "request-username" : "username");
+            if (focusTarget) focusTarget.focus();
+        }
+
+        document.getElementById("show-request-form").addEventListener("click", () => showRequestForm(true));
+        document.getElementById("show-login-form").addEventListener("click", () => showRequestForm(false));
+
+        requestForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const password = document.getElementById("request-password").value;
+            if (password !== document.getElementById("request-password-confirm").value) {
+                statusEl.textContent = "Status: the passwords do not match";
+                return;
+            }
+            statusEl.textContent = "Status: sending request...";
+            try {
+                const response = await fetch("/api/auth/request-account", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        username: document.getElementById("request-username").value.trim(),
+                        email: document.getElementById("request-email").value.trim(),
+                        password,
+                        note: document.getElementById("request-note").value.trim(),
+                        website: document.getElementById("request-website").value
+                    })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(String(data?.detail || "Unable to send the request"));
+                }
+                requestForm.reset();
+                showRequestForm(false);
+                statusEl.textContent = "Status: request sent. You will get an email when an administrator activates your account.";
+            } catch (error) {
+                statusEl.textContent = `Status: ${error instanceof Error ? error.message : String(error)}`;
+            }
+        });
     }
 
     togglePasswordEl.addEventListener("click", () => {
@@ -76,7 +185,7 @@
                 throw new Error(String(data?.detail || "Invalid credentials"));
             }
             statusEl.textContent = "Status: login successful";
-            window.location.href = "/";
+            window.location.href = "/features?view=home";
         } catch (error) {
             statusEl.textContent = `Status: ${String(error)}`;
         }

@@ -28,7 +28,16 @@ from fastapi import Cookie, Depends, FastAPI, File, Form, HTTPException, Query, 
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from html import escape as _html_escape
 from pydantic import BaseModel, Field
+
+from markupsafe import Markup
+
+from . import mailer
+
+if str(Path(__file__).resolve().parents[2]) not in sys.path:
+    sys.path.append(str(Path(__file__).resolve().parents[2]))
+from lang import i18n as ui_i18n  # noqa: E402  (shared catalogs and helpers in <project>/lang)
 
 
 SRC_ROOT = Path(__file__).resolve().parents[1]
@@ -82,6 +91,17 @@ WEB_INTERFACE_THEME_KEY = "THEME"
 WEB_INTERFACE_THEME_DEFAULT = "ocean"
 WEB_INTERFACE_THEME_CHOICES = ["ocean", "emerald", "dark", "sunset"]
 WEB_ALLOWED_ROLES = {"admin", "user", "demo"}
+# Public address of the Web Interface used in email links (for example https://photomigrator.example.com).
+# When empty, links are built from the address used to open the Web Interface.
+WEB_PUBLIC_URL = os.environ.get("PHOTOMIGRATOR_WEB_PUBLIC_URL", "").strip().rstrip("/")
+# "Request an account" on the login page: requested accounts stay inactive until an admin activates them.
+WEB_ACCOUNT_REQUESTS_ENABLED = os.environ.get("PHOTOMIGRATOR_WEB_ACCOUNT_REQUESTS", "true").strip().lower() not in {"0", "false", "no", "off"}
+WEB_ACCOUNT_REQUESTS_PER_HOUR = 5
+WEB_ACCOUNT_REQUESTS_PER_HOUR_TOTAL = 20
+WEB_ACCOUNT_REQUEST_MIN_PASSWORD_LENGTH = 8
+WEB_EMAIL_PATTERN = re.compile(r"^[A-Za-z0-9._%+'-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$")
+WEB_MAIL_SETTINGS_KEY = "mail"
+WEB_JOB_EMAIL_LOG_TAIL_LINES = 20
 WEB_BACKUP_DEFAULT_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_BACKUP_DIR", "/app/config/backups"))
 WEB_BACKUP_DEFAULT_INTERVAL_MINUTES = int(os.environ.get("PHOTOMIGRATOR_WEB_BACKUP_INTERVAL_MINUTES", "1440"))
 WEB_BACKUP_DEFAULT_KEEP_LAST = int(os.environ.get("PHOTOMIGRATOR_WEB_BACKUP_KEEP_LAST", "14"))
@@ -437,6 +457,7 @@ class RunRequest(BaseModel):
     tab: str
     values: Dict[str, Any] = Field(default_factory=dict)
     selected_action_dest: str | None = None
+    notify_email: bool = False
 
 
 class ConfigUpdateRequest(BaseModel):
@@ -470,8 +491,32 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = ""
 
 
+class AccountRequest(BaseModel):
+    username: str = ""
+    email: str = ""
+    password: str = ""
+    note: str = ""
+    website: str = ""  # Honeypot field: hidden from people, filled only by bots.
+
+
+class MailSettingsRequest(BaseModel):
+    host: str = ""
+    port: int | None = None
+    security: str = "ssl"
+    username: str = ""
+    password: str = ""  # Empty keeps the saved password.
+    clear_password: bool = False
+    from_address: str = ""
+    from_name: str = ""
+
+
+class MailTestRequest(BaseModel):
+    to: str = ""
+
+
 class AdminUserCreateRequest(BaseModel):
     username: str = ""
+    email: str = ""
     password: str = ""
     role: str = "user"
     is_active: bool = True
@@ -481,6 +526,7 @@ class AdminUserCreateRequest(BaseModel):
 
 
 class AdminUserUpdateRequest(BaseModel):
+    email: str | None = None
     password: str | None = None
     role: str | None = None
     is_active: bool | None = None
@@ -562,6 +608,10 @@ class JobData:
         self.finished_at: str | None = None
         self.last_updated_at = self.started_at
         self.dashboard_context: Dict[str, Any] = dict(dashboard_context or {})
+        # Email the owner when the job finishes ("Email me when it finishes" in the run bar).
+        self.notify_email_to = ""
+        self.notify_username = ""
+        self.notify_base_url = ""
         self.dashboard_snapshot: Dict[str, Any] = {}
         self.dashboard_snapshot_from_events = False
         self.dashboard_snapshot_updated_at: str | None = None
@@ -1122,6 +1172,18 @@ def _init_web_db(template_schema: List[Dict[str, Any]]) -> None:
                 volume1_subpath TEXT NOT NULL DEFAULT '',
                 state_json TEXT NOT NULL DEFAULT '{}',
                 created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                email TEXT NOT NULL DEFAULT '',
+                request_note TEXT NOT NULL DEFAULT '',
+                requested_at TEXT NOT NULL DEFAULT ''
+            )
+            """
+        )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS web_settings (
+                key TEXT PRIMARY KEY,
+                value_json TEXT NOT NULL DEFAULT '{}',
                 updated_at TEXT NOT NULL
             )
             """
@@ -1195,6 +1257,17 @@ def _init_web_db(template_schema: List[Dict[str, Any]]) -> None:
         if "schedule_mode" not in backup_cols:
             cur.execute("ALTER TABLE backup_schedules ADD COLUMN schedule_mode TEXT NOT NULL DEFAULT 'daily_2am'")
             conn.commit()
+        # Account emails (login, notifications) and account requests from the login page.
+        user_cols = {str(row["name"]) for row in cur.execute("PRAGMA table_info(users)").fetchall()}
+        for column_name in ("email", "request_note", "requested_at", "lang"):
+            if column_name not in user_cols:
+                cur.execute(f"ALTER TABLE users ADD COLUMN {column_name} TEXT NOT NULL DEFAULT ''")
+        conn.commit()
+        try:
+            cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(LOWER(email)) WHERE email <> ''")
+            conn.commit()
+        except sqlite3.DatabaseError as exc:
+            WEB_LOGGER.warning("Unable to create the unique email index (duplicated emails?): %s", exc)
 
         # Safety net: never allow the system to remain without at least one active admin.
         admin_count = int(
@@ -1337,6 +1410,263 @@ def _fetch_user_by_username(username: str) -> Dict[str, Any] | None:
         return dict(row) if row else None
     finally:
         conn.close()
+
+
+def _fetch_user_by_login(identifier: str) -> Dict[str, Any] | None:
+    """User of the login form: the username first, then the account email."""
+    value = str(identifier or "").strip()
+    if not value:
+        return None
+    user = _fetch_user_by_username(value)
+    if user or "@" not in value:
+        return user
+    conn = _db_connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM users WHERE email <> '' AND LOWER(email) = LOWER(?)",
+            (value,),
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def _clean_email(value: Any, required: bool = False) -> str:
+    email = str(value or "").strip().lower()
+    if not email:
+        if required:
+            raise HTTPException(status_code=400, detail="Email is required.")
+        return ""
+    if len(email) > 254 or not WEB_EMAIL_PATTERN.match(email):
+        raise HTTPException(status_code=400, detail="Enter a valid email address.")
+    return email
+
+
+def _email_in_use(conn: sqlite3.Connection, email: str, exclude_user_id: int | None = None) -> bool:
+    row = conn.execute(
+        "SELECT id FROM users WHERE email <> '' AND LOWER(email) = LOWER(?) AND id <> ?",
+        (email, int(exclude_user_id if exclude_user_id is not None else -1)),
+    ).fetchone()
+    return row is not None
+
+
+def _active_admin_emails(conn: sqlite3.Connection) -> List[str]:
+    rows = conn.execute(
+        "SELECT email FROM users WHERE LOWER(TRIM(role)) = 'admin' AND is_active = 1 AND email <> ''"
+    ).fetchall()
+    return [str(row["email"]) for row in rows]
+
+
+def _is_pending_account_request(user: Dict[str, Any] | None) -> bool:
+    return bool(user) and not bool(user.get("is_active")) and bool(str(user.get("requested_at") or "").strip())
+
+
+def _get_web_setting(key: str, default: Any = None) -> Any:
+    try:
+        conn = _db_connect()
+        try:
+            row = conn.execute("SELECT value_json FROM web_settings WHERE key = ?", (str(key),)).fetchone()
+        finally:
+            conn.close()
+    except sqlite3.DatabaseError:
+        return default
+    if not row:
+        return default
+    try:
+        return json.loads(str(row["value_json"] or "null"))
+    except (TypeError, ValueError):
+        return default
+
+
+def _set_web_setting(key: str, value: Any) -> None:
+    conn = _db_connect()
+    try:
+        conn.execute(
+            """
+            INSERT INTO web_settings (key, value_json, updated_at) VALUES (?, ?, ?)
+            ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at
+            """,
+            (str(key), json.dumps(value, ensure_ascii=False), _utc_now_iso()),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _load_stored_mail_settings() -> Dict[str, str]:
+    """Mail settings saved in the Administration Panel (the SMTP password is stored encrypted)."""
+    stored = _get_web_setting(WEB_MAIL_SETTINGS_KEY, {}) or {}
+    if not isinstance(stored, dict):
+        return {}
+    values = {key: str(stored.get(key) or "") for key in mailer.FIELDS if key != "password"}
+    encrypted_password = str(stored.get("password_encrypted") or "")
+    values["password"] = _decrypt_value(encrypted_password) if encrypted_password else ""
+    return values
+
+
+mailer.set_stored_settings_loader(_load_stored_mail_settings)
+
+
+def _group_recipients_by_lang(recipients: List[str]) -> Dict[str, List[str]]:
+    """Recipients grouped by the language of their account (English when there is no account or language)."""
+    langs: Dict[str, str] = {}
+    try:
+        conn = _db_connect()
+        try:
+            placeholders = ",".join("?" * len(recipients))
+            rows = conn.execute(
+                f"SELECT LOWER(email) AS email, lang FROM users WHERE LOWER(email) IN ({placeholders})",
+                [str(item).lower() for item in recipients],
+            ).fetchall()
+        finally:
+            conn.close()
+        langs = {str(row["email"]): str(row["lang"] or "") for row in rows}
+    except sqlite3.DatabaseError:
+        pass
+    groups: Dict[str, List[str]] = {}
+    for recipient in recipients:
+        lang = ui_i18n.clean(langs.get(str(recipient).lower())) or ui_i18n.DEFAULT
+        groups.setdefault(lang, []).append(recipient)
+    return groups
+
+
+mailer.set_localizer(_group_recipients_by_lang, ui_i18n.translate, ui_i18n.translate_html)
+
+
+def _public_base_url(request: Request | None) -> str:
+    if WEB_PUBLIC_URL:
+        return WEB_PUBLIC_URL
+    if request is None:
+        return ""
+    proto = str(request.headers.get("x-forwarded-proto") or request.url.scheme or "http").split(",")[0].strip()
+    host = str(request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.netloc).split(",")[0].strip()
+    return f"{proto}://{host}" if host else ""
+
+
+def _email_greeting(user: Dict[str, Any]) -> str:
+    return f"Hi {_html_escape(str(user.get('username') or 'there'))},"
+
+
+def _send_account_request_emails(user: Dict[str, Any], admin_emails: List[str], base_url: str) -> None:
+    username = _html_escape(str(user.get("username") or ""))
+    email = _html_escape(str(user.get("email") or ""))
+    note = str(user.get("request_note") or "").strip()
+    note_html = f"<br>Message: <i>{_html_escape(note)}</i>" if note else ""
+    mailer.send_later(
+        admin_emails,
+        f"Account request from {user.get('username')}",
+        mailer.page(
+            "New account request",
+            [
+                f"<b>{username}</b> ({email}) asked for a PhotoMigrator account.{note_html}",
+                "Approve it by activating the account in the Administration Panel, or reject it from the same list.",
+            ],
+            link=("Review the request", f"{base_url}/admin"),
+        ),
+        reply_to=str(user.get("email") or "") or None,
+    )
+    mailer.send_later(
+        [str(user.get("email") or "")],
+        "We received your account request",
+        mailer.page(
+            "We received your account request",
+            [
+                _email_greeting(user),
+                f"your request for a PhotoMigrator account with the username <b>{username}</b> is waiting for approval. "
+                "We will email you as soon as it is active.",
+            ],
+        ),
+    )
+
+
+def _send_account_created_email(user: Dict[str, Any], created_by: Dict[str, Any], base_url: str, temporary_password: str = "") -> None:
+    username = _html_escape(str(user.get("username") or ""))
+    admin_name = _html_escape(str(created_by.get("username") or "An administrator"))
+    paragraphs = [
+        _email_greeting(user),
+        f"{admin_name} created a PhotoMigrator account for you. Sign in with the username <b>{username}</b> or with this email address.",
+    ]
+    if temporary_password:
+        paragraphs.append(
+            f"Your temporary password is <b>{_html_escape(temporary_password)}</b>. You will choose your own password the first time you sign in."
+        )
+    else:
+        paragraphs.append("Use the password your administrator gave you.")
+    if not bool(user.get("is_active")):
+        paragraphs.append("The account is not active yet. We will email you when it is.")
+    mailer.send_later(
+        [str(user.get("email") or "")],
+        "Your PhotoMigrator account",
+        mailer.page("Your PhotoMigrator account", paragraphs, link=("Sign in to PhotoMigrator", f"{base_url}/login")),
+        reply_to=str(created_by.get("email") or "") or None,
+    )
+
+
+def _send_account_activated_email(user: Dict[str, Any], base_url: str, from_request: bool) -> None:
+    username = _html_escape(str(user.get("username") or ""))
+    password_hint = "the password you chose" if from_request else "your password"
+    mailer.send_later(
+        [str(user.get("email") or "")],
+        "Your account is active",
+        mailer.page(
+            "Your account is active",
+            [
+                _email_greeting(user),
+                f"your PhotoMigrator account is now active. Sign in with the username <b>{username}</b> or your email address and {password_hint}.",
+            ],
+            link=("Sign in to PhotoMigrator", f"{base_url}/login"),
+        ),
+    )
+
+
+def _send_account_deactivated_email(user: Dict[str, Any], admin: Dict[str, Any]) -> None:
+    username = _html_escape(str(user.get("username") or ""))
+    mailer.send_later(
+        [str(user.get("email") or "")],
+        "Your account has been disabled",
+        mailer.page(
+            "Your account has been disabled",
+            [
+                _email_greeting(user),
+                f"an administrator disabled your PhotoMigrator account <b>{username}</b>. If you think this is a mistake, reply to this email.",
+            ],
+        ),
+        reply_to=str(admin.get("email") or "") or None,
+    )
+
+
+def _send_account_request_rejected_email(user: Dict[str, Any], admin: Dict[str, Any]) -> None:
+    mailer.send_later(
+        [str(user.get("email") or "")],
+        "Your account request",
+        mailer.page(
+            "Your account request",
+            [
+                _email_greeting(user),
+                "your request for a PhotoMigrator account was not approved. If you think this is a mistake, reply to this email.",
+            ],
+        ),
+        reply_to=str(admin.get("email") or "") or None,
+    )
+
+
+def _send_password_changed_email(user: Dict[str, Any], base_url: str, by_admin: bool) -> None:
+    username = _html_escape(str(user.get("username") or ""))
+    if by_admin:
+        detail = (
+            f"an administrator changed the password of your PhotoMigrator account <b>{username}</b>. "
+            "Ask them for the new password if you did not get it. If you did not expect this change, contact them."
+        )
+    else:
+        detail = (
+            f"the password of your PhotoMigrator account <b>{username}</b> was changed. "
+            "If it was not you, contact your administrator right away."
+        )
+    mailer.send_later(
+        [str(user.get("email") or "")],
+        "Your password was changed",
+        mailer.page("Your password was changed", [_email_greeting(user), detail], link=("Sign in to PhotoMigrator", f"{base_url}/login")),
+    )
 
 
 def _is_login_hint_account_available(
@@ -3003,7 +3333,65 @@ async def _web_app_lifespan(_app: FastAPI):
 app = FastAPI(title="PhotoMigrator Web Interface", lifespan=_web_app_lifespan)
 app.mount("/static", StaticFiles(directory=str(SRC_ROOT / "web_interface" / "static")), name="static")
 app.mount("/assets", StaticFiles(directory=str(PROJECT_ROOT / "assets")), name="assets")
+# Public product website (landing page) linked from the login page. Installations without the
+# landing/ folder link to the GitHub project page instead.
+LANDING_ROOT = PROJECT_ROOT / "landing"
+PROJECT_WEBSITE_FALLBACK_URL = "https://github.com/jaimetur/PhotoMigrator"
+if LANDING_ROOT.is_dir():
+    # The landing page itself is served at "/" (see home()); "/landing" redirects there. Only its media are static.
+    app.mount("/landing/media", StaticFiles(directory=str(LANDING_ROOT / "media")), name="landing")
 templates = Jinja2Templates(directory=str(SRC_ROOT / "web_interface" / "html"))
+
+
+LANG_JS_PATH = PROJECT_ROOT / "lang" / "i18n.js"
+
+
+def _ui_lang(request: Request) -> str:
+    """Language of the pages: the one of the signed-in account, else the cookie, else the browser, else English."""
+    if request is None:
+        return ui_i18n.DEFAULT
+    user = _user_from_session_token(request.cookies.get(WEB_SESSION_COOKIE))
+    return (
+        ui_i18n.clean((user or {}).get("lang"))
+        or ui_i18n.clean(request.cookies.get(ui_i18n.COOKIE))
+        or ui_i18n.from_accept_language(request.headers.get("accept-language"))
+        or ui_i18n.DEFAULT
+    )
+
+
+def _i18n_head(request: Request) -> Markup:
+    lang = _ui_lang(request)
+    try:
+        js_stamp = int(LANG_JS_PATH.stat().st_mtime)
+    except OSError:
+        js_stamp = 0
+    languages = json.dumps(ui_i18n.LANGS, ensure_ascii=False)
+    return Markup(
+        f'<script>window.PM_LANG = "{lang}"; window.PM_LANGS = {languages};</script>\n'
+        f'    <script src="/api/i18n/{lang}.js?v={ui_i18n.stamp(lang)}"></script>\n'
+        f'    <script src="/lang/i18n.js?v={js_stamp}"></script>'
+    )
+
+
+templates.env.globals["i18n_head"] = _i18n_head
+
+
+def _project_website_url() -> str:
+    return "/" if (LANDING_ROOT / "index.html").is_file() else PROJECT_WEBSITE_FALLBACK_URL
+
+
+WEB_APP_HOME_PATH = "/features?view=home"
+
+
+def _landing_page_html() -> str | None:
+    """landing/index.html adapted to be served at "/": absolute media URLs and a "Sign in" button to the app."""
+    index = LANDING_ROOT / "index.html"
+    if not index.is_file():
+        return None
+    page = index.read_text(encoding="utf-8")
+    page = re.sub(r'(src|href|content)="media/', r'\1="/landing/media/', page)
+    sign_in = '<a class="btn sec" href="/app/">Sign in</a>\n  '
+    return page.replace('<a class="btn sec gh"', sign_in + '<a class="btn sec gh"', 1)
 
 
 def _tab_for_dest(dest: str) -> str:
@@ -3731,6 +4119,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
             job.awaiting_confirmation = False
             job.process = None
             _close_job_output_file(job)
+    _send_job_finished_email(job)
 
 
 def _force_kill_job_process(job_id: str, process: subprocess.Popen[str], delay_seconds: float = 3.0) -> None:
@@ -3791,10 +4180,51 @@ def _resolve_help_doc_path(doc_file: str) -> Path:
     return target
 
 
+class LanguageRequest(BaseModel):
+    lang: str = ""
+
+
+@app.get("/lang/i18n.js")
+def get_i18n_script() -> Response:
+    if not LANG_JS_PATH.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    return Response(
+        LANG_JS_PATH.read_text(encoding="utf-8"),
+        media_type="application/javascript",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@app.get("/api/i18n/{lang_file}")
+def get_i18n_catalog(lang_file: str) -> Response:
+    """Catalog of a language as a script (window.PM_I18N) so the pages load it before they render."""
+    lang = ui_i18n.clean(lang_file.removesuffix(".js")) or ui_i18n.DEFAULT
+    body = "window.PM_I18N = " + json.dumps(ui_i18n.catalog(lang), ensure_ascii=False) + ";\n"
+    return Response(body, media_type="application/javascript", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.post("/api/lang")
+def set_ui_language(payload: LanguageRequest, request: Request, response: Response) -> Dict[str, Any]:
+    """Choose the language of the pages (saved in the account when signed in, and in a cookie)."""
+    lang = ui_i18n.clean(payload.lang)
+    if not lang:
+        raise HTTPException(status_code=400, detail="Unsupported language.")
+    user = _user_from_session_token(request.cookies.get(WEB_SESSION_COOKIE))
+    if user:
+        conn = _db_connect()
+        try:
+            conn.execute("UPDATE users SET lang = ? WHERE id = ?", (lang, int(user["id"])))
+            conn.commit()
+        finally:
+            conn.close()
+    response.set_cookie(ui_i18n.COOKIE, lang, max_age=365 * 86400, samesite="lax", path="/")
+    return {"lang": lang}
+
+
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
     if _user_from_session_token(session_token):
-        return RedirectResponse(url="/", status_code=302)
+        return RedirectResponse(url=WEB_APP_HOME_PATH, status_code=302)
     show_default_admin_hint = _is_login_hint_account_available(username="admin", password="admin123")
     show_demo_hint = _is_login_hint_account_available(username="demo", password="demo", required_role="demo")
     response = templates.TemplateResponse(
@@ -3805,6 +4235,8 @@ def login_page(request: Request, session_token: str | None = Cookie(default=None
             "tool_version": TOOL_VERSION,
             "show_default_admin_hint": show_default_admin_hint,
             "show_demo_hint": show_demo_hint,
+            "website_url": _project_website_url(),
+            "account_requests_enabled": WEB_ACCOUNT_REQUESTS_ENABLED,
         },
     )
     return _html_no_store_response(response)
@@ -3814,7 +4246,7 @@ def login_page(request: Request, session_token: str | None = Cookie(default=None
 def api_login(payload: LoginRequest, response: Response, request: Request) -> Dict[str, Any]:
     username = str(payload.username or "").strip()
     password = str(payload.password or "")
-    user = _fetch_user_by_username(username)
+    user = _fetch_user_by_login(username)
     if not user or not bool(user.get("is_active")) or not _pbkdf2_verify_password(password, str(user.get("password_hash") or "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = _create_session_for_user(int(user["id"]))
@@ -3829,6 +4261,139 @@ def api_login(payload: LoginRequest, response: Response, request: Request) -> Di
         path="/",
     )
     return {"ok": True}
+
+
+ACCOUNT_REQUEST_ATTEMPTS: Dict[str, Deque[float]] = {}
+ACCOUNT_REQUEST_ATTEMPTS_LOCK = threading.Lock()
+ACCOUNT_REQUEST_USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+
+
+def _account_request_throttled(client_ip: str) -> bool:
+    """Limit account requests per client IP and in total (the client IP can be spoofed through proxy headers)."""
+    now = time.monotonic()
+    with ACCOUNT_REQUEST_ATTEMPTS_LOCK:
+        buckets = (
+            (ACCOUNT_REQUEST_ATTEMPTS.setdefault(f"ip:{client_ip or 'unknown'}", deque()), WEB_ACCOUNT_REQUESTS_PER_HOUR),
+            (ACCOUNT_REQUEST_ATTEMPTS.setdefault("all", deque()), WEB_ACCOUNT_REQUESTS_PER_HOUR_TOTAL),
+        )
+        for attempts, _limit in buckets:
+            while attempts and now - attempts[0] > 3600:
+                attempts.popleft()
+        if any(len(attempts) >= limit for attempts, limit in buckets):
+            return True
+        for attempts, _limit in buckets:
+            attempts.append(now)
+        return False
+
+
+def _insert_user_with_defaults(
+    conn: sqlite3.Connection,
+    *,
+    username: str,
+    password: str,
+    role: str,
+    is_active: bool,
+    must_change_password: bool,
+    data_subpath: str,
+    volume1_subpath: str,
+    email: str,
+    request_note: str = "",
+    requested_at: str = "",
+) -> int:
+    """Insert a user with the default configuration and an empty UI state (the caller commits)."""
+    now = _utc_now_iso()
+    cursor = conn.execute(
+        """
+        INSERT INTO users (
+            username, password_hash, role, is_active, must_change_password,
+            data_subpath, volume1_subpath, state_json, created_at, updated_at,
+            email, request_note, requested_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, '{}', ?, ?, ?, ?, ?)
+        """,
+        (
+            username,
+            _pbkdf2_hash_password(password),
+            role,
+            1 if is_active else 0,
+            1 if must_change_password else 0,
+            data_subpath,
+            volume1_subpath,
+            now,
+            now,
+            email,
+            request_note,
+            requested_at,
+        ),
+    )
+    user_id = int(cursor.lastrowid)
+    template_defaults = _merge_values_with_schema({}, CONFIG_FORM_SCHEMA)
+    encrypted_defaults = _encrypt_config_values(template_defaults, CONFIG_FORM_SCHEMA)
+    conn.execute(
+        "INSERT INTO user_configs (user_id, config_json, updated_at) VALUES (?, ?, ?)",
+        (user_id, json.dumps(encrypted_defaults, ensure_ascii=False), now),
+    )
+    conn.execute(
+        "INSERT INTO user_states (user_id, state_json, updated_at) VALUES (?, '{}', ?)",
+        (user_id, now),
+    )
+    return user_id
+
+
+@app.post("/api/auth/request-account", status_code=201)
+def api_request_account(payload: AccountRequest, request: Request) -> Dict[str, Any]:
+    """Create an inactive account from the login page; an admin activates (approves) or deletes (rejects) it."""
+    if not WEB_ACCOUNT_REQUESTS_ENABLED:
+        raise HTTPException(status_code=404, detail="Account requests are disabled.")
+    if _account_request_throttled(_extract_client_ip(request)):
+        raise HTTPException(status_code=429, detail="Too many account requests. Try again later.")
+    if str(payload.website or "").strip():
+        return {"requested": True}
+    username = str(payload.username or "").strip()
+    if not ACCOUNT_REQUEST_USERNAME_PATTERN.match(username):
+        raise HTTPException(
+            status_code=400,
+            detail="Choose a username of up to 64 letters, numbers, dots, hyphens or underscores.",
+        )
+    email = _clean_email(payload.email, required=True)
+    password = str(payload.password or "")
+    if len(password) < WEB_ACCOUNT_REQUEST_MIN_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"The password must have at least {WEB_ACCOUNT_REQUEST_MIN_PASSWORD_LENGTH} characters.",
+        )
+    note = str(payload.note or "").strip()[:500]
+    conn = _db_connect()
+    try:
+        if conn.execute("SELECT id FROM users WHERE LOWER(username) = LOWER(?)", (username,)).fetchone():
+            raise HTTPException(status_code=409, detail="That username is already taken.")
+        if _email_in_use(conn, email):
+            raise HTTPException(status_code=409, detail="There is already an account or a request with that email.")
+        try:
+            user_id = _insert_user_with_defaults(
+                conn,
+                username=username,
+                password=password,
+                role="user",
+                is_active=False,
+                must_change_password=False,
+                data_subpath=_normalize_subpath("", username),
+                volume1_subpath=_normalize_subpath("", username),
+                email=email,
+                request_note=note,
+                requested_at=_utc_now_iso(),
+            )
+        except sqlite3.IntegrityError:
+            raise HTTPException(status_code=409, detail="That username or email is already in use.")
+        # The account keeps the language the request was made in (emails and pages).
+        conn.execute("UPDATE users SET lang = ? WHERE id = ?", (_ui_lang(request), user_id))
+        admin_emails = _active_admin_emails(conn)
+        conn.commit()
+    finally:
+        conn.close()
+    created = _fetch_user_by_id(user_id)
+    if created:
+        _send_account_request_emails(created, admin_emails, _public_base_url(request))
+    return {"requested": True}
 
 
 @app.post("/api/auth/logout")
@@ -3847,6 +4412,8 @@ def api_me(current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, A
     return {
         "id": int(current_user["id"]),
         "username": str(current_user["username"]),
+        "email": str(current_user.get("email") or ""),
+        "email_notifications_available": bool(str(current_user.get("email") or "").strip()) and mailer.is_configured(),
         "role": str(current_user.get("role") or "user"),
         "is_admin": str(current_user.get("role") or "").strip().lower() == "admin",
         "must_change_password": bool(current_user.get("must_change_password")),
@@ -3857,7 +4424,7 @@ def api_me(current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, A
 
 
 @app.post("/api/me/change-password")
-def api_change_password(payload: ChangePasswordRequest, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
+def api_change_password(payload: ChangePasswordRequest, request: Request, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
     current_password = str(payload.current_password or "")
     new_password = str(payload.new_password or "")
     if not _pbkdf2_verify_password(current_password, str(current_user.get("password_hash") or "")):
@@ -3871,6 +4438,7 @@ def api_change_password(payload: ChangePasswordRequest, current_user: Dict[str, 
         conn.commit()
     finally:
         conn.close()
+    _send_password_changed_email(current_user, _public_base_url(request), by_admin=False)
     return {"saved": True}
 
 
@@ -3917,10 +4485,28 @@ def _render_main_page(request: Request, current_user: Dict[str, Any], template_n
 
 @app.get("/", response_class=HTMLResponse)
 def home(session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
+    landing = _landing_page_html()
+    if landing is not None:
+        return HTMLResponse(landing)
     current_user = _user_from_session_token(session_token)
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
-    return RedirectResponse(url="/features?view=home", status_code=302)
+    return RedirectResponse(url=WEB_APP_HOME_PATH, status_code=302)
+
+
+@app.get("/app", include_in_schema=False)
+@app.get("/app/", include_in_schema=False)
+def app_entry(session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> RedirectResponse:
+    """Entry point of the Web Interface (the site root "/" is the landing page)."""
+    if not _user_from_session_token(session_token):
+        return RedirectResponse(url="/login", status_code=302)
+    return RedirectResponse(url=WEB_APP_HOME_PATH, status_code=302)
+
+
+@app.get("/landing", include_in_schema=False)
+@app.get("/landing/", include_in_schema=False)
+def landing_redirect() -> RedirectResponse:
+    return RedirectResponse(url="/", status_code=301)
 
 
 @app.get("/features", response_class=HTMLResponse)
@@ -4446,8 +5032,85 @@ def preview_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_req
     return {"command": _display_command_for_user(command, config_path, current_user)}
 
 
+WEB_FEATURE_TITLES = {
+    "automatic_migration": "Automatic Migration",
+    "google_takeout": "Google Takeout",
+    "icloud_takeout": "iCloud Takeout",
+    "google_photos": "Google Photos",
+    "synology_photos": "Synology Photos",
+    "immich_photos": "Immich Photos",
+    "nextcloud_photos": "NextCloud Photos",
+    "local_folder": "Local Photos Folder",
+    "standalone_features": "Other Features",
+}
+
+
+def _humanize_identifier(value: str) -> str:
+    words = re.split(r"[-_\s]+", str(value or "").strip())
+    return " ".join(word[:1].upper() + word[1:] for word in words if word)
+
+
+def _format_job_duration(job: JobData) -> str:
+    try:
+        started = datetime.fromisoformat(str(job.started_at))
+        finished = datetime.fromisoformat(str(job.finished_at or job.started_at))
+    except ValueError:
+        return "unknown"
+    seconds = max(0, int((finished - started).total_seconds()))
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{hours}:{minutes:02d}:{seconds:02d}"
+
+
+def _send_job_finished_email(job: JobData) -> None:
+    """Email the owner when a task finishes, if they asked for it when starting it."""
+    recipient = str(getattr(job, "notify_email_to", "") or "").strip()
+    if not recipient:
+        return
+    with JOBS_LOCK:
+        status_value = str(job.status or "")
+        return_code = job.return_code
+        tail_lines = [
+            _strip_ansi(line.text).rstrip()
+            for line in list(job.output)[-(WEB_JOB_EMAIL_LOG_TAIL_LINES * 3):]
+            if not _is_internal_dashboard_snapshot_line(line.text)
+        ]
+    tail_lines = [line for line in tail_lines if line.strip()][-WEB_JOB_EMAIL_LOG_TAIL_LINES:]
+    feature = WEB_FEATURE_TITLES.get(str(job.tab or ""), _humanize_identifier(str(job.tab or "")) or "Task")
+    action = _humanize_identifier(str(job.selected_action_dest or ""))
+    task_name = f"{feature} · {action}" if action else feature
+    task_html = f"<b>{_html_escape(task_name)}</b>"
+    if status_value == "success":
+        subject = f"{task_name} finished"
+        outcome = f"your task {task_html} finished successfully."
+    elif status_value == "stopped":
+        subject = f"{task_name} stopped"
+        outcome = f"your task {task_html} was stopped before it finished."
+    else:
+        subject = f"{task_name} failed"
+        code_text = "unknown" if return_code is None else str(return_code)
+        outcome = f"your task {task_html} ended with errors (exit code {_html_escape(code_text)})."
+    owner = {"username": getattr(job, "notify_username", "") or ""}
+    base_url = str(getattr(job, "notify_base_url", "") or "")
+    mailer.send_later(
+        [recipient],
+        subject,
+        mailer.page(
+            subject,
+            [
+                _email_greeting(owner),
+                outcome,
+                f"Duration: <b>{_html_escape(_format_job_duration(job))}</b>. Last lines of the log:",
+            ],
+            link=("Open Activity", f"{base_url}/output") if base_url else None,
+            preformatted="\n".join(tail_lines) or "(no output)",
+        ),
+    )
+
+
 @app.post("/api/run")
-def run_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
+def run_cli(payload: RunRequest, request: Request, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
+    notify_email_to = str(current_user.get("email") or "").strip() if payload.notify_email else ""
     config_path = _materialize_user_config_to_file(current_user, CONFIG_FORM_SCHEMA)
     normalized_values = _normalize_incoming_values(payload.values or {}, config_path=config_path)
     scope = _path_validation_scope_for_payload(payload.tab, payload.selected_action_dest, normalized_values)
@@ -4512,6 +5175,9 @@ def run_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_require
             },
         )
         JOBS[job_id].command_string = display_command
+        JOBS[job_id].notify_email_to = notify_email_to
+        JOBS[job_id].notify_username = str(current_user.get("username") or "")
+        JOBS[job_id].notify_base_url = _public_base_url(request) if notify_email_to else ""
 
     thread = threading.Thread(target=_run_job, args=(job_id, process), daemon=True)
     thread.start()
@@ -4687,7 +5353,8 @@ def admin_list_users(current_user: Dict[str, Any] = Depends(_require_admin)) -> 
     try:
         rows = conn.execute(
             """
-            SELECT id, username, role, is_active, must_change_password, data_subpath, volume1_subpath, created_at, updated_at
+            SELECT id, username, email, role, is_active, must_change_password, data_subpath, volume1_subpath,
+                   request_note, requested_at, created_at, updated_at
             FROM users
             ORDER BY username COLLATE NOCASE ASC
             """
@@ -4697,74 +5364,77 @@ def admin_list_users(current_user: Dict[str, Any] = Depends(_require_admin)) -> 
     users = []
     for row in rows:
         user = dict(row)
+        user["pending_request"] = _is_pending_account_request(user)
         user["is_active"] = bool(user.get("is_active"))
         user["must_change_password"] = bool(user.get("must_change_password"))
         users.append(user)
-    return {"users": users}
+    return {"users": users, "mail_configured": mailer.is_configured()}
 
 
 @app.post("/api/admin/users")
-def admin_create_user(payload: AdminUserCreateRequest, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+def admin_create_user(payload: AdminUserCreateRequest, request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
     username = str(payload.username or "").strip()
     if not username:
         raise HTTPException(status_code=400, detail="Username is required.")
+    email = _clean_email(payload.email, required=True)
     role = str(payload.role or "user").strip().lower()
     if role not in WEB_ALLOWED_ROLES:
         raise HTTPException(status_code=400, detail="Role must be one of: admin, user, demo.")
     data_subpath = _normalize_subpath(payload.data_subpath, username)
     volume1_subpath = _normalize_subpath(payload.volume1_subpath, username)
 
-    now = _utc_now_iso()
     conn = _db_connect()
     try:
         existing = conn.execute("SELECT id FROM users WHERE LOWER(username) = LOWER(?)", (username,)).fetchone()
         if existing:
             raise HTTPException(status_code=409, detail="Username already exists.")
-        cursor = conn.execute(
-            """
-            INSERT INTO users (
-                username, password_hash, role, is_active, must_change_password,
-                data_subpath, volume1_subpath, state_json, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, '{}', ?, ?)
-            """,
-            (
-                username,
-                _pbkdf2_hash_password(payload.password),
-                role,
-                1 if payload.is_active else 0,
-                1 if payload.must_change_password else 0,
-                data_subpath,
-                volume1_subpath,
-                now,
-                now,
-            ),
-        )
-        user_id = int(cursor.lastrowid)
-        template_defaults = _merge_values_with_schema({}, CONFIG_FORM_SCHEMA)
-        encrypted_defaults = _encrypt_config_values(template_defaults, CONFIG_FORM_SCHEMA)
-        conn.execute(
-            "INSERT INTO user_configs (user_id, config_json, updated_at) VALUES (?, ?, ?)",
-            (user_id, json.dumps(encrypted_defaults, ensure_ascii=False), now),
-        )
-        conn.execute(
-            "INSERT INTO user_states (user_id, state_json, updated_at) VALUES (?, '{}', ?)",
-            (user_id, now),
+        if _email_in_use(conn, email):
+            raise HTTPException(status_code=409, detail="Another account already uses that email.")
+        user_id = _insert_user_with_defaults(
+            conn,
+            username=username,
+            password=payload.password,
+            role=role,
+            is_active=bool(payload.is_active),
+            must_change_password=bool(payload.must_change_password),
+            data_subpath=data_subpath,
+            volume1_subpath=volume1_subpath,
+            email=email,
         )
         conn.commit()
     finally:
         conn.close()
     created_user = _fetch_user_by_id(user_id)
+    emailed = False
     if created_user:
         _ensure_user_roots_exist(created_user)
-    return {"created": True, "user_id": user_id}
+        temporary_password = str(payload.password or "") if payload.must_change_password else ""
+        emailed = mailer.is_configured()
+        _send_account_created_email(created_user, current_user, _public_base_url(request), temporary_password)
+    return {"created": True, "user_id": user_id, "emailed": emailed}
 
 
 @app.put("/api/admin/users/{user_id}")
-def admin_update_user(user_id: int, payload: AdminUserUpdateRequest, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+def admin_update_user(
+    user_id: int,
+    payload: AdminUserUpdateRequest,
+    request: Request,
+    current_user: Dict[str, Any] = Depends(_require_admin),
+) -> Dict[str, Any]:
     target = _fetch_user_by_id(user_id)
     if not target:
         raise HTTPException(status_code=404, detail="User not found.")
     updates: Dict[str, Any] = {}
+    if payload.email is not None:
+        email = _clean_email(payload.email, required=True)
+        conn = _db_connect()
+        try:
+            email_taken = _email_in_use(conn, email, exclude_user_id=int(user_id))
+        finally:
+            conn.close()
+        if email_taken:
+            raise HTTPException(status_code=409, detail="Another account already uses that email.")
+        updates["email"] = email
     if payload.role is not None:
         role = str(payload.role or "").strip().lower()
         if role not in WEB_ALLOWED_ROLES:
@@ -4802,6 +5472,13 @@ def admin_update_user(user_id: int, payload: AdminUserUpdateRequest, current_use
                 raise HTTPException(status_code=400, detail="Cannot change role of the last active admin.")
             raise HTTPException(status_code=400, detail="Cannot deactivate the last active admin.")
 
+    was_pending_request = _is_pending_account_request(target)
+    activated = not current_active and next_active
+    deactivated = current_active and not next_active
+    if activated and was_pending_request:
+        # Activating a requested account approves the request.
+        updates["requested_at"] = ""
+
     set_clause = ", ".join(f"{column} = ?" for column in updates.keys())
     params = list(updates.values()) + [_utc_now_iso(), int(user_id)]
     conn = _db_connect()
@@ -4813,6 +5490,13 @@ def admin_update_user(user_id: int, payload: AdminUserUpdateRequest, current_use
     updated = _fetch_user_by_id(user_id)
     if updated:
         _ensure_user_roots_exist(updated)
+        base_url = _public_base_url(request)
+        if activated:
+            _send_account_activated_email(updated, base_url, from_request=was_pending_request)
+        elif deactivated:
+            _send_account_deactivated_email(updated, current_user)
+        if payload.password is not None and next_active:
+            _send_password_changed_email(updated, base_url, by_admin=True)
     return {"updated": True}
 
 
@@ -4822,9 +5506,10 @@ def admin_delete_user(user_id: int, current_user: Dict[str, Any] = Depends(_requ
         raise HTTPException(status_code=400, detail="You cannot delete your own user.")
     conn = _db_connect()
     try:
-        row = conn.execute("SELECT id, role FROM users WHERE id = ?", (int(user_id),)).fetchone()
+        row = conn.execute("SELECT * FROM users WHERE id = ?", (int(user_id),)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="User not found.")
+        deleted_user = dict(row)
         if str(row["role"] or "").strip().lower() == "admin":
             admins = conn.execute(
                 "SELECT COUNT(*) AS count FROM users WHERE LOWER(TRIM(role)) = 'admin' AND is_active = 1"
@@ -4838,7 +5523,74 @@ def admin_delete_user(user_id: int, current_user: Dict[str, Any] = Depends(_requ
         conn.commit()
     finally:
         conn.close()
+    if _is_pending_account_request(deleted_user):
+        # Deleting a requested account rejects the request.
+        _send_account_request_rejected_email(deleted_user, current_user)
     return {"deleted": True}
+
+
+@app.get("/api/admin/mail")
+def admin_get_mail_settings(current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+    out = mailer.public_settings()
+    out["account_requests_enabled"] = WEB_ACCOUNT_REQUESTS_ENABLED
+    out["public_url"] = WEB_PUBLIC_URL
+    return out
+
+
+@app.put("/api/admin/mail")
+def admin_save_mail_settings(payload: MailSettingsRequest, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+    security = str(payload.security or "ssl").strip().lower()
+    if security not in mailer.SECURITY_CHOICES:
+        raise HTTPException(status_code=400, detail="Security must be one of: ssl, starttls, none.")
+    if payload.port is not None and not 1 <= int(payload.port) <= 65535:
+        raise HTTPException(status_code=400, detail="The port must be between 1 and 65535.")
+    from_address = _clean_email(payload.from_address)
+    stored = _get_web_setting(WEB_MAIL_SETTINGS_KEY, {}) or {}
+    if not isinstance(stored, dict):
+        stored = {}
+    if payload.password:
+        password_encrypted = _encrypt_value(payload.password)
+    elif payload.clear_password:
+        password_encrypted = ""
+    else:
+        password_encrypted = str(stored.get("password_encrypted") or "")
+    _set_web_setting(
+        WEB_MAIL_SETTINGS_KEY,
+        {
+            "host": str(payload.host or "").strip(),
+            "port": str(payload.port) if payload.port else "",
+            "security": security,
+            "username": str(payload.username or "").strip(),
+            "from_address": from_address,
+            "from_name": str(payload.from_name or "").strip(),
+            "password_encrypted": password_encrypted,
+        },
+    )
+    return admin_get_mail_settings(current_user)
+
+
+@app.post("/api/admin/mail/test")
+def admin_send_test_mail(payload: MailTestRequest, request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+    to = _clean_email(payload.to) or str(current_user.get("email") or "")
+    if not to:
+        raise HTTPException(status_code=400, detail="Add an email to your account or type where to send the test email.")
+    try:
+        mailer.send(
+            [to],
+            "Email check",
+            mailer.page(
+                "Email check",
+                [
+                    _email_greeting(current_user),
+                    "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can "
+                    "send account notices (requests, activations and password changes) and the emails of finished tasks.",
+                ],
+                link=("Open PhotoMigrator", f"{_public_base_url(request)}/"),
+            ),
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+    return {"sent": True, "to": to}
 
 
 @app.get("/api/admin/db/tables")

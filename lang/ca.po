@@ -1,0 +1,3367 @@
+# PhotoMigrator Web Interface - Català (ca)
+# msgid: English text. msgstr: translation. Keep {0}, {1}... and HTML tags such as <b> in the translation.
+
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ca\n"
+
+msgid "(Use General Arguments value)"
+msgstr "(Utilitza el valor dels arguments generals)"
+
+msgid "(default)"
+msgstr "(per defecte)"
+
+msgid "(default: all)"
+msgstr "(per defecte: tots)"
+
+msgid "(no output)"
+msgstr "(sense sortida)"
+
+msgid "/app/data subpath"
+msgstr "Subruta de /app/data"
+
+msgid "/app/volumes subpath"
+msgstr "Subruta de /app/volumes"
+
+msgid "<ACTION> can be 'list', 'move' or 'remove'. Default: 'list'."
+msgstr "<ACTION> pot ser 'list', 'move' o 'remove'. Per defecte: 'list'."
+
+msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account."
+msgstr "<b>{0}</b> ({1}) ha sol·licitat un compte de PhotoMigrator."
+
+msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
+msgstr "<b>{0}</b> ({1}) ha sol·licitat un compte de PhotoMigrator.<br>Missatge: <i>{2}</i>"
+
+msgid "A job${lastMeta ?"
+msgstr "A job${lastMeta ?"
+
+msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
+msgstr "Es crearà un àlbum nou per cada subcarpeta trobada a la subcarpeta 'Albums'."
+
+msgid "A whole folder, albums included"
+msgstr "Una carpeta sencera, àlbums inclosos"
+
+msgid "ALL_PHOTOS Folder Name"
+msgstr "Nom de la carpeta ALL_PHOTOS"
+
+msgid "About Auto Rename Folders Content Based"
+msgstr "Quant a Canvia el nom de les carpetes segons el contingut"
+
+msgid "About Automatic Migration"
+msgstr "Quant a la migració automàtica"
+
+msgid "About Consolidate Albums Names"
+msgstr "Quant a Consolida els noms dels àlbums"
+
+msgid "About Download Albums"
+msgstr "Quant a Descarrega àlbums"
+
+msgid "About Download All"
+msgstr "Quant a Descarrega-ho tot"
+
+msgid "About Find Duplicates"
+msgstr "Quant a Cerca duplicats"
+
+msgid "About Fix Broken Symlinks"
+msgstr "Quant a Repara els enllaços simbòlics trencats"
+
+msgid "About Google Takeout"
+msgstr "Quant a Google Takeout"
+
+msgid "About Merge Duplicates Albums"
+msgstr "Quant a Fusiona àlbums duplicats"
+
+msgid "About Organize Local Folder By Date"
+msgstr "Quant a Organitza la carpeta local per data"
+
+msgid "About Process Duplicates"
+msgstr "Quant a Processa duplicats"
+
+msgid "About Remove Albums"
+msgstr "Quant a Elimina àlbums"
+
+msgid "About Remove All Albums"
+msgstr "Quant a Elimina tots els àlbums"
+
+msgid "About Remove All Assets"
+msgstr "Quant a Elimina tots els recursos"
+
+msgid "About Remove Duplicates Albums"
+msgstr "Quant a Elimina àlbums duplicats"
+
+msgid "About Remove Duplicates Assets"
+msgstr "Quant a Elimina recursos duplicats"
+
+msgid "About Remove Empty Albums"
+msgstr "Quant a Elimina àlbums buits"
+
+msgid "About Rename Albums"
+msgstr "Quant a Canvia el nom dels àlbums"
+
+msgid "About Upload Albums"
+msgstr "Quant a Puja àlbums"
+
+msgid "About Upload All"
+msgstr "Quant a Puja-ho tot"
+
+msgid "About Upload to Server"
+msgstr "Quant a Puja al servidor"
+
+msgid "About iCloud Takeout"
+msgstr "Quant a iCloud Takeout"
+
+msgid "About {0}"
+msgstr "Quant a {0}"
+
+msgid "Access Logs"
+msgstr "Registres d'accés"
+
+msgid "Access logs: loaded {0} entries"
+msgstr "Registres d'accés: s'han carregat {0} entrades"
+
+msgid "Access logs: loading..."
+msgstr "Registres d'accés: carregant..."
+
+msgid "Access logs: {0}"
+msgstr "Registres d'accés: {0}"
+
+msgid "Account"
+msgstr "Compte"
+
+msgid "Account ID"
+msgstr "ID del compte"
+
+msgid "Account name"
+msgstr "Nom del compte"
+
+msgid "Account request"
+msgstr "Sol·licitud de compte"
+
+msgid "Account request from {0}"
+msgstr "Sol·licitud de compte de {0}"
+
+msgid "Account {0}"
+msgstr "Compte {0}"
+
+msgid "Action"
+msgstr "Acció"
+
+msgid "Actions"
+msgstr "Accions"
+
+msgid "Active"
+msgstr "Actiu"
+
+msgid "Activity"
+msgstr "Activitat"
+
+msgid "Activity · PhotoMigrator"
+msgstr "Activitat · PhotoMigrator"
+
+msgid "Add the URL and credentials of each account in"
+msgstr "Afegiu l'URL i les credencials de cada compte a"
+
+msgid "Add them in Settings"
+msgstr "Afegiu-los a Configuració"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Admin Authorization Failed"
+msgstr "Ha fallat l'autorització d'administrador"
+
+msgid "Admin Authorization Required"
+msgstr "Cal l'autorització d'administrador"
+
+msgid "Admin Panel"
+msgstr "Tauler d'administració"
+
+msgid "Admin password"
+msgstr "Contrasenya d'administrador"
+
+msgid "Admin username"
+msgstr "Nom d'usuari d'administrador"
+
+msgid "Administration Panel"
+msgstr "Tauler d'administració"
+
+msgid "Administration sections"
+msgstr "Seccions d'administració"
+
+msgid "Advanced options"
+msgstr "Opcions avançades"
+
+msgid "Advanced · push recovery"
+msgstr "Avançat · recuperació de pujades"
+
+msgid "Album creation date lower bound. Example: 2024-01-01"
+msgstr "Límit inferior de la data de creació de l'àlbum. Exemple: 2024-01-01"
+
+msgid "Album creation date upper bound. Example: 2024-12-31"
+msgstr "Límit superior de la data de creació de l'àlbum. Exemple: 2024-12-31"
+
+msgid "Album name pattern (text, wildcard, or regex)"
+msgstr "Patró del nom de l'àlbum (text, comodí o expressió regular)"
+
+msgid "Album name pattern (text, wildcard, or regex). Example: *Temp* or ^Temp|^Test"
+msgstr "Patró del nom de l'àlbum (text, comodí o expressió regular). Exemple: *Temp* o ^Temp|^Test"
+
+msgid "Albums Folder"
+msgstr "Carpeta d'àlbums"
+
+msgid "Albums Folders"
+msgstr "Carpetes d'àlbums"
+
+msgid "Albums Name Pattern"
+msgstr "Patró del nom dels àlbums"
+
+msgid "Albums Name(s)"
+msgstr "Nom(s) dels àlbums"
+
+msgid "Albums and assets"
+msgstr "Àlbums i fitxers"
+
+msgid "Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened)."
+msgstr "Els àlbums es descarreguen a <OUTPUT_FOLDER>/Albums/<AlbumName> (sense subcarpetes)."
+
+msgid "Albums folder"
+msgstr "Carpeta d'àlbums"
+
+msgid "Albums folder structure"
+msgstr "Estructura de la carpeta d'àlbums"
+
+msgid "Albums matching a pattern"
+msgstr "Àlbums que coincideixen amb un patró"
+
+msgid "Albums whose names match this text, wildcard or regex are renamed."
+msgstr "Es canvia el nom dels àlbums el nom dels quals coincideix amb aquest text, comodí o expressió regular."
+
+msgid "Albums with no assets"
+msgstr "Àlbums sense recursos"
+
+msgid "Albums with the same name"
+msgstr "Àlbums amb el mateix nom"
+
+msgid "All Users"
+msgstr "Tots els usuaris"
+
+msgid "All photos folder name"
+msgstr "Nom de la carpeta de totes les fotos"
+
+msgid "All photos folder structure"
+msgstr "Estructura de la carpeta de totes les fotos"
+
+msgid "Allow login into Synology Photos using 2FA with an OTP token."
+msgstr "Permet iniciar la sessió a Synology Photos amb 2FA mitjançant un testimoni OTP."
+
+msgid "Allow login into Synology Photos using 2FA with an OTP token. Example: --download-all ./MyLibrary --one-time-password"
+msgstr "Permet iniciar la sessió a Synology Photos amb 2FA mitjançant un testimoni OTP. Exemple: --download-all ./MyLibrary --one-time-password"
+
+msgid "Also reconstruct iCloud 'Memories' CSV collections as folders."
+msgstr "Reconstrueix també les col·leccions CSV de 'Memories' d'iCloud com a carpetes."
+
+msgid "Also requires module selector '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'."
+msgstr "Requereix també el selector de mòdul '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'."
+
+msgid "An administrator reviews every request. You will get an email when your account is active."
+msgstr "Un administrador revisa cada sol·licitud. Rebreu un correu electrònic quan el vostre compte estigui actiu."
+
+msgid "Any value saved here is kept in the database but ignored while that override remains set."
+msgstr "Qualsevol valor desat aquí es conserva a la base de dades, però s'ignora mentre aquesta substitució continuï definida."
+
+msgid "App settings"
+msgstr "Configuració de l'aplicació"
+
+msgid "App settings status:"
+msgstr "Estat de la configuració de l'aplicació:"
+
+msgid "App settings status: loaded (db://users/admin/Config.ini)"
+msgstr "Estat de la configuració de l'aplicació: carregada (db://users/admin/Config.ini)"
+
+msgid "Apple Photos"
+msgstr "Apple Photos"
+
+msgid "Apple iCloud Photos export"
+msgstr "Exportació d'Apple iCloud Photos"
+
+msgid "Apply a reviewed duplicates CSV"
+msgstr "Aplica un CSV de duplicats revisat"
+
+msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
+msgstr "Aproveu-la activant el compte al tauler d'administració o rebutgeu-la des de la mateixa llista."
+
+msgid "Are you sure?"
+msgstr "Esteu segur?"
+
+msgid "Arguments must be passed as two values separated by comma."
+msgstr "Els arguments s'han de passar com a dos valors separats per una coma."
+
+msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
+msgstr "Els recursos s'eliminen de l'origen un cop migrats. Desactiveu «Mou els recursos» per copiar-los."
+
+msgid "Authorize"
+msgstr "Autoritza"
+
+msgid "Auto Rename Folders Content Based"
+msgstr "Canvia el nom de les carpetes segons el contingut"
+
+msgid "Auto Scroll"
+msgstr "Desplaçament automàtic"
+
+msgid "Automatic Migration"
+msgstr "Migració automàtica"
+
+msgid "Automatic Migration Live Dashboard"
+msgstr "Tauler en directe de la migració automàtica"
+
+msgid "Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run, with a live dashboard."
+msgstr "La migració automàtica copia (o mou) totes les fotos, vídeos i àlbums d'un origen a una destinació en una sola execució, amb un tauler en directe."
+
+msgid "Automatic Migration · PhotoMigrator"
+msgstr "Migració automàtica · PhotoMigrator"
+
+msgid "Avoid special folder names: {0}."
+msgstr "Eviteu els noms de carpeta especials: {0}."
+
+msgid "Back to Web UI"
+msgstr "Torna a la interfície web"
+
+msgid "Back to sign in"
+msgstr "Torna a l'inici de sessió"
+
+msgid "Backup Error"
+msgstr "Error de còpia de seguretat"
+
+msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
+msgstr "Estat de la còpia de seguretat: inactiva | Mode: daily_2am | Darrera execució: - | Propera: -"
+
+msgid "Backup status: schedule saved | Next: {0}"
+msgstr "Estat de la còpia de seguretat: programació desada | Propera: {0}"
+
+msgid "Backup status: {0}"
+msgstr "Estat de la còpia de seguretat: {0}"
+
+msgid "Backup status: {0} | File: {1}"
+msgstr "Estat de la còpia de seguretat: {0} | Fitxer: {1}"
+
+msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
+msgstr "Estat de la còpia de seguretat: {0} | Mode: {1} | Darrera execució: {2} | Propera: {3}"
+
+msgid "Backups Scheduler"
+msgstr "Programador de còpies de seguretat"
+
+msgid "Blue palette"
+msgstr "Paleta blava"
+
+msgid "Browse"
+msgstr "Explora"
+
+msgid "By default migration runs in parallel with live dashboard enabled."
+msgstr "Per defecte, la migració s'executa en paral·lel amb el tauler en directe activat."
+
+msgid "By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided."
+msgstr "Per defecte, la sortida utilitza l'estructura 'year/month' i es desa a '<INPUT_FOLDER>_processed_<TIMESTAMP>' tret que s'indiqui '-o/--output-folder'."
+
+msgid "CSV endpoint not available in backend. Restart/update the web backend."
+msgstr "El punt final CSV no està disponible al backend. Reinicieu o actualitzeu el backend web."
+
+msgid "Cancel"
+msgstr "Cancel·la"
+
+msgid "Change Email"
+msgstr "Canvia el correu electrònic"
+
+msgid "Change Email: {0}"
+msgstr "Canvia el correu electrònic: {0}"
+
+msgid "Changes your library"
+msgstr "Modifica la vostra biblioteca"
+
+msgid "Check the command preview, press Run and watch it live in"
+msgstr "Reviseu la previsualització de l'ordre, premeu Executa i seguiu-la en directe a"
+
+msgid "Check the command, press Run and watch it live in"
+msgstr "Revisa l'ordre, prem Run i segueix-la en directe a"
+
+msgid "Choose a subfolder inside one of your assigned roots."
+msgstr "Trieu una subcarpeta dins d'una de les vostres arrels assignades."
+
+msgid "Choose a task"
+msgstr "Trieu una tasca"
+
+msgid "Choose a tool"
+msgstr "Trieu una eina"
+
+msgid "Choose an action"
+msgstr "Trieu una acció"
+
+msgid "Choose the retained asset for '--remove-duplicates-assets'."
+msgstr "Trieu el recurs que es conserva per a '--remove-duplicates-assets'."
+
+msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
+msgstr "Trieu el recurs que es conserva per a '--remove-duplicates-assets'. Les estratègies more-people/tags conserven el recurs amb més persones diferents, després etiquetes, i després apliquen el seu criteri de desempat. 'better-quality' utilitza el suggeriment natiu d'Immich; 'oldest' i 'newest' utilitzen la data de pujada (per defecte: more-people/tags-then-better-quality per a l'algorisme natiu de duplicats d'Immich o more-people/tags-then-oldest per a l'algorisme de duplicats de PhotoMigrator)."
+
+msgid "Clean up"
+msgstr "Neteja"
+
+msgid "Client ID"
+msgstr "ID de client"
+
+msgid "Client secret"
+msgstr "Secret de client"
+
+msgid "Close"
+msgstr "Tanca"
+
+msgid "Close menu"
+msgstr "Tanca el menú"
+
+msgid "Collapse panel"
+msgstr "Replega el tauler"
+
+msgid "Comma-separated folder paths to scan for duplicates."
+msgstr "Rutes de carpetes separades per comes que s'han d'analitzar a la cerca de duplicats."
+
+msgid "Comma-separated folders"
+msgstr "Carpetes separades per comes"
+
+msgid "Command"
+msgstr "Ordre"
+
+msgid "Command copied"
+msgstr "Ordre copiada"
+
+msgid "Config status: auto-save failed ({0})"
+msgstr "Estat de la configuració: ha fallat el desat automàtic ({0})"
+
+msgid "Config status: auto-saved ({0}) at {1}"
+msgstr "Estat de la configuració: desat automàticament ({0}) a les {1}"
+
+msgid "Config status: auto-saving app settings..."
+msgstr "Estat de la configuració: desant automàticament la configuració de l'aplicació..."
+
+msgid "Config status: export canceled"
+msgstr "Estat de la configuració: exportació cancel·lada"
+
+msgid "Config status: export failed ({0})"
+msgstr "Estat de la configuració: ha fallat l'exportació ({0})"
+
+msgid "Config status: exported ({0})"
+msgstr "Estat de la configuració: exportada ({0})"
+
+msgid "Config status: import canceled"
+msgstr "Estat de la configuració: importació cancel·lada"
+
+msgid "Config status: import failed ({0})"
+msgstr "Estat de la configuració: ha fallat la importació ({0})"
+
+msgid "Config status: imported ({0})"
+msgstr "Estat de la configuració: importada ({0})"
+
+msgid "Config status: loaded (db://users/admin/Config.ini)"
+msgstr "Estat de la configuració: carregada (db://users/admin/Config.ini)"
+
+msgid "Config status: loaded ({0})"
+msgstr "Estat de la configuració: carregada ({0})"
+
+msgid "Config status: save canceled by user"
+msgstr "Estat de la configuració: desat cancel·lat per l'usuari"
+
+msgid "Config status: save failed ({0})"
+msgstr "Estat de la configuració: ha fallat el desat ({0})"
+
+msgid "Config status: saved ({0})"
+msgstr "Estat de la configuració: desada ({0})"
+
+msgid "Config status: saving with demo restrictions (only TimeZone/Theme changes are allowed)"
+msgstr "Estat de la configuració: desant amb restriccions de demostració (només es permeten canvis de TimeZone/Theme)"
+
+msgid "Config.ini has been overwritten successfully in the user database."
+msgstr "Config.ini s'ha sobreescrit correctament a la base de dades de l'usuari."
+
+msgid "Configuration File"
+msgstr "Fitxer de configuració"
+
+msgid "Configuration Saved"
+msgstr "Configuració desada"
+
+msgid "Configuration file"
+msgstr "Fitxer de configuració"
+
+msgid "Configuration for Google Photos"
+msgstr "Configuració de Google Photos"
+
+msgid "Configured"
+msgstr "Configurat"
+
+msgid "Confirm"
+msgstr "Confirma"
+
+msgid "Confirm Action"
+msgstr "Confirma l'acció"
+
+msgid "Confirm new password"
+msgstr "Confirmeu la contrasenya nova"
+
+msgid "Confirm password"
+msgstr "Confirmeu la contrasenya"
+
+msgid "Connect your services"
+msgstr "Connecteu els vostres serveis"
+
+msgid "Connection security"
+msgstr "Seguretat de la connexió"
+
+msgid "Consolidate Albums Names"
+msgstr "Consolida els noms dels àlbums"
+
+msgid "Consolidate Similar Albums"
+msgstr "Consolida àlbums similars"
+
+msgid "Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets."
+msgstr "Consolida les famílies de noms d'àlbum equivalents ja existents al núvol directament al servei de destinació, sense pujar recursos nous."
+
+msgid "Copy album files instead of symlinks"
+msgstr "Copia els fitxers dels àlbums en lloc d'enllaços simbòlics"
+
+msgid "Copy command"
+msgstr "Copia l'ordre"
+
+msgid "Copy failed"
+msgstr "Ha fallat la còpia"
+
+msgid "Copy log"
+msgstr "Copia el registre"
+
+msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
+msgstr "Copieu o moveu totes les fotos, vídeos i àlbums d'un origen a una destinació en una sola execució. Els àlbums es tornen a crear a la destinació."
+
+msgid "Create"
+msgstr "Crea"
+
+msgid "Create Folder"
+msgstr "Crea una carpeta"
+
+msgid "Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an Automatic Migration with an Immich destination."
+msgstr "Crea piles d'Immich per a fotos en ràfega després de Puja-ho tot, Puja àlbums o una migració automàtica amb destinació Immich."
+
+msgid "Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an Automatic Migration with an Immich destination. (default: True)."
+msgstr "Crea piles d'Immich per a fotos en ràfega després de Puja-ho tot, Puja àlbums o una migració automàtica amb destinació Immich. (per defecte: True)."
+
+msgid "Create User"
+msgstr "Crea un usuari"
+
+msgid "Create User Error"
+msgstr "Error en crear l'usuari"
+
+msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date."
+msgstr "Crea una còpia processada (o un clon mogut) de <INPUT_FOLDER> i n'organitza els fitxers per data."
+
+msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date. By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided. Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy. Example: --organize-local-folder-by-date ./UnsortedLibrary"
+msgstr "Crea una còpia processada (o un clon mogut) de <INPUT_FOLDER> i n'organitza els fitxers per data. Per defecte, la sortida utilitza l'estructura 'year/month' i es desa a '<INPUT_FOLDER>_processed_<TIMESTAMP>' tret que s'indiqui '-o/--output-folder'. Useu '--organize-folder-structure' per canviar la disposició, '--organize-output-folder-suffix' per canviar el sufix generat quan no s'indica cap carpeta de sortida explícita, i '--move-original-files' per moure en lloc de copiar. Exemple: --organize-local-folder-by-date ./UnsortedLibrary"
+
+msgid "Create failed: {0}"
+msgstr "Ha fallat la creació: {0}"
+
+msgid "Create stacks"
+msgstr "Crea piles"
+
+msgid "Created From"
+msgstr "Creat des de"
+
+msgid "Created To"
+msgstr "Creat fins a"
+
+msgid "Created: {0}"
+msgstr "Creat: {0}"
+
+msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
+msgstr "Les credencials i la configuració dels serveis es desen per usuari a la base de dades web. Els valors sensibles es mantenen xifrats i s'utilitzen en totes les funcions."
+
+msgid "Credentials for account {0} found in Settings"
+msgstr "Credencials del compte {0} trobades a Configuració"
+
+msgid "Current run"
+msgstr "Execució actual"
+
+msgid "Current: {0}"
+msgstr "Actual: {0}"
+
+msgid "Current: {0} | Error: {1}"
+msgstr "Actual: {0} | Error: {1}"
+
+msgid "Current: {0} | Selected: {1}"
+msgstr "Actual: {0} | Seleccionat: {1}"
+
+msgid "Current: {0} | {1}"
+msgstr "Actual: {0} | {1}"
+
+msgid "DB Delete Error"
+msgstr "Error en eliminar de la BD"
+
+msgid "DB Insert Error"
+msgstr "Error en inserir a la BD"
+
+msgid "DB Update Error"
+msgstr "Error en actualitzar la BD"
+
+msgid "Dangerous Module"
+msgstr "Mòdul perillós"
+
+msgid "Dark UI palette"
+msgstr "Paleta fosca de la interfície"
+
+msgid "Dashboard"
+msgstr "Tauler"
+
+msgid "Database Manager"
+msgstr "Gestor de la base de dades"
+
+msgid "Date and range separators"
+msgstr "Separadors de data i d'interval"
+
+msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
+msgstr "Els separadors de data i d'interval es poden personalitzar amb '--date-separator' i '--range-separator'."
+
+msgid "Date separator"
+msgstr "Separador de data"
+
+msgid "Default account available:"
+msgstr "Compte predeterminat disponible:"
+
+msgid "Delete"
+msgstr "Elimina"
+
+msgid "Delete DB Row"
+msgstr "Elimina la fila de la BD"
+
+msgid "Delete Failed"
+msgstr "Ha fallat l'eliminació"
+
+msgid "Delete Row"
+msgstr "Elimina la fila"
+
+msgid "Delete Selected Folders?"
+msgstr "Voleu eliminar les carpetes seleccionades?"
+
+msgid "Delete User"
+msgstr "Elimina l'usuari"
+
+msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
+msgstr "El punt final d'eliminació no està disponible. Reinicieu el backend de la interfície web i torneu-ho a provar."
+
+msgid "Delete row"
+msgstr "Elimina la fila"
+
+msgid "Delete row {0} from '{1}'?"
+msgstr "Voleu eliminar la fila {0} de '{1}'?"
+
+msgid "Demo"
+msgstr "Demostració"
+
+msgid "Demo Role Restricted"
+msgstr "Rol de demostració restringit"
+
+msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
+msgstr "El rol de demostració no pot fer aquesta acció de configuració directament. Introduïu el nom d'usuari i la contrasenya d'un administrador actiu."
+
+msgid "Destination Required"
+msgstr "Cal una destinació"
+
+msgid "Destination folder"
+msgstr "Carpeta de destinació"
+
+msgid "Do not save the GPTH log"
+msgstr "No desis el registre de GPTH"
+
+msgid "Document"
+msgstr "Document"
+
+msgid "Documentation"
+msgstr "Documentació"
+
+msgid "Download Albums"
+msgstr "Descarrega àlbums"
+
+msgid "Download All"
+msgstr "Descarrega-ho tot"
+
+msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>."
+msgstr "Descarrega tots els àlbums i tots els recursos que no són en cap àlbum a <OUTPUT_FOLDER>."
+
+msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened). - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure. Example: --download-all ./MyLibrary"
+msgstr "Descarrega tots els àlbums i tots els recursos que no són en cap àlbum a <OUTPUT_FOLDER>. - Els àlbums es descarreguen a <OUTPUT_FOLDER>/Albums/<AlbumName> (sense subcarpetes). - Els recursos que no són en cap àlbum van a <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ amb estructura year/month. Exemple: --download-all ./MyLibrary"
+
+msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
+msgstr "Descarrega àlbums concrets a <OUTPUT_FOLDER> (obligatori: -o/--output-folder)."
+
+msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder). - Use 'ALL' to download ALL albums. - Use patterns: e.g. --download-albums 'dron*' - Multiple albums can be separated by comma or space and quoted. Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+msgstr "Descarrega àlbums concrets a <OUTPUT_FOLDER> (obligatori: -o/--output-folder). - Useu 'ALL' per descarregar TOTS els àlbums. - Useu patrons: p. ex. --download-albums 'dron*' - Es poden indicar diversos àlbums separats per coma o espai i entre cometes. Exemple: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+
+msgid "Drag from bottom edge or bottom corners to resize the log panel"
+msgstr "Arrossegueu des de la vora inferior o les cantonades inferiors per canviar la mida del tauler de registre"
+
+msgid "Dup asset keeper"
+msgstr "Conservació de recursos duplicats"
+
+msgid "Dup immich native algorithm"
+msgstr "Algorisme natiu d'Immich per a duplicats"
+
+msgid "Dup immich native deletion"
+msgstr "Eliminació nativa d'Immich de duplicats"
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>."
+msgstr "Duplica els recursos dels àlbums en lloc de crear enllaços simbòlics al recurs original dins de <ALL_PHOTOS_FOLDER>."
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>. (Makes your output portable but requires more HDD space). IMPORTANT: This can considerably increase output size, especially if you have many albums."
+msgstr "Duplica els recursos dels àlbums en lloc de crear enllaços simbòlics al recurs original dins de <ALL_PHOTOS_FOLDER>. (Fa que la sortida sigui portàtil, però requereix més espai de disc). IMPORTANT: Això pot augmentar considerablement la mida de la sortida, sobretot si teniu molts àlbums."
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>. (Makes your output portable but requires more HDD space). IMPORTANT: This can considerably increase output size, especially if you have many albums. Example: if one asset belongs to 3 albums, you will end up with 4 copies (original + 3)."
+msgstr "Duplica els recursos dels àlbums en lloc de crear enllaços simbòlics al recurs original dins de <ALL_PHOTOS_FOLDER>. (Fa que la sortida sigui portàtil, però requereix més espai de disc). IMPORTANT: Això pot augmentar considerablement la mida de la sortida, sobretot si teniu molts àlbums. Exemple: si un recurs pertany a 3 àlbums, acabareu amb 4 còpies (l'original + 3)."
+
+msgid "Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>."
+msgstr "Duplica els recursos dels àlbums d'iCloud reconstruïts en lloc de crear enllaços simbòlics al recurs original dins de <ALL_PHOTOS_FOLDER>."
+
+msgid "Duplicates"
+msgstr "Duplicats"
+
+msgid "Duplicates CSV"
+msgstr "CSV de duplicats"
+
+msgid "Duplicates, folders"
+msgstr "Duplicats, carpetes"
+
+msgid "Duration: <b>{0}</b>. Last lines of the log:"
+msgstr "Durada: <b>{0}</b>. Darreres línies del registre:"
+
+msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper."
+msgstr "Durant la pujada, tracta els noms d'àlbum existents equivalents com una sola família i en fusiona els recursos a l'àlbum canònic que es conserva."
+
+msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
+msgstr "Durant la pujada, tracta els noms d'àlbum existents equivalents com una sola família i en fusiona els recursos a l'àlbum canònic que es conserva. Els àlbums redundants només s'eliminen quan el servei admet l'eliminació d'àlbums."
+
+msgid "Elapsed Time"
+msgstr "Temps transcorregut"
+
+msgid "Elapsed Time: 00:00:00"
+msgstr "Temps transcorregut: 00:00:00"
+
+msgid "Elapsed Time: {0}"
+msgstr "Temps transcorregut: {0}"
+
+msgid "Email"
+msgstr "Correu electrònic"
+
+msgid "Email (SMTP)"
+msgstr "Correu electrònic (SMTP)"
+
+msgid "Email check"
+msgstr "Comprovació del correu electrònic"
+
+msgid "Email is not configured on this server yet."
+msgstr "El correu electrònic encara no està configurat en aquest servidor."
+
+msgid "Email me when it finishes"
+msgstr "Envia'm un correu en acabar"
+
+msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
+msgstr "Estat del correu electrònic: no configurat, no s'envia cap correu; les sol·licituds de compte des de la pàgina d'inici de sessió estan activades."
+
+msgid "Email status: saving..."
+msgstr "Estat del correu electrònic: desant..."
+
+msgid "Email status: sending test email..."
+msgstr "Estat del correu electrònic: enviant correu de prova..."
+
+msgid "Email status: test email sent to {0}."
+msgstr "Estat del correu electrònic: correu de prova enviat a {0}."
+
+msgid "Email status: {0}"
+msgstr "Estat del correu electrònic: {0}"
+
+msgid "Enable or disable Error messages during GPTH Processing."
+msgstr "Activa o desactiva els missatges d'error durant el processament de GPTH."
+
+msgid "Enable or disable Error messages during GPTH Processing. (default: True)."
+msgstr "Activa o desactiva els missatges d'error durant el processament de GPTH. (per defecte: True)."
+
+msgid "Enable or disable Info messages during GPTH Processing."
+msgstr "Activa o desactiva els missatges d'informació durant el processament de GPTH."
+
+msgid "Enable or disable Info messages during GPTH Processing. (default: True)."
+msgstr "Activa o desactiva els missatges d'informació durant el processament de GPTH. (per defecte: True)."
+
+msgid "Enable or disable Live Dashboard feature during Automated Migration job."
+msgstr "Activa o desactiva el tauler en directe durant una tasca de migració automàtica."
+
+msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
+msgstr "Activa o desactiva el tauler en directe durant una tasca de migració automàtica. Aquest argument només s'aplica si s'indiquen alhora '--source' i '--target'. (per defecte: True)."
+
+msgid "Enabled"
+msgstr "Activat"
+
+msgid "Enter a folder name, or an absolute path inside"
+msgstr "Introduïu un nom de carpeta o una ruta absoluta dins de"
+
+msgid "Env override"
+msgstr "Substitució per variable d'entorn"
+
+msgid "Error: {0}"
+msgstr "Error: {0}"
+
+msgid "Estimated End"
+msgstr "Final estimat"
+
+msgid "Every album and asset"
+msgstr "Tots els àlbums i recursos"
+
+msgid "Every album, optionally its assets"
+msgstr "Tots els àlbums, opcionalment amb els seus recursos"
+
+msgid "Every asset and album"
+msgstr "Tots els recursos i àlbums"
+
+msgid "Every day (2:00 AM)"
+msgstr "Cada dia (2:00)"
+
+msgid "Every hour"
+msgstr "Cada hora"
+
+msgid "Every week (Monday 2:00 AM)"
+msgstr "Cada setmana (dilluns a les 2:00)"
+
+msgid "Example: --consolidate-albums-names --preview-album-actions"
+msgstr "Exemple: --consolidate-albums-names --preview-album-actions"
+
+msgid "Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+msgstr "Exemple: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+
+msgid "Example: --download-all ./MyLibrary"
+msgstr "Exemple: --download-all ./MyLibrary"
+
+msgid "Example: --find-duplicates move ./Albums ./ALL_PHOTOS"
+msgstr "Exemple: --find-duplicates move ./Albums ./ALL_PHOTOS"
+
+msgid "Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
+msgstr "Exemple: --fix-symlinks-broken ./OUTPUT_FOLDER"
+
+msgid "Example: --merge-duplicates-albums"
+msgstr "Exemple: --merge-duplicates-albums"
+
+msgid "Example: --organize-local-folder-by-date ./UnsortedLibrary"
+msgstr "Exemple: --organize-local-folder-by-date ./UnsortedLibrary"
+
+msgid "Example: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+msgstr "Exemple: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+
+msgid "Example: --remove-albums \"^Temp\" --remove-albums-assets"
+msgstr "Exemple: --remove-albums \"^Temp\" --remove-albums-assets"
+
+msgid "Example: --remove-all-albums --remove-albums-assets"
+msgstr "Exemple: --remove-all-albums --remove-albums-assets"
+
+msgid "Example: --remove-all-assets"
+msgstr "Exemple: --remove-all-assets"
+
+msgid "Example: --remove-duplicates-albums"
+msgstr "Exemple: --remove-duplicates-albums"
+
+msgid "Example: --remove-duplicates-assets --dup-asset-keeper newest"
+msgstr "Exemple: --remove-duplicates-assets --dup-asset-keeper newest"
+
+msgid "Example: --remove-empty-albums"
+msgstr "Exemple: --remove-empty-albums"
+
+msgid "Example: --rename-albums \"*-*, --\" (single comma-separated value, useful when replacement starts with '--')"
+msgstr "Exemple: --rename-albums \"*-*, --\" (un sol valor separat per comes, útil quan el reemplaçament comença amb '--')"
+
+msgid "Example: --rename-albums \"*--*\", \"-\""
+msgstr "Exemple: --rename-albums \"*--*\", \"-\""
+
+msgid "Example: --rename-albums \"--\", \"-\""
+msgstr "Exemple: --rename-albums \"--\", \"-\""
+
+msgid "Example: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\""
+msgstr "Exemple: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\""
+
+msgid "Example: --rename-folders-content-based ./MyLocalPhotoLibrary"
+msgstr "Exemple: --rename-folders-content-based ./MyLocalPhotoLibrary"
+
+msgid "Example: --source=/homes/MyTakeout --target=synology-1"
+msgstr "Exemple: --source=/homes/MyTakeout --target=synology-1"
+
+msgid "Example: --source=synology-2 --target=google-photos-1"
+msgstr "Exemple: --source=synology-2 --target=google-photos-1"
+
+msgid "Example: --upload-albums ./My_Albums_Folder"
+msgstr "Exemple: --upload-albums ./My_Albums_Folder"
+
+msgid "Example: --upload-all ./MyLibrary"
+msgstr "Exemple: --upload-all ./MyLibrary"
+
+msgid "Example: 2024-01-31, 31/01/2024, 2024"
+msgstr "Exemple: 2024-01-31, 31/01/2024, 2024"
+
+msgid "Example: 2025-12-31, 31/12/2025, 2025"
+msgstr "Exemple: 2025-12-31, 31/12/2025, 2025"
+
+msgid "Example: @eaDir, .@__thumb, @Recycle"
+msgstr "Exemple: @eaDir, .@__thumb, @Recycle"
+
+msgid "Example: Madrid"
+msgstr "Exemple: Madrid"
+
+msgid "Example: Peter"
+msgstr "Exemple: Peter"
+
+msgid "Example: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store"
+msgstr "Exemple: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store"
+
+msgid "Example: Spain"
+msgstr "Exemple: Spain"
+
+msgid "Exclude Files"
+msgstr "Exclou fitxers"
+
+msgid "Exclude Folders"
+msgstr "Exclou carpetes"
+
+msgid "Exclude files"
+msgstr "Exclou fitxers"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration."
+msgstr "Exclou els fitxers que coincideixen amb un o més patrons glob durant el processament o la migració de la carpeta de fotos local."
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration. --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+msgstr "Exclou els fitxers que coincideixen amb un o més patrons glob durant el processament o la migració de la carpeta de fotos local. --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration. Examples: --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+msgstr "Exclou els fitxers que coincideixen amb un o més patrons glob durant el processament o la migració de la carpeta de fotos local. Exemples: --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+
+msgid "Exclude folders"
+msgstr "Exclou carpetes"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration."
+msgstr "Exclou les carpetes que coincideixen amb un o més patrons glob durant el processament o la migració de la carpeta de fotos local."
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration. --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+msgstr "Exclou les carpetes que coincideixen amb un o més patrons glob durant el processament o la migració de la carpeta de fotos local. --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration. Examples: --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+msgstr "Exclou les carpetes que coincideixen amb un o més patrons glob durant el processament o la migració de la carpeta de fotos local. Exemples: --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+
+msgid "Exec EXIF tool"
+msgstr "Eina EXIF d'execució"
+
+msgid "Exec GPTH tool"
+msgstr "Eina GPTH d'execució"
+
+msgid "Execution"
+msgstr "Execució"
+
+msgid "Expand panel"
+msgstr "Desplega el tauler"
+
+msgid "Expand/collapse section"
+msgstr "Desplega o replega la secció"
+
+msgid "Export Config"
+msgstr "Exporta la configuració"
+
+msgid "Extract ZIPs on upload"
+msgstr "Extreu els ZIP en pujar"
+
+msgid "Extracted ZIPs: {0} ({1} files) |"
+msgstr "ZIP extrets: {0} ({1} fitxers) |"
+
+msgid "Extracted ZIPs: {0}\\n"
+msgstr "ZIP extrets: {0}\\n"
+
+msgid "Failed: {0}"
+msgstr "Ha fallat: {0}"
+
+msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
+msgstr "Ompliu els camps obligatoris. Les opcions avançades mantenen els valors per defecte tret que les obriu."
+
+msgid "Filter by city"
+msgstr "Filtra per ciutat"
+
+msgid "Filter by country"
+msgstr "Filtra per país"
+
+msgid "Filter by person"
+msgstr "Filtra per persona"
+
+msgid "Filter by type"
+msgstr "Filtra per tipus"
+
+msgid "Filter from date"
+msgstr "Filtra des de la data"
+
+msgid "Filter to date"
+msgstr "Filtra fins a la data"
+
+msgid "Filters"
+msgstr "Filtres"
+
+msgid "Find Duplicates"
+msgstr "Cerca duplicats"
+
+msgid "Find Duplicates Input"
+msgstr "Entrada de la cerca de duplicats"
+
+msgid "Find duplicates"
+msgstr "Cercar duplicats"
+
+msgid "Find duplicates in one or more folders using file size and content checks."
+msgstr "Cerca duplicats en una o més carpetes mitjançant la mida del fitxer i comprovacions de contingut."
+
+msgid "Fix Broken Symlinks"
+msgstr "Repara els enllaços simbòlics trencats"
+
+msgid "Fix a Google Takeout"
+msgstr "Arreglar un Google Takeout"
+
+msgid "Fix a Google export"
+msgstr "Arregla una exportació de Google"
+
+msgid "Fix an Apple export"
+msgstr "Arregla una exportació d'Apple"
+
+msgid "Fix an export from Google or Apple"
+msgstr "Repareu una exportació de Google o Apple"
+
+msgid "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."
+msgstr "Repara les dates i metadades d'una exportació de Google Photos Takeout i reconstrueix-ne els àlbums en una biblioteca neta."
+
+msgid "Fix symlinks · Rename folders · Organize by date · Duplicates"
+msgstr "Repara enllaços simbòlics · Canvia el nom de carpetes · Organitza per data · Duplicats"
+
+msgid "Folder"
+msgstr "Carpeta"
+
+msgid "Folder Structure"
+msgstr "Estructura de carpetes"
+
+msgid "Folder path"
+msgstr "Ruta de la carpeta"
+
+msgid "Folder structure"
+msgstr "Estructura de carpetes"
+
+msgid "Folder to fix"
+msgstr "Carpeta que cal reparar"
+
+msgid "Folder(s)"
+msgstr "Carpeta(es)"
+
+msgid "Foldername albums"
+msgstr "Nom de la carpeta d'àlbums"
+
+msgid "Foldername duplicates output"
+msgstr "Nom de la carpeta de sortida de duplicats"
+
+msgid "Foldername extracted dates"
+msgstr "Nom de la carpeta de dates extretes"
+
+msgid "Foldername logs"
+msgstr "Nom de la carpeta de registres"
+
+msgid "Foldername no albums"
+msgstr "Nom de la carpeta sense àlbums"
+
+msgid "Folders"
+msgstr "Carpetes"
+
+msgid "Folders to scan"
+msgstr "Carpetes que s'han d'analitzar"
+
+msgid "Follow its live progress and log in Activity."
+msgstr "Segueix-ne el progrés i el registre en directe a Activitat."
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0})."
+msgstr "Per a Consolida els noms dels àlbums, definiu el nombre màxim de recursos perquè un àlbum es consideri petit (per defecte: {0})."
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0}). Only used when '--try-small-albums-grouping' is enabled."
+msgstr "Per a Consolida els noms dels àlbums, definiu el nombre màxim de recursos perquè un àlbum es consideri petit (per defecte: {0}). Només s'utilitza quan '--try-small-albums-grouping' està activat."
+
+msgid "For Consolidate Albums Names, try canonical/equivalent album-name grouping (default: True)."
+msgstr "Per a Consolida els noms dels àlbums, prova l'agrupació per nom d'àlbum canònic/equivalent (per defecte: True)."
+
+msgid "For Consolidate Albums Names, try compatible YYYY/YYYY-MM/YYYY-MM-DD date-prefix grouping (default: True)."
+msgstr "Per a Consolida els noms dels àlbums, prova l'agrupació compatible per prefix de data YYYY/YYYY-MM/YYYY-MM-DD (per defecte: True)."
+
+msgid "For Consolidate Albums Names, try grouping small albums into larger similarly named albums with matching capture dates (default: True)."
+msgstr "Per a Consolida els noms dels àlbums, prova d'agrupar àlbums petits en àlbums més grans de nom semblant amb dates de captura coincidents (per defecte: True)."
+
+msgid "For Consolidate Albums Names, try guarded truncated album-name grouping (default: True)."
+msgstr "Per a Consolida els noms dels àlbums, prova l'agrupació de noms d'àlbum truncats amb salvaguardes (per defecte: True)."
+
+msgid "For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper location from duplicates."
+msgstr "Només per a la resolució manual d'Immich Elimina recursos duplicats, permet copiar des dels duplicats una ubicació que falta al recurs que es conserva."
+
+msgid "For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper location from duplicates. Disabled by default to avoid propagating an incorrect GPS location. When enabled, at least two redundant assets must have the same complete coordinate pair; this option does not apply to Immich native duplicate deletion."
+msgstr "Només per a la resolució manual d'Immich Elimina recursos duplicats, permet copiar des dels duplicats una ubicació que falta al recurs que es conserva. Desactivat per defecte per evitar propagar una ubicació GPS incorrecta. Quan està activat, almenys dos recursos redundants han de tenir el mateix parell de coordenades complet; aquesta opció no s'aplica a l'eliminació de duplicats natius d'Immich."
+
+msgid "For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, merge albums, favorites, highest rating, combined descriptions, most restrictive visibility, matching locations, and tags, then trash redundant assets. This uses Immich's Alpha duplicate-resolution API and is available only with native detection and '--dup-asset-keeper=better-quality'. All other keeper strategies use PhotoMigrator's guarded merge and are sent to trash only after the selected keeper is verified. When enabled, the keeper must be 'better-quality'. It is enabled by default only for that supported combination and disabled otherwise."
+msgstr "Per a Immich Elimina recursos duplicats, deixa que Immich resolgui cada grup de duplicats natius: fusiona àlbums, preferits, la valoració més alta, descripcions combinades, la visibilitat més restrictiva, ubicacions coincidents i etiquetes, i després envia a la paperera els recursos redundants. Utilitza l'API alfa de resolució de duplicats d'Immich i només està disponible amb detecció nativa i '--dup-asset-keeper=better-quality'. Totes les altres estratègies de conservació utilitzen la fusió protegida de PhotoMigrator i només s'envien a la paperera després de verificar el recurs que es conserva. Quan està activat, el criteri de conservació ha de ser 'better-quality'. Només s'activa per defecte per a aquesta combinació compatible i es desactiva en els altres casos."
+
+msgid "For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, merge albums, favorites, highest rating, combined descriptions, most restrictive visibility, m…"
+msgstr "Per a Immich Elimina recursos duplicats, deixa que Immich resolgui cada grup de duplicats natius: fusiona àlbums, preferits, la valoració més alta, descripcions combinades, la visibilitat més restrictiva, m…"
+
+msgid "For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of same-filename-and-size grouping."
+msgstr "Per a Immich Elimina recursos duplicats, utilitza els grups de duplicats visuals natius d'Immich en lloc d'agrupar per nom de fitxer i mida idèntics."
+
+msgid "For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of same-filename-and-size grouping. Native detection is based on asset similarity rather than file size. When disabled, PhotoMigrator groups exact filename-and-size matches; this is useful for repeated uploads of the same processed Takeout on different dates when an EXIF tag value prevented Immich from rejecting the later upload (default: True)."
+msgstr "Per a Immich Elimina recursos duplicats, utilitza els grups de duplicats visuals natius d'Immich en lloc d'agrupar per nom de fitxer i mida idèntics. La detecció nativa es basa en la semblança dels recursos i no en la mida del fitxer. Quan està desactivada, PhotoMigrator agrupa les coincidències exactes de nom de fitxer i mida; això és útil per a pujades repetides del mateix Takeout processat en dates diferents quan el valor d'una etiqueta EXIF va impedir que Immich rebutgés la pujada posterior (per defecte: True)."
+
+msgid "For Immich, native duplicate detection is enabled by default and the selector defaults to 'more-people/tags-then-better-quality'. Google Photos cannot delete library media through its public API."
+msgstr "A Immich, la detecció de duplicats nativa està activada per defecte i el selector té per defecte 'more-people/tags-then-better-quality'. Google Photos no pot eliminar contingut de la biblioteca mitjançant la seva API pública."
+
+msgid "For Remove Albums, only match albums created on or after <DATE>."
+msgstr "Per a Elimina àlbums, només coincideixen els àlbums creats a partir de <DATE> inclosa."
+
+msgid "For Remove Albums, only match albums created on or after <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "Per a Elimina àlbums, només coincideixen els àlbums creats a partir de <DATE> inclosa. Utilitzeu-ho amb '--remove-albums'; els formats acceptats inclouen YYYY, YYYY-MM i YYYY-MM-DD."
+
+msgid "For Remove Albums, only match albums created on or before <DATE>."
+msgstr "Per a Elimina àlbums, només coincideixen els àlbums creats fins a <DATE> inclosa."
+
+msgid "For Remove Albums, only match albums created on or before <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "Per a Elimina àlbums, només coincideixen els àlbums creats fins a <DATE> inclosa. Utilitzeu-ho amb '--remove-albums'; els formats acceptats inclouen YYYY, YYYY-MM i YYYY-MM-DD."
+
+msgid "Force Password Change"
+msgstr "Força el canvi de contrasenya"
+
+msgid "Force password change on first login"
+msgstr "Força el canvi de contrasenya en el primer inici de sessió"
+
+msgid "GPTH messages"
+msgstr "Missatges de GPTH"
+
+msgid "General arguments"
+msgstr "Arguments generals"
+
+msgid "Get started in three steps"
+msgstr "Comenceu en tres passos"
+
+msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
+msgstr "Arguments globals compartits per totes les funcions: registre, execució, noms de carpetes i filtres."
+
+msgid "Global arguments shared by every feature: logging, execution, folder names and filters. They are the baseline for each run; a feature can override some of them, for example the migration filters."
+msgstr "Arguments globals compartits per totes les funcions: registre, execució, noms de carpetes i filtres. Són la base de cada execució; una funció en pot substituir alguns, per exemple els filtres de migració."
+
+msgid "Go to first line"
+msgstr "Ves a la primera línia"
+
+msgid "Go to last line"
+msgstr "Ves a l'última línia"
+
+msgid "Go to parent folder"
+msgstr "Ves a la carpeta superior"
+
+msgid "Good afternoon"
+msgstr "Bona tarda"
+
+msgid "Good evening"
+msgstr "Bon vespre"
+
+msgid "Good morning"
+msgstr "Bon dia"
+
+msgid "Google"
+msgstr "Google"
+
+msgid "Google Photos"
+msgstr "Google Photos"
+
+msgid "Google Photos accounts"
+msgstr "Comptes de Google Photos"
+
+msgid "Google Photos export"
+msgstr "Exportació de Google Photos"
+
+msgid "Google Photos · PhotoMigrator"
+msgstr "Google Photos · PhotoMigrator"
+
+msgid "Google Photos, Synology, Immich, NextCloud, local folders and Takeout exports, in one place."
+msgstr "Google Photos, Synology, Immich, NextCloud, carpetes locals i exportacions de Takeout, en un sol lloc."
+
+msgid "Google Takeout"
+msgstr "Google Takeout"
+
+msgid "Google Takeout · PhotoMigrator"
+msgstr "Google Takeout · PhotoMigrator"
+
+msgid "Green palette"
+msgstr "Paleta verda"
+
+msgid "Help"
+msgstr "Ajuda"
+
+msgid "Help index empty"
+msgstr "L'índex d'ajuda és buit"
+
+msgid "Help index unavailable"
+msgstr "L'índex d'ajuda no està disponible"
+
+msgid "Hi {0},"
+msgstr "Hola, {0},"
+
+msgid "Hide password"
+msgstr "Amaga la contrasenya"
+
+msgid "Home"
+msgstr "Inici"
+
+msgid "Home (data)"
+msgstr "Inici (data)"
+
+msgid "Home (volumes)"
+msgstr "Inici (volumes)"
+
+msgid "How to migrate"
+msgstr "Com migrar"
+
+msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
+msgstr "IMPORTANT: 'move' i 'remove' modifiquen fitxers; comenceu amb 'list' si voleu revisar-ho primer."
+
+msgid "IMPORTANT: Configure Config.ini credentials/API keys before running cloud migrations."
+msgstr "IMPORTANT: Configureu les credencials/claus d'API a Config.ini abans d'executar migracions al núvol."
+
+msgid "IMPORTANT: Links are only fixed when a valid target can be inferred from current files."
+msgstr "IMPORTANT: Els enllaços només es reparen quan es pot deduir una destinació vàlida dels fitxers actuals."
+
+msgid "IMPORTANT: This modifies original folder names in place; create a backup if needed."
+msgstr "IMPORTANT: Això modifica els noms originals de les carpetes directament; feu una còpia de seguretat si cal."
+
+msgid "IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "IMPORTANT: Aquest mòdul és un procés de preprocessament local. No envia res a cap destinació al núvol per si mateix."
+
+msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
+msgstr "IMPORTANT: remove_duplicate i replace_duplicate són operacions irreversibles."
+
+msgid "IP Address"
+msgstr "Adreça IP"
+
+msgid "Idle"
+msgstr "Inactiu"
+
+msgid "If"
+msgstr "Si"
+
+msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
+msgstr "Si també s'indica '-AlbFolder, --albums-folders <ALBUMS_FOLDER>', també es crearan àlbums per a aquestes carpetes."
+
+msgid "If empty, the value from Settings › General arguments is used."
+msgstr "Si és buit, s'utilitza el valor de Configuració › Arguments generals."
+
+msgid "If set to No, .zip files are kept as uploaded."
+msgstr "Si s'estableix a No, els fitxers .zip es conserven tal com s'han pujat."
+
+msgid "If the target supports album deletion (Immich, Synology, NextCloud), the redundant variants are then removed. Google Photos keeps them because the public API cannot delete albums."
+msgstr "Si la destinació admet l'eliminació d'àlbums (Immich, Synology, NextCloud), les variants redundants s'eliminen després. Google Photos les conserva perquè l'API pública no pot eliminar àlbums."
+
+msgid "If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied."
+msgstr "Si aquest argument és present, els recursos es mouran de <SOURCE> a <TARGET> en lloc de copiar-se."
+
+msgid "If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied. (default: False)."
+msgstr "Si aquest argument és present, els recursos es mouran de <SOURCE> a <TARGET> en lloc de copiar-se. (per defecte: False)."
+
+msgid "If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album."
+msgstr "Si s'utilitza juntament amb '-rAllAlb, --remove-all-albums' o '-rAlb, --remove-albums', també eliminarà els recursos (fotos/vídeos) de cada àlbum."
+
+msgid "If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>."
+msgstr "Si s'utilitza juntament amb '-uAll, --upload-all', crearà un àlbum per cada subcarpeta trobada a <ALBUMS_FOLDER>."
+
+msgid "Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc.), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamps."
+msgstr "Ignora la comprovació de l'estructura de Google Takeout (fitxers '.json', subcarpetes 'Photos from ', etc.) i repara tots els fitxers trobats a <TAKEOUT_FOLDER> intentant deduir-ne les marques de temps."
+
+msgid "Ignore the Takeout structure check"
+msgstr "Ignora la comprovació de l'estructura de Takeout"
+
+msgid "Immich"
+msgstr "Immich"
+
+msgid "Immich Photos"
+msgstr "Immich Photos"
+
+msgid "Immich Photos · PhotoMigrator"
+msgstr "Immich Photos · PhotoMigrator"
+
+msgid "Immich Upload Timeout (seconds)"
+msgstr "Temps d'espera de pujada a Immich (segons)"
+
+msgid "Immich upload read timeout in seconds for Upload All, Upload Albums, and Automatic Migration when Immich is the target (default: {0})."
+msgstr "Temps d'espera de lectura de pujada a Immich en segons per a Puja-ho tot, Puja àlbums i la migració automàtica quan Immich és la destinació (per defecte: {0})."
+
+msgid "Import Config"
+msgstr "Importa la configuració"
+
+msgid "Import Google Takeout person labels into Immich when a Takeout people map is available."
+msgstr "Importa a Immich les etiquetes de persones de Google Takeout quan hi ha un mapa de persones de Takeout disponible."
+
+msgid "Import Google Takeout person labels into Immich when a Takeout people map is available. Only applies to an Immich destination or Immich Upload All/Upload Albums. (default: True)."
+msgstr "Importa a Immich les etiquetes de persones de Google Takeout quan hi ha un mapa de persones de Takeout disponible. Només s'aplica a una destinació Immich o a Puja-ho tot/Puja àlbums d'Immich. (per defecte: True)."
+
+msgid "Import people"
+msgstr "Importa persones"
+
+msgid "Include Memories as albums"
+msgstr "Inclou Memories com a àlbums"
+
+msgid "Input Folder"
+msgstr "Carpeta d'entrada"
+
+msgid "Insert Row"
+msgstr "Insereix una fila"
+
+msgid "Invalid --google-takeout path: contains '{0}'."
+msgstr "Ruta de --google-takeout no vàlida: conté '{0}'."
+
+msgid "Invalid --source path: contains '{0}'."
+msgstr "Ruta de --source no vàlida: conté '{0}'."
+
+msgid "Invalid --{0} path: the user root folder cannot be used directly ({1})."
+msgstr "Ruta de --{0} no vàlida: no es pot utilitzar directament la carpeta arrel de l'usuari ({1})."
+
+msgid "Invalid Folder Selection"
+msgstr "Selecció de carpeta no vàlida"
+
+msgid "Invalid JSON format."
+msgstr "Format JSON no vàlid."
+
+msgid "Invalid admin credentials or insufficient permissions."
+msgstr "Credencials d'administrador no vàlides o permisos insuficients."
+
+msgid "Invalid credentials"
+msgstr "Credencials no vàlides"
+
+msgid "Job linked to your session"
+msgstr "Tasca vinculada a la teva sessió"
+
+msgid "Keep an untouched Takeout copy"
+msgstr "Conserva una còpia intacta de Takeout"
+
+msgid "Keep an untouched copy of original Takeout (requires double space)."
+msgstr "Conserva una còpia intacta del Takeout original (requereix el doble d'espai)."
+
+msgid "Keep an untouched copy of original Takeout (requires double space). TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
+msgstr "Conserva una còpia intacta del Takeout original (requereix el doble d'espai). CONSELL: Si <TAKEOUT_FOLDER> conté els fitxers zip originals, es conservaran igualment."
+
+msgid "Keep last N backups"
+msgstr "Conserva les últimes N còpies de seguretat"
+
+msgid "Keep the best copy of each"
+msgstr "Conserva la millor còpia de cadascun"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Last Updated"
+msgstr "Darrera actualització"
+
+msgid "Last Updated: -"
+msgstr "Darrera actualització: -"
+
+msgid "Last Updated: {0}"
+msgstr "Darrera actualització: {0}"
+
+msgid "Letters, numbers, dots, hyphens or underscores"
+msgstr "Lletres, números, punts, guions o guions baixos"
+
+msgid "Libraries & tools"
+msgstr "Biblioteques i eines"
+
+msgid "List only, move the duplicates to a folder, or delete them."
+msgstr "Només llista, mou els duplicats a una carpeta o elimina'ls."
+
+msgid "List, move or remove duplicates"
+msgstr "Llista, mou o elimina duplicats"
+
+msgid "Load Table"
+msgstr "Carrega la taula"
+
+msgid "Local Photos Folder"
+msgstr "Carpeta de fotos local"
+
+msgid "Local Photos Folder · PhotoMigrator"
+msgstr "Carpeta de fotos local · PhotoMigrator"
+
+msgid "Local folder"
+msgstr "Carpeta local"
+
+msgid "Local helpers"
+msgstr "Ajudants locals"
+
+msgid "Local helpers: repair symlinks, rename or organize folders, and find or process duplicates."
+msgstr "Ajudants locals: repara enllaços simbòlics, canvia el nom o organitza carpetes, i cerca o processa duplicats."
+
+msgid "Log"
+msgstr "Registre"
+
+msgid "Log format"
+msgstr "Format del registre"
+
+msgid "Log level"
+msgstr "Nivell de registre"
+
+msgid "Logout"
+msgstr "Tanca la sessió"
+
+msgid "Logs"
+msgstr "Registres"
+
+msgid "Main navigation"
+msgstr "Navegació principal"
+
+msgid "Manage a library"
+msgstr "Gestioneu una biblioteca"
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB."
+msgstr "Mida màxima d'un recurs admissible per als reintents d'enviament de la migració automàtica, en MB."
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB. Use {0} for no size limit (default: {1}). Retry count and delay settings still apply."
+msgstr "Mida màxima d'un recurs admissible per als reintents d'enviament de la migració automàtica, en MB. Useu {0} per no tenir límit de mida (per defecte: {1}). Els paràmetres de nombre de reintents i retard continuen aplicant-se."
+
+msgid "Merge Duplicate Locations"
+msgstr "Fusiona ubicacions duplicades"
+
+msgid "Merge Duplicates Albums"
+msgstr "Fusiona àlbums duplicats"
+
+msgid "Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates."
+msgstr "Fusiona els àlbums duplicats (mateix nom): mou els recursos a l'àlbum més rellevant i elimina els duplicats."
+
+msgid "Merge equivalent album families"
+msgstr "Fusiona famílies d'àlbums equivalents"
+
+msgid "Message"
+msgstr "Missatge"
+
+msgid "Message for the administrator (optional)"
+msgstr "Missatge per a l'administrador (opcional)"
+
+msgid "Message: {0}"
+msgstr "Missatge: {0}"
+
+msgid "Migrate"
+msgstr "Migra"
+
+msgid "Missing Required Arguments"
+msgstr "Falten arguments obligatoris"
+
+msgid "Missing required argument: --{0}"
+msgstr "Falta un argument obligatori: --{0}"
+
+msgid "Missing tab."
+msgstr "Falta la pestanya."
+
+msgid "Move Assets"
+msgstr "Mou els recursos"
+
+msgid "Move Original Files"
+msgstr "Mou els fitxers originals"
+
+msgid "Move a whole library in one run"
+msgstr "Mou una biblioteca sencera d'un cop"
+
+msgid "Move mode is on"
+msgstr "El mode de moviment està activat"
+
+msgid "Move the original folder into the processed output instead of copying it first."
+msgstr "Mou la carpeta original a la sortida processada en lloc de copiar-la primer."
+
+msgid "Move the original folder into the processed output instead of copying it first. Useful to avoid duplicating disk usage for large local libraries."
+msgstr "Mou la carpeta original a la sortida processada en lloc de copiar-la primer. Útil per evitar duplicar l'ús de disc en biblioteques locals grans."
+
+msgid "Move your photo library. Keep every memory."
+msgstr "Mou la teva biblioteca de fotos. Conserva cada record."
+
+msgid "Move your whole library to another service"
+msgstr "Moveu tota la vostra biblioteca a un altre servei"
+
+msgid "Multiple albums can be separated by comma or space and quoted."
+msgstr "Es poden indicar diversos àlbums separats per coma o espai i entre cometes."
+
+msgid "Naming & Folders"
+msgstr "Noms i carpetes"
+
+msgid "New account request"
+msgstr "Sol·licitud de compte nova"
+
+msgid "New here?"
+msgstr "Sou nou aquí?"
+
+msgid "New name for each matching album."
+msgstr "Nom nou per a cada àlbum coincident."
+
+msgid "New password"
+msgstr "Contrasenya nova"
+
+msgid "NextCloud"
+msgstr "NextCloud"
+
+msgid "NextCloud Photos"
+msgstr "NextCloud Photos"
+
+msgid "NextCloud Photos · PhotoMigrator"
+msgstr "NextCloud Photos · PhotoMigrator"
+
+msgid "No"
+msgstr "No"
+
+msgid "No additional help for this field."
+msgstr "No hi ha cap ajuda addicional per a aquest camp."
+
+msgid "No credentials for account {0} yet."
+msgstr "Encara no hi ha credencials per al compte {0}."
+
+msgid "No extra arguments required"
+msgstr "No calen arguments addicionals"
+
+msgid "No files found in selected local folder."
+msgstr "No s'han trobat fitxers a la carpeta local seleccionada."
+
+msgid "No job is running. When you run a feature, its live progress and log appear in Activity."
+msgstr "No hi ha cap tasca en execució. Quan executeu una funció, el seu progrés en directe i el registre apareixeran a Activitat."
+
+msgid "No job running"
+msgstr "Cap tasca en execució"
+
+msgid "No log file"
+msgstr "Sense fitxer de registre"
+
+msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
+msgstr "Els recursos que no són en cap àlbum van a <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ amb estructura year/month."
+
+msgid "None"
+msgstr "Cap"
+
+msgid "Not Found"
+msgstr "No s'ha trobat"
+
+msgid "Not configured"
+msgstr "No configurat"
+
+msgid "Not set"
+msgstr "Sense definir"
+
+msgid "Notice"
+msgstr "Avís"
+
+msgid "OAuth Client ID for Google Photos account {0}"
+msgstr "ID de client OAuth del compte {0} de Google Photos"
+
+msgid "OAuth Client Secret for Google Photos account {0}"
+msgstr "Secret de client OAuth del compte {0} de Google Photos"
+
+msgid "OAuth Refresh Token for Google Photos account {0}"
+msgstr "Testimoni d'actualització OAuth del compte {0} de Google Photos"
+
+msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
+msgstr "En les destinacions al núvol compatibles, les variants redundants es fusionen a l'àlbum preferit que es conserva. Quan l'API admet l'eliminació d'àlbums (Immich, Synology, NextCloud), els àlbums redundants s'eliminen després. Google Photos conserva les variants redundants perquè l'API pública no pot eliminar àlbums."
+
+msgid "On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it."
+msgstr "En les destinacions al núvol compatibles, s'utilitza el nom net preferit i s'hi fusionen els recursos de les variants redundants."
+
+msgid "One album per subfolder"
+msgstr "Un àlbum per subcarpeta"
+
+msgid "One file pattern per line or comma-separated"
+msgstr "Un patró de fitxer per línia o separats per comes"
+
+msgid "One folder pattern per line or comma-separated"
+msgstr "Un patró de carpeta per línia o separats per comes"
+
+msgid "One time password"
+msgstr "Contrasenya d'un sol ús"
+
+msgid "One value per line or comma-separated"
+msgstr "Un valor per línia o separats per comes"
+
+msgid "Only an active admin can authorize this action. Enter admin username and password."
+msgstr "Només un administrador actiu pot autoritzar aquesta acció. Introduïu el nom d'usuari i la contrasenya d'administrador."
+
+msgid "Open Activity"
+msgstr "Obre Activitat"
+
+msgid "Open Activity{0}"
+msgstr "Obre Activitat{0}"
+
+msgid "Open CSV selector"
+msgstr "Obre el selector de CSV"
+
+msgid "Open Help"
+msgstr "Obre l'ajuda"
+
+msgid "Open PhotoMigrator"
+msgstr "Obre PhotoMigrator"
+
+msgid "Open Readme"
+msgstr "Obre el Readme"
+
+msgid "Open Release Notes"
+msgstr "Obre les notes de la versió"
+
+msgid "Open Roadmap"
+msgstr "Obre el full de ruta"
+
+msgid "Open folder selector"
+msgstr "Obre el selector de carpetes"
+
+msgid "Open menu"
+msgstr "Obre el menú"
+
+msgid "Optional"
+msgstr "Opcional"
+
+msgid "Optional arguments:"
+msgstr "Arguments opcionals:"
+
+msgid "Optional display label for account {0} (used in dashboards/logs)"
+msgstr "Etiqueta opcional per mostrar del compte {0} (s'utilitza als taulers i registres)"
+
+msgid "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'."
+msgstr "Opcionalment, elimina també els recursos dels àlbums amb '-rAlbAsset, --remove-albums-assets'."
+
+msgid "Options for Auto Rename Folders Content Based"
+msgstr "Opcions de Canvia el nom de les carpetes segons el contingut"
+
+msgid "Options for Consolidate Albums Names"
+msgstr "Opcions de Consolida els noms dels àlbums"
+
+msgid "Options for Download Albums"
+msgstr "Opcions de Descarrega àlbums"
+
+msgid "Options for Download All"
+msgstr "Opcions de Descarrega-ho tot"
+
+msgid "Options for Find Duplicates"
+msgstr "Opcions de Cerca duplicats"
+
+msgid "Options for Fix Broken Symlinks"
+msgstr "Opcions de Repara els enllaços simbòlics trencats"
+
+msgid "Options for Merge Duplicates Albums"
+msgstr "Opcions de Fusiona àlbums duplicats"
+
+msgid "Options for Organize Local Folder By Date"
+msgstr "Opcions de Organitza la carpeta local per data"
+
+msgid "Options for Process Duplicates"
+msgstr "Opcions de Processa duplicats"
+
+msgid "Options for Remove Albums"
+msgstr "Opcions de Elimina àlbums"
+
+msgid "Options for Remove All Albums"
+msgstr "Opcions de Elimina tots els àlbums"
+
+msgid "Options for Remove All Assets"
+msgstr "Opcions de Elimina tots els recursos"
+
+msgid "Options for Remove Duplicates Albums"
+msgstr "Opcions de Elimina àlbums duplicats"
+
+msgid "Options for Remove Duplicates Assets"
+msgstr "Opcions de Elimina recursos duplicats"
+
+msgid "Options for Remove Empty Albums"
+msgstr "Opcions de Elimina àlbums buits"
+
+msgid "Options for Rename Albums"
+msgstr "Opcions de Canvia el nom dels àlbums"
+
+msgid "Options for Upload Albums"
+msgstr "Opcions de Puja àlbums"
+
+msgid "Options for Upload All"
+msgstr "Opcions de Puja-ho tot"
+
+msgid "Options for {0}"
+msgstr "Opcions de {0}"
+
+msgid "Organize"
+msgstr "Organitza"
+
+msgid "Organize Local Folder By Date"
+msgstr "Organitza la carpeta local per data"
+
+msgid "Other Features"
+msgstr "Altres funcions"
+
+msgid "Other Features · PhotoMigrator"
+msgstr "Altres funcions · PhotoMigrator"
+
+msgid "Output Folder"
+msgstr "Carpeta de sortida"
+
+msgid "Output Folder Suffix"
+msgstr "Sufix de la carpeta de sortida"
+
+msgid "Output Status: idle"
+msgstr "Estat de la sortida: inactiu"
+
+msgid "Output folder suffix"
+msgstr "Sufix de la carpeta de sortida"
+
+msgid "Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected."
+msgstr "El format de sortida és: 'yyyy - Nom de l'àlbum' o 'yyyy--yyyy - Nom de l'àlbum' quan es detecta un interval."
+
+msgid "Overridden at runtime by environment variable '{0}'."
+msgstr "Substituït en temps d'execució per la variable d'entorn '{0}'."
+
+msgid "Overwrite Configuration?"
+msgstr "Voleu sobreescriure la configuració?"
+
+msgid "Parallel Migration"
+msgstr "Migració en paral·lel"
+
+msgid "Password"
+msgstr "Contrasenya"
+
+msgid "Password (at least {0} characters)"
+msgstr "Contrasenya (almenys {0} caràcters)"
+
+msgid "Pattern and replacement"
+msgstr "Patró i reemplaçament"
+
+msgid "Photo libraries"
+msgstr "Biblioteques de fotos"
+
+msgid "PhotoMigrator"
+msgstr "PhotoMigrator"
+
+msgid "PhotoMigrator Admin"
+msgstr "Administració de PhotoMigrator"
+
+msgid "PhotoMigrator Login"
+msgstr "Inici de sessió de PhotoMigrator"
+
+msgid "PhotoMigrator website"
+msgstr "Lloc web de PhotoMigrator"
+
+msgid "Photos, videos and albums from a source to a target, with a live dashboard."
+msgstr "Fotos, vídeos i àlbums d'un origen a una destinació, amb un tauler en directe."
+
+msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
+msgstr "Trieu una tasca. PhotoMigrator només mostra les opcions que necessita i l'ordre exacta abans d'executar res."
+
+msgid "Please choose a path that does not contain: {0}."
+msgstr "Trieu una ruta que no contingui: {0}."
+
+msgid "Please confirm this action."
+msgstr "Confirmeu aquesta acció."
+
+msgid "Please select a destination folder inside container first."
+msgstr "Seleccioneu primer una carpeta de destinació dins del contenidor."
+
+msgid "Please select a feature/module to run."
+msgstr "Seleccioneu una funció/mòdul per executar."
+
+msgid "Please verify username/password and try again."
+msgstr "Comproveu el nom d'usuari i la contrasenya i torneu-ho a provar."
+
+msgid "Port ({0}, {1} or {2})"
+msgstr "Port ({0}, {1} o {2})"
+
+msgid "Prefer Canonical Album Names"
+msgstr "Prefereix els noms d'àlbum canònics"
+
+msgid "Prefer the native EXIF writer"
+msgstr "Prefereix l'escriptor EXIF natiu"
+
+msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool."
+msgstr "Prefereix l'escriptor EXIF natiu per als fitxers de foto d'iCloud compatibles abans de recórrer a ExifTool."
+
+msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool. Disabled by default in CLI."
+msgstr "Prefereix l'escriptor EXIF natiu per als fitxers de foto d'iCloud compatibles abans de recórrer a ExifTool. Desactivat per defecte a la CLI."
+
+msgid "Preferences for how the Web Interface looks and behaves for your user. Theme and time zone changes are applied immediately."
+msgstr "Preferències sobre l'aspecte i el comportament de la interfície web per al vostre usuari. Els canvis de tema i de fus horari s'apliquen immediatament."
+
+msgid "Prefix album folders with their dates"
+msgstr "Afegeix la data com a prefix de les carpetes d'àlbums"
+
+msgid "Preview Album Actions"
+msgstr "Previsualitza les accions sobre àlbums"
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes."
+msgstr "Previsualitza les coincidències de Canvia el nom dels àlbums / Elimina àlbums / Consolida els noms dels àlbums abans d'aplicar els canvis."
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes. Enabled by default; use '--no-preview-album-actions' to disable it."
+msgstr "Previsualitza les coincidències de Canvia el nom dels àlbums / Elimina àlbums / Consolida els noms dels àlbums abans d'aplicar els canvis. Activat per defecte; useu '--no-preview-album-actions' per desactivar-ho."
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes. Enabled by default; use '--no-preview-album-actions' to disable it. Example: --rename-albums \"--\" \"-\""
+msgstr "Previsualitza les coincidències de Canvia el nom dels àlbums / Elimina àlbums / Consolida els noms dels àlbums abans d'aplicar els canvis. Activat per defecte; useu '--no-preview-album-actions' per desactivar-ho. Exemple: --rename-albums \"--\" \"-\""
+
+msgid "Preview unavailable"
+msgstr "Previsualització no disponible"
+
+msgid "Preview unavailable: {0}"
+msgstr "Previsualització no disponible: {0}"
+
+msgid "Process Duplicates"
+msgstr "Processa duplicats"
+
+msgid "Process Input: idle"
+msgstr "Entrada del procés: inactiva"
+
+msgid "Process Input: ready"
+msgstr "Entrada del procés: a punt"
+
+msgid "Process Input: waiting for input"
+msgstr "Entrada del procés: esperant l'entrada"
+
+msgid "Process Takeout"
+msgstr "Processa Takeout"
+
+msgid "Process a raw Apple iCloud Photos export before importing it into another photo service."
+msgstr "Processa una exportació en brut d'Apple iCloud Photos abans d'importar-la a un altre servei de fotos."
+
+msgid "Process a raw Apple iCloud Photos export before importing it into another photo service. This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections, and writes a portable output library with ALL_PHOTOS and Albums. When enabled, Memories CSV collections are also reconstructed as album-like folders. IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "Processa una exportació en brut d'Apple iCloud Photos abans d'importar-la a un altre servei de fotos. Aquesta funció llegeix les metadades de Photo Details.csv, restaura les dates a les fotos i vídeos, reconstrueix els àlbums a partir de les col·leccions CSV d'Apple i escriu una biblioteca de sortida portàtil amb ALL_PHOTOS i Albums. Quan està activat, les col·leccions CSV de Memories també es reconstrueixen com a carpetes semblants a àlbums. IMPORTANT: Aquest mòdul és un procés de preprocessament local. No envia res a cap destinació al núvol per si mateix."
+
+msgid "Process a raw Google Photos Takeout export before importing it into another photo service."
+msgstr "Processa una exportació en brut de Google Photos Takeout abans d'importar-la a un altre servei de fotos."
+
+msgid "Process a raw Google Photos Takeout export before importing it into another photo service. This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files, organizes the output into ALL_PHOTOS and Albums, and can optionally create symbolic album entries instead of duplicating files. When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow. IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "Processa una exportació en brut de Google Photos Takeout abans d'importar-la a un altre servei de fotos. Aquesta funció repara dates i metadades, reconstrueix la pertinença als àlbums a partir dels fitxers JSON auxiliars, organitza la sortida en ALL_PHOTOS i Albums, i opcionalment pot crear entrades d'àlbum simbòliques en lloc de duplicar fitxers. Quan l'entrada és un Takeout només d'àlbums sense carpetes d'any, PhotoMigrator ho detecta automàticament i canvia GPTH al flux de recuperació adequat. IMPORTANT: Aquest mòdul és un procés de preprocessament local. No envia res a cap destinació al núvol per si mateix."
+
+msgid "Process a revised duplicates CSV and execute actions from the 'Action' column."
+msgstr "Processa un CSV de duplicats revisat i executa les accions de la columna 'Action'."
+
+msgid "Process a revised duplicates CSV and execute actions from the 'Action' column. Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV. Valid actions: restore_duplicate / remove_duplicate / replace_duplicate. IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations. Example: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+msgstr "Processa un CSV de duplicats revisat i executa les accions de la columna 'Action'. Utilitzeu-ho després de '--find-duplicates' per aplicar les decisions manuals del CSV revisat. Accions vàlides: restore_duplicate / remove_duplicate / replace_duplicate. IMPORTANT: remove_duplicate i replace_duplicate són operacions irreversibles. Exemple: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+
+msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets."
+msgstr "Processa una carpeta d'exportació d'Apple iCloud Photos <ICLOUD_EXPORT_FOLDER> per recuperar les dates dels fitxers 'Photo Details.csv', assignar-les als fitxers multimèdia i organitzar els recursos."
+
+msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets. If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
+msgstr "Processa una carpeta d'exportació d'Apple iCloud Photos <ICLOUD_EXPORT_FOLDER> per recuperar les dates dels fitxers 'Photo Details.csv', assignar-les als fitxers multimèdia i organitzar els recursos. Si s'hi troba algun fitxer ZIP, primer s'extrauran a '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>' i aquesta carpeta s'utilitzarà com a entrada. L'exportació processada es desarà a la carpeta '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
+
+msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it."
+msgstr "Processa la carpeta de Takeout <TAKEOUT_FOLDER> per reparar totes les metadades i organitzar-ne els recursos."
+
+msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'. This argument is mandatory to run the Google Takeout Processor feature."
+msgstr "Processa la carpeta de Takeout <TAKEOUT_FOLDER> per reparar totes les metadades i organitzar-ne els recursos. Si s'hi troba algun fitxer Zip, s'extraurà a la carpeta '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>' i aquesta carpeta s'utilitzarà com a entrada. El Takeout processat es desarà a la carpeta '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'. Aquest argument és obligatori per executar la funció del processador de Google Takeout."
+
+msgid "Processing"
+msgstr "Processant"
+
+msgid "Provide JSON values to insert."
+msgstr "Proporcioneu els valors JSON que cal inserir."
+
+msgid "Push Asset Max Size (MB)"
+msgstr "Mida màxima dels recursos enviats (MB)"
+
+msgid "Quick tools"
+msgstr "Eines ràpides"
+
+msgid "Range separator"
+msgstr "Separador d'interval"
+
+msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output."
+msgstr "Llegeix les etiquetes de persones de Google Takeout dels fitxers JSON auxiliars i desa el mapa de persones a la sortida processada."
+
+msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
+msgstr "Llegeix les etiquetes de persones de Google Takeout dels fitxers JSON auxiliars i desa el mapa de persones a la sortida processada. (per defecte: True)."
+
+msgid "Readme"
+msgstr "Readme"
+
+msgid "Ready to run"
+msgstr "A punt per executar"
+
+msgid "Reason: {0}"
+msgstr "Motiu: {0}"
+
+msgid "Refresh Logs"
+msgstr "Actualitza els registres"
+
+msgid "Refresh Tables"
+msgstr "Actualitza les taules"
+
+msgid "Refresh token"
+msgstr "Testimoni d'actualització"
+
+msgid "Reject Account Request"
+msgstr "Rebutja la sol·licitud de compte"
+
+msgid "Reject Request"
+msgstr "Rebutja la sol·licitud"
+
+msgid "Release Notes"
+msgstr "Notes de la versió"
+
+msgid "Remaining Time"
+msgstr "Temps restant"
+
+msgid "Remove ALL albums."
+msgstr "Elimina TOTS els àlbums."
+
+msgid "Remove ALL assets (photos/videos) and ALL albums."
+msgstr "Elimina TOTS els recursos (fotos/vídeos) i TOTS els àlbums."
+
+msgid "Remove Albums"
+msgstr "Elimina àlbums"
+
+msgid "Remove All Albums"
+msgstr "Elimina tots els àlbums"
+
+msgid "Remove All Assets"
+msgstr "Elimina tots els recursos"
+
+msgid "Remove Duplicates Albums"
+msgstr "Elimina àlbums duplicats"
+
+msgid "Remove Duplicates Assets"
+msgstr "Elimina recursos duplicats"
+
+msgid "Remove Empty Albums"
+msgstr "Elimina àlbums buits"
+
+msgid "Remove Orphan Assets"
+msgstr "Elimina recursos orfes"
+
+msgid "Remove Selected"
+msgstr "Elimina la selecció"
+
+msgid "Remove Selected ({0})"
+msgstr "Elimina la selecció ({0})"
+
+msgid "Remove album assets"
+msgstr "Elimina els recursos dels àlbums"
+
+msgid "Remove albums matching a text, wildcard, or regex pattern."
+msgstr "Elimina els àlbums que coincideixen amb un patró de text, comodí o expressió regular."
+
+msgid "Remove albums matching a text, wildcard, or regex pattern. Use '--preview-album-actions' to preview matches and request confirmation before applying changes. Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'. Example: --remove-albums \"^Temp\" --remove-albums-assets"
+msgstr "Elimina els àlbums que coincideixen amb un patró de text, comodí o expressió regular. Useu '--preview-album-actions' per previsualitzar les coincidències i demanar confirmació abans d'aplicar els canvis. Opcionalment, elimina també els recursos dels àlbums amb '-rAlbAsset, --remove-albums-assets'. Exemple: --remove-albums \"^Temp\" --remove-albums-assets"
+
+msgid "Remove duplicate assets while preserving available metadata and people on the selected keeper asset."
+msgstr "Elimina els recursos duplicats conservant les metadades i les persones disponibles al recurs que es conserva."
+
+msgid "Remove duplicate files"
+msgstr "Elimina els fitxers duplicats"
+
+msgid "Remove duplicate files in <OUTPUT_TAKEOUT_FOLDER> after fixing them."
+msgstr "Elimina els fitxers duplicats a <OUTPUT_TAKEOUT_FOLDER> després de reparar-los."
+
+msgid "Remove duplicated albums (same name and size)."
+msgstr "Elimina els àlbums duplicats (mateix nom i mida)."
+
+msgid "Remove empty albums."
+msgstr "Elimina els àlbums buits."
+
+msgid "Removed: {0} | Failed: {1}"
+msgstr "Eliminats: {0} | Fallits: {1}"
+
+msgid "Rename Albums"
+msgstr "Canvia el nom dels àlbums"
+
+msgid "Rename Pattern"
+msgstr "Patró de canvi de nom"
+
+msgid "Rename album folders by date"
+msgstr "Canvia el nom de les carpetes d'àlbums segons la data"
+
+msgid "Rename album folders in <OUTPUT_TAKEOUT_FOLDER> based on content dates after fixing them."
+msgstr "Canvia el nom de les carpetes d'àlbums a <OUTPUT_TAKEOUT_FOLDER> segons les dates del contingut després de reparar-les."
+
+msgid "Rename albums using a text, wildcard, or regex pattern with a replacement value."
+msgstr "Canvia el nom dels àlbums mitjançant un patró de text, comodí o expressió regular amb un valor de reemplaçament."
+
+msgid "Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates."
+msgstr "Canvia el nom i homogeneïtza les carpetes d'àlbums a <ALBUMS_FOLDER> segons les dates del contingut."
+
+msgid "Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates. Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected. Date and range separators can be customized with '--date-separator' and '--range-separator'. IMPORTANT: This modifies original folder names in place; create a backup if needed. Example: --rename-folders-content-based ./MyLocalPhotoLibrary"
+msgstr "Canvia el nom i homogeneïtza les carpetes d'àlbums a <ALBUMS_FOLDER> segons les dates del contingut. El format de sortida és: 'yyyy - Nom de l'àlbum' o 'yyyy--yyyy - Nom de l'àlbum' quan es detecta un interval. Els separadors de data i d'interval es poden personalitzar amb '--date-separator' i '--range-separator'. IMPORTANT: Això modifica els noms originals de les carpetes directament; feu una còpia de seguretat si cal. Exemple: --rename-folders-content-based ./MyLocalPhotoLibrary"
+
+msgid "Rename pattern"
+msgstr "Patró de canvi de nom"
+
+msgid "Repair broken album links"
+msgstr "Repara els enllaços d'àlbums trencats"
+
+msgid "Repair, rename, organize and deduplicate folders, or upload files to this server."
+msgstr "Repara, canvia el nom, organitza i desduplica carpetes, o puja fitxers a aquest servidor."
+
+msgid "Replacement Pattern"
+msgstr "Patró de reemplaçament"
+
+msgid "Replacement pattern"
+msgstr "Patró de reemplaçament"
+
+msgid "Replacement text"
+msgstr "Text de reemplaçament"
+
+msgid "Request User Confirmation"
+msgstr "Demana confirmació a l'usuari"
+
+msgid "Request an account"
+msgstr "Sol·liciteu un compte"
+
+msgid "Request failed"
+msgstr "La sol·licitud ha fallat"
+
+msgid "Request user confirmation before executing a feature (default: True)."
+msgstr "Demana confirmació a l'usuari abans d'executar una funció (per defecte: True)."
+
+msgid "Requested from the login page"
+msgstr "Sol·licitat des de la pàgina d'inici de sessió"
+
+msgid "Required"
+msgstr "Obligatori"
+
+msgid "Required arguments:"
+msgstr "Arguments obligatoris:"
+
+msgid "Reset Password"
+msgstr "Restableix la contrasenya"
+
+msgid "Reset Password: {0}"
+msgstr "Restableix la contrasenya: {0}"
+
+msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
+msgstr "Restaura les dates i els àlbums d'una exportació d'Apple iCloud Photos en una biblioteca portàtil."
+
+msgid "Restore dates and metadata and rebuild albums into a clean library."
+msgstr "Restaura les dates i metadades i reconstrueix els àlbums en una biblioteca neta."
+
+msgid "Restore defaults"
+msgstr "Restableix els valors per defecte"
+
+msgid "Restore the default values of the fields shown for this feature"
+msgstr "Restableix els valors per defecte dels camps d'aquesta funció"
+
+msgid "Result is exported to a CSV to review duplicates and selected action per item."
+msgstr "El resultat s'exporta a un CSV per revisar els duplicats i l'acció seleccionada per a cada element."
+
+msgid "Review the request"
+msgstr "Reviseu la sol·licitud"
+
+msgid "Roadmap"
+msgstr "Full de ruta"
+
+msgid "Role"
+msgstr "Rol"
+
+msgid "Run"
+msgstr "Executa"
+
+msgid "Run Backup Now"
+msgstr "Executa la còpia de seguretat ara"
+
+msgid "Run Error"
+msgstr "Error d'execució"
+
+msgid "Run an end-to-end migration from <SOURCE> to <TARGET> including albums and non-album assets."
+msgstr "Executa una migració completa de <SOURCE> a <TARGET>, amb àlbums i recursos que no són en cap àlbum."
+
+msgid "Run and follow the progress"
+msgstr "Executeu i seguiu-ne el progrés"
+
+msgid "Run this feature"
+msgstr "Executa aquesta funció"
+
+msgid "Running"
+msgstr "En execució"
+
+msgid "Runtime override active from environment variable {0}"
+msgstr "Substitució activa en temps d'execució per la variable d'entorn {0}"
+
+msgid "SMTP password"
+msgstr "Contrasenya SMTP"
+
+msgid "SMTP password (saved, leave empty to keep it)"
+msgstr "Contrasenya SMTP (desada, deixeu-la buida per conservar-la)"
+
+msgid "SMTP server (for example mail.example.com)"
+msgstr "Servidor SMTP (per exemple mail.example.com)"
+
+msgid "SMTP username"
+msgstr "Nom d'usuari SMTP"
+
+msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
+msgstr "SOURCE i TARGET poden ser punts finals al núvol (synology/immich/nextcloud/google amb compte) o carpetes locals."
+
+msgid "Same name and size"
+msgstr "Mateix nom i mida"
+
+msgid "Save Email"
+msgstr "Desa el correu electrònic"
+
+msgid "Save Email Settings"
+msgstr "Desa la configuració del correu electrònic"
+
+msgid "Save Failed"
+msgstr "Ha fallat el desat"
+
+msgid "Save Password"
+msgstr "Desa la contrasenya"
+
+msgid "Save Schedule"
+msgstr "Desa la programació"
+
+msgid "Save app settings"
+msgstr "Desa la configuració de l'aplicació"
+
+msgid "Save config"
+msgstr "Desa la configuració"
+
+msgid "Save people labels"
+msgstr "Desa les etiquetes de persones"
+
+msgid "Save row"
+msgstr "Desa la fila"
+
+msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
+msgstr "Analitza <FOLDER_TO_FIX> de manera recursiva i prova de reparar els enllaços simbòlics trencats."
+
+msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
+msgstr "Analitza <FOLDER_TO_FIX> de manera recursiva i prova de reparar els enllaços simbòlics trencats. Útil després de moure o canviar el nom de carpetes a OUTPUT_TAKEOUT_FOLDER quan alguns àlbums apareixen buits. L'eina cerca fitxers de destinació vàlids dins del mateix arbre de carpetes i, si pot, torna a enllaçar. IMPORTANT: Els enllaços només es reparen quan es pot deduir una destinació vàlida dels fitxers actuals. Exemple: --fix-symlinks-broken ./OUTPUT_FOLDER"
+
+msgid "Scroll log to the first line"
+msgstr "Desplaça el registre a la primera línia"
+
+msgid "Scroll log to the last line"
+msgstr "Desplaça el registre a l'última línia"
+
+msgid "Segoe UI"
+msgstr "Segoe UI"
+
+msgid "Select CSV File"
+msgstr "Selecciona el fitxer CSV"
+
+msgid "Select File"
+msgstr "Selecciona un fitxer"
+
+msgid "Select Parallel/Sequential migration during Automatic Migration job."
+msgstr "Seleccioneu la migració en paral·lel o seqüencial durant una tasca de migració automàtica."
+
+msgid "Select Parallel/Sequential migration during Automatic Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
+msgstr "Seleccioneu la migració en paral·lel o seqüencial durant una tasca de migració automàtica. Aquest argument només s'aplica si s'indiquen alhora '--source' i '--target'. (per defecte: True)."
+
+msgid "Select a table first."
+msgstr "Seleccioneu una taula primer."
+
+msgid "Select at least one folder first."
+msgstr "Seleccioneu almenys una carpeta primer."
+
+msgid "Select destination folder"
+msgstr "Selecciona la carpeta de destinació"
+
+msgid "Select folder"
+msgstr "Selecciona una carpeta"
+
+msgid "Select the time zone used by PhotoMigrator to display timestamps and process date/time-based operations."
+msgstr "Seleccioneu el fus horari que PhotoMigrator utilitza per mostrar les marques de temps i processar les operacions basades en data i hora."
+
+msgid "Select the visual theme used by your web interface."
+msgstr "Seleccioneu el tema visual de la vostra interfície web."
+
+msgid "Select user role"
+msgstr "Selecciona el rol de l'usuari"
+
+msgid "Select {0}"
+msgstr "Selecciona {0}"
+
+msgid "Selected albums to a folder"
+msgstr "Àlbums seleccionats a una carpeta"
+
+msgid "Selected folders (comma-separated)"
+msgstr "Carpetes seleccionades (separades per comes)"
+
+msgid "Selected option"
+msgstr "Opció seleccionada"
+
+msgid "Selected root: {0}\\n\\n"
+msgstr "Arrel seleccionada: {0}\\n\\n"
+
+msgid "Selected: {0}"
+msgstr "Seleccionat: {0}"
+
+msgid "Send"
+msgstr "Envia"
+
+msgid "Send Test Email"
+msgstr "Envia un correu de prova"
+
+msgid "Send a local folder or ZIP file to the server"
+msgstr "Envieu una carpeta local o un fitxer ZIP al servidor"
+
+msgid "Send files here"
+msgstr "Envia fitxers aquí"
+
+msgid "Send request"
+msgstr "Envia la sol·licitud"
+
+msgid "Send the test email to (default: your email)"
+msgstr "Envia el correu de prova a (per defecte: el vostre correu)"
+
+msgid "Sender email"
+msgstr "Correu del remitent"
+
+msgid "Sender name (PhotoMigrator)"
+msgstr "Nom del remitent (PhotoMigrator)"
+
+msgid "Service credentials"
+msgstr "Credencials dels serveis"
+
+msgid "Set a new password and confirm it."
+msgstr "Definiu una contrasenya nova i confirmeu-la."
+
+msgid "Settings"
+msgstr "Configuració"
+
+msgid "Settings · PhotoMigrator"
+msgstr "Configuració · PhotoMigrator"
+
+msgid "Settings › Service credentials"
+msgstr "Configuració › Credencials dels serveis"
+
+msgid "Shared arguments, service credentials and preferences used by every feature."
+msgstr "Arguments compartits, credencials dels serveis i preferències que utilitzen totes les funcions."
+
+msgid "Show"
+msgstr "Mostra"
+
+msgid "Show Client secret"
+msgstr "Mostra el secret de client"
+
+msgid "Show GPTH error messages"
+msgstr "Mostra els missatges d'error de GPTH"
+
+msgid "Show GPTH info messages"
+msgstr "Mostra els missatges d'informació de GPTH"
+
+msgid "Show Refresh token"
+msgstr "Mostra el testimoni d'actualització"
+
+msgid "Show password"
+msgstr "Mostra la contrasenya"
+
+msgid "Show {0}"
+msgstr "Mostra {0}"
+
+msgid "Sign in"
+msgstr "Inicia la sessió"
+
+msgid "Sign in to PhotoMigrator"
+msgstr "Inicieu la sessió a PhotoMigrator"
+
+msgid "Skip GPTH tool (not recommended)"
+msgstr "Omet l'eina GPTH (no recomanat)"
+
+msgid "Skip extra files (-edited, -effects)"
+msgstr "Omet els fitxers extra (-edited, -effects)"
+
+msgid "Skip moving albums"
+msgstr "Omet el moviment d'àlbums"
+
+msgid "Skip moving albums to '<ALBUMS_FOLDER>'."
+msgstr "Omet el moviment dels àlbums a '<ALBUMS_FOLDER>'."
+
+msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums folders vs original assets {3}) Organize assets by year/month {4}) Auto rename album folders based on content dates {5}) Detect and remove duplicates {6}) Count albums {7}) Remove empty folders {8}) Clean final media library {9}) Show files without dates Not recommended to skip."
+msgstr "Omet el postprocessament de Google Takeout, que inclou: {0}) Sincronitzar els fitxers MP4 associats a Live Photos amb el HEIC/JPG corresponent {1}) Reparar dates XMP de vídeo conflictives {2}) Separar les carpetes d'àlbums dels recursos originals {3}) Organitzar els recursos per any/mes {4}) Canviar automàticament el nom de les carpetes d'àlbums segons les dates del contingut {5}) Detectar i eliminar duplicats {6}) Comptar àlbums {7}) Eliminar carpetes buides {8}) Netejar la biblioteca multimèdia final {9}) Mostrar fitxers sense dates No es recomana ometre-ho."
+
+msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums fo…"
+msgstr "Omet el postprocessament de Google Takeout, que inclou: {0}) Sincronitzar els fitxers MP4 associats a Live Photos amb el HEIC/JPG corresponent {1}) Reparar dates XMP de vídeo conflictives {2}) Separar les carpetes d'àlbums d…"
+
+msgid "Skip post-processing"
+msgstr "Omet el postprocessament"
+
+msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accuracy. If you already pre-processed the same Takeout using '-gKeepTakeout,--google-keep-takeout-folder', you can skip it."
+msgstr "Omet el preprocessament de Google Takeout, que inclou: {0}) Netejar la carpeta de Takeout {1}) Reparar les associacions MP4/Live Photo {2}) Reparar noms de fitxer i extensions truncats Això és important per a una gran precisió. Si ja heu preprocessat el mateix Takeout amb '-gKeepTakeout,--google-keep-takeout-folder', podeu ometre-ho."
+
+msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accur…"
+msgstr "Omet el preprocessament de Google Takeout, que inclou: {0}) Netejar la carpeta de Takeout {1}) Reparar les associacions MP4/Live Photo {2}) Reparar noms de fitxer i extensions truncats Això és important per a una gran prec…"
+
+msgid "Skip pre-processing"
+msgstr "Omet el preprocessament"
+
+msgid "Skip processing extra photos such as -edited, -effects photos."
+msgstr "Omet el processament de fotos extra com les fotos -edited i -effects."
+
+msgid "Skip processing files with GPTH Tool."
+msgstr "Omet el processament de fitxers amb l'eina GPTH."
+
+msgid "Skip processing files with GPTH Tool. CAUTION: NOT RECOMMENDED (core of the Google Takeout process). Use only for testing."
+msgstr "Omet el processament de fitxers amb l'eina GPTH. ATENCIÓ: NO RECOMANAT (és el nucli del procés de Google Takeout). Utilitzeu-ho només per a proves."
+
+msgid "Skip saving GPTH log messages into output folder."
+msgstr "Omet el desat dels missatges de registre de GPTH a la carpeta de sortida."
+
+msgid "Skip saving output messages to execution log file."
+msgstr "Omet el desat dels missatges de sortida al fitxer de registre d'execució."
+
+msgid "Small Album Max Assets"
+msgstr "Màxim de recursos d'un àlbum petit"
+
+msgid "Sort a folder into date subfolders"
+msgstr "Ordena una carpeta en subcarpetes per data"
+
+msgid "Source"
+msgstr "Origen"
+
+msgid "Source Client"
+msgstr "Client d'origen"
+
+msgid "Source endpoint or local folder to migrate from."
+msgstr "Punt final d'origen o carpeta local des d'on migrar."
+
+msgid "Source service"
+msgstr "Servei d'origen"
+
+msgid "Source to target"
+msgstr "D'origen a destinació"
+
+msgid "Specify Date Separator used by feature `Auto-Rename Albums Content Based`."
+msgstr "Especifica el separador de data utilitzat per la funció `Auto-Rename Albums Content Based`."
+
+msgid "Specify Range of Dates Separator used by feature `Auto-Rename Albums Content Based`."
+msgstr "Especifica el separador d'interval de dates utilitzat per la funció `Auto-Rename Albums Content Based`."
+
+msgid "Specify an external version of EXIF Tool binary."
+msgstr "Especifica una versió externa del binari d'EXIF Tool."
+
+msgid "Specify an external version of EXIF Tool binary. PhotoMigrator contains an embedded version of EXIF Tool, but if you want to use a different version, you can use this argument."
+msgstr "Especifica una versió externa del binari d'EXIF Tool. PhotoMigrator inclou una versió integrada d'EXIF Tool, però si voleu utilitzar-ne una de diferent, podeu fer servir aquest argument."
+
+msgid "Specify an external version of GPTH Tool binary."
+msgstr "Especifica una versió externa del binari de GPTH Tool."
+
+msgid "Specify an external version of GPTH Tool binary. PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
+msgstr "Especifica una versió externa del binari de GPTH Tool. PhotoMigrator inclou una versió integrada de GPTH Tool, però si voleu utilitzar-ne una de diferent, podeu fer servir aquest argument."
+
+msgid "Specify the Asset Type to filter assets in the different Photo Clients."
+msgstr "Especifica el tipus de recurs per filtrar els recursos dels diferents clients de fotos."
+
+msgid "Specify the Asset Type to filter assets in the different Photo Clients. (default: all)"
+msgstr "Especifica el tipus de recurs per filtrar els recursos dels diferents clients de fotos. (per defecte: all)"
+
+msgid "Specify the City Name to filter assets in the different Photo Clients."
+msgstr "Especifica el nom de la ciutat per filtrar els recursos dels diferents clients de fotos."
+
+msgid "Specify the Country Name to filter assets in the different Photo Clients."
+msgstr "Especifica el nom del país per filtrar els recursos dels diferents clients de fotos."
+
+msgid "Specify the Person Name to filter assets in the different Photo Clients."
+msgstr "Especifica el nom de la persona per filtrar els recursos dels diferents clients de fotos."
+
+msgid "Specify the Takeout master-library folder name containing all assets."
+msgstr "Especifica el nom de la carpeta de la biblioteca principal de Takeout que conté tots els recursos."
+
+msgid "Specify the Takeout master-library folder name containing all assets. Default: 'ALL_PHOTOS'."
+msgstr "Especifica el nom de la carpeta de la biblioteca principal de Takeout que conté tots els recursos. Per defecte: 'ALL_PHOTOS'."
+
+msgid "Specify the final date to filter assets in the different Photo Clients."
+msgstr "Especifica la data final per filtrar els recursos dels diferents clients de fotos."
+
+msgid "Specify the folder name to save the Metadata outputs of 'Extracted Dates'."
+msgstr "Especifica el nom de la carpeta on es desen les metadades de sortida de 'Extracted Dates'."
+
+msgid "Specify the folder name to save the execution Logs."
+msgstr "Especifica el nom de la carpeta on es desen els registres d'execució."
+
+msgid "Specify the folder name to save the outputs of 'Find Duplicates' Feature."
+msgstr "Especifica el nom de la carpeta on es desa la sortida de la funció 'Find Duplicates'."
+
+msgid "Specify the folder name to store all your processed photos associated to any Album."
+msgstr "Especifica el nom de la carpeta on es desen totes les fotos processades associades a qualsevol àlbum."
+
+msgid "Specify the folder name used by cloud and local-library workflows for assets not associated to an album."
+msgstr "Especifica el nom de la carpeta que utilitzen els fluxos de treball al núvol i de biblioteca local per als recursos no associats a cap àlbum."
+
+msgid "Specify the folder structure type for each Album folder (Default: 'flatten')."
+msgstr "Especifica el tipus d'estructura de carpetes de cada carpeta d'àlbum (per defecte: 'flatten')."
+
+msgid "Specify the folder structure type for each reconstructed iCloud Album folder (Default: 'flatten')."
+msgstr "Especifica el tipus d'estructura de carpetes de cada carpeta d'àlbum d'iCloud reconstruïda (per defecte: 'flatten')."
+
+msgid "Specify the folder structure type for the Google Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month')."
+msgstr "Especifica el tipus d'estructura de carpetes de la biblioteca principal '<ALL_PHOTOS_FOLDER>' de Google Takeout (per defecte: 'year/month')."
+
+msgid "Specify the folder structure type for the iCloud Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month')."
+msgstr "Especifica el tipus d'estructura de carpetes de la biblioteca principal '<ALL_PHOTOS_FOLDER>' d'iCloud Takeout (per defecte: 'year/month')."
+
+msgid "Specify the folder structure type for the organized local-folder output (Default: 'year/month')."
+msgstr "Especifica el tipus d'estructura de carpetes de la sortida de la carpeta local organitzada (per defecte: 'year/month')."
+
+msgid "Specify the initial date to filter assets in the different Photo Clients."
+msgstr "Especifica la data inicial per filtrar els recursos dels diferents clients de fotos."
+
+msgid "Specify the log file format."
+msgstr "Especifica el format del fitxer de registre."
+
+msgid "Specify the log level for logging and screen messages."
+msgstr "Especifica el nivell de registre per als missatges de registre i de pantalla."
+
+msgid "Specify the managed Local Photos Folder root when '--client=local-photos-folder'."
+msgstr "Especifica l'arrel de la carpeta de fotos local gestionada quan s'usa '--client=local-photos-folder'."
+
+msgid "Specify the managed Local Photos Folder root when '--client=local-photos-folder'. It contains the Albums and No_Albums folders used by Local Photos Folder modules."
+msgstr "Especifica l'arrel de la carpeta de fotos local gestionada quan s'usa '--client=local-photos-folder'. Conté les carpetes Albums i No_Albums que utilitzen els mòduls de la carpeta de fotos local."
+
+msgid "Specify the output folder to save the result of the processing action."
+msgstr "Especifica la carpeta de sortida on es desa el resultat de l'acció de processament."
+
+msgid "Specify the suffix for the iCloud processed output folder."
+msgstr "Especifica el sufix de la carpeta de sortida processada d'iCloud."
+
+msgid "Specify the suffix for the iCloud processed output folder. Default: 'processed'."
+msgstr "Especifica el sufix de la carpeta de sortida processada d'iCloud. Per defecte: 'processed'."
+
+msgid "Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided."
+msgstr "Especifica el sufix de la sortida de la carpeta local organitzada quan no s'indica '-o/--output-folder'."
+
+msgid "Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided. Default: 'processed'."
+msgstr "Especifica el sufix de la sortida de la carpeta local organitzada quan no s'indica '-o/--output-folder'. Per defecte: 'processed'."
+
+msgid "Specify the suffix for the output folder."
+msgstr "Especifica el sufix de la carpeta de sortida."
+
+msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
+msgstr "Especifica el sufix de la carpeta de sortida. Per defecte: 'processed'. La carpeta de sortida tindrà el mateix nom que la carpeta d'entrada seguit d'aquest sufix i de la marca de temps d'execució."
+
+msgid "Start Time: -"
+msgstr "Hora d'inici: -"
+
+msgid "Start Time: {0}"
+msgstr "Hora d'inici: {0}"
+
+msgid "Start a migration"
+msgstr "Inicia una migració"
+
+msgid "Start a migration{0}"
+msgstr "Inicia una migració{0}"
+
+msgid "Start here"
+msgstr "Comença aquí"
+
+msgid "Status: authenticating..."
+msgstr "Estat: autenticant..."
+
+msgid "Status: creating user..."
+msgstr "Estat: creant l'usuari..."
+
+msgid "Status: enter admin username and password"
+msgstr "Estat: introduïu el nom d'usuari i la contrasenya d'administrador"
+
+msgid "Status: idle"
+msgstr "Estat: inactiu"
+
+msgid "Status: loaded {0} users · email is not configured, no notices are sent"
+msgstr "Estat: s'han carregat {0} usuaris · el correu electrònic no està configurat, no s'envia cap avís"
+
+msgid "Status: loaded {0} users${notes.length ?"
+msgstr "Status: loaded {0} users${notes.length ?"
+
+msgid "Status: loading users..."
+msgstr "Estat: carregant usuaris..."
+
+msgid "Status: login successful"
+msgstr "Estat: sessió iniciada correctament"
+
+msgid "Status: passwords do not match"
+msgstr "Estat: les contrasenyes no coincideixen"
+
+msgid "Status: ready"
+msgstr "Estat: a punt"
+
+msgid "Status: reconnecting"
+msgstr "Estat: reconnectant"
+
+msgid "Status: request sent. You will get an email when an administrator activates your account."
+msgstr "Estat: sol·licitud enviada. Rebreu un correu electrònic quan un administrador activi el vostre compte."
+
+msgid "Status: running"
+msgstr "Estat: en execució"
+
+msgid "Status: saving..."
+msgstr "Estat: desant..."
+
+msgid "Status: sending request..."
+msgstr "Estat: enviant la sol·licitud..."
+
+msgid "Status: stop error (network failure)"
+msgstr "Estat: error en aturar (error de xarxa)"
+
+msgid "Status: stop error ({0})"
+msgstr "Estat: error en aturar ({0})"
+
+msgid "Status: stopping"
+msgstr "Estat: aturant"
+
+msgid "Status: the passwords do not match"
+msgstr "Estat: les contrasenyes no coincideixen"
+
+msgid "Status: validating admin credentials..."
+msgstr "Estat: validant les credencials d'administrador..."
+
+msgid "Status: validation error ({0})"
+msgstr "Estat: error de validació ({0})"
+
+msgid "Status: waiting for credentials"
+msgstr "Estat: esperant les credencials"
+
+msgid "Status: {0}"
+msgstr "Estat: {0}"
+
+msgid "Stop"
+msgstr "Atura"
+
+msgid "Stop Running Module?"
+msgstr "Voleu aturar el mòdul en execució?"
+
+msgid "Synology"
+msgstr "Synology"
+
+msgid "Synology Photos"
+msgstr "Synology Photos"
+
+msgid "Synology Photos · PhotoMigrator"
+msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table status: 'access_logs' loaded (2/2 rows)"
+msgstr "Estat de la taula: 'access_logs' carregada (2/2 files)"
+
+msgid "Table status: 'access_logs' loaded (9/9 rows)"
+msgstr "Estat de la taula: 'access_logs' carregada (9/9 files)"
+
+msgid "Table status: '{0}' loaded (0 rows)"
+msgstr "Estat de la taula: '{0}' carregada (0 files)"
+
+msgid "Table status: '{0}' loaded ({1}/{2} rows)"
+msgstr "Estat de la taula: '{0}' carregada ({1}/{2} files)"
+
+msgid "Table status: loaded {0} tables"
+msgstr "Estat de la taula: s'han carregat {0} taules"
+
+msgid "Table status: loading '{0}'..."
+msgstr "Estat de la taula: carregant '{0}'..."
+
+msgid "Table status: loading table list..."
+msgstr "Estat de la taula: carregant la llista de taules..."
+
+msgid "Table status: no table selected"
+msgstr "Estat de la taula: cap taula seleccionada"
+
+msgid "Table status: row {0} updated"
+msgstr "Estat de la taula: fila {0} actualitzada"
+
+msgid "Table status: {0}"
+msgstr "Estat de la taula: {0}"
+
+msgid "Takeout"
+msgstr "Takeout"
+
+msgid "Takeout folder"
+msgstr "Carpeta de Takeout"
+
+msgid "Takeout input and output"
+msgstr "Entrada i sortida de Takeout"
+
+msgid "Target"
+msgstr "Destinació"
+
+msgid "Target Client"
+msgstr "Client de destinació"
+
+msgid "Target endpoint or local folder to migrate into."
+msgstr "Punt final de destinació o carpeta local on migrar."
+
+msgid "Target service"
+msgstr "Servei de destinació"
+
+msgid "The account is not active yet. We will email you when it is."
+msgstr "El compte encara no està actiu. Us enviarem un correu quan ho estigui."
+
+msgid "The demo role cannot save configuration changes except TimeZone and Theme."
+msgstr "El rol de demostració no pot desar canvis de configuració excepte TimeZone i Theme."
+
+msgid "The demo role cannot {0} configuration directly."
+msgstr "El rol de demostració no pot fer {0} a la configuració directament."
+
+msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
+msgstr "La ruta seleccionada conté '{0}', que està reservat com a nom de carpeta especial de Google.\\n\\n"
+
+msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
+msgstr "L'eina cerca fitxers de destinació vàlids dins del mateix arbre de carpetes i, si pot, torna a enllaçar."
+
+msgid "The user can sign in with this email and receives account and task notices there."
+msgstr "L'usuari pot iniciar la sessió amb aquest correu electrònic i hi rep els avisos del compte i de les tasques."
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Theme used by the PhotoMigrator web interface."
+msgstr "Tema que utilitza la interfície web de PhotoMigrator."
+
+msgid "This argument only accepts one folder. Select exactly one."
+msgstr "Aquest argument només accepta una carpeta. Seleccioneu-ne exactament una."
+
+msgid "This converts dates from YYYY.MM.DD format to YYYY-MM-DD."
+msgstr "Això converteix les dates del format YYYY.MM.DD a YYYY-MM-DD."
+
+msgid "This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections,"
+msgstr "Aquesta funció llegeix les metadades de Photo Details.csv, restaura les dates a les fotos i vídeos, reconstrueix els àlbums a partir de les col·leccions CSV d'Apple,"
+
+msgid "This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files,"
+msgstr "Aquesta funció repara dates i metadades, reconstrueix la pertinença als àlbums a partir dels fitxers JSON auxiliars,"
+
+msgid "This module will consolidate equivalent album-name families already existing in Google Photos without uploading new assets."
+msgstr "Aquest mòdul consolidarà les famílies de noms d'àlbum equivalents que ja existeixen a Google Photos sense pujar recursos nous."
+
+msgid "This module will consolidate equivalent album-name families already existing in Immich Photos without uploading new assets."
+msgstr "Aquest mòdul consolidarà les famílies de noms d'àlbum equivalents que ja existeixen a Immich Photos sense pujar recursos nous."
+
+msgid "This module will consolidate equivalent album-name families already existing in Local Photos Folder without uploading new assets."
+msgstr "Aquest mòdul consolidarà les famílies de noms d'àlbum equivalents que ja existeixen a la carpeta de fotos local sense pujar recursos nous."
+
+msgid "This module will consolidate equivalent album-name families already existing in NextCloud Photos without uploading new assets."
+msgstr "Aquest mòdul consolidarà les famílies de noms d'àlbum equivalents que ja existeixen a NextCloud Photos sense pujar recursos nous."
+
+msgid "This module will consolidate equivalent album-name families already existing in Synology Photos without uploading new assets."
+msgstr "Aquest mòdul consolidarà les famílies de noms d'àlbum equivalents que ja existeixen a Synology Photos sense pujar recursos nous."
+
+msgid "This module will consolidate equivalent album-name families already existing in {0} without uploading new assets."
+msgstr "Aquest mòdul consolidarà les famílies de noms d'àlbum equivalents que ja existeixen a {0} sense pujar recursos nous."
+
+msgid "This module will delete ALL albums in Immich Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà TOTS els àlbums d'Immich Photos. Els recursos associats es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete ALL albums in Local Photos Folder. Associated assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà TOTS els àlbums de la carpeta de fotos local. Els recursos associats es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete ALL albums in NextCloud Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà TOTS els àlbums de NextCloud Photos. Els recursos associats es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete ALL albums in Synology Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà TOTS els àlbums de Synology Photos. Els recursos associats es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete ALL albums in {0} and also delete all assets associated with those albums."
+msgstr "Aquest mòdul eliminarà TOTS els àlbums de {0} i també tots els recursos associats a aquests àlbums."
+
+msgid "This module will delete ALL albums in {0}. Associated assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà TOTS els àlbums de {0}. Els recursos associats es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Immich Photos."
+msgstr "Aquest mòdul eliminarà TOTS els recursos (fotos/vídeos) i TOTS els àlbums d'Immich Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Local Photos Folder."
+msgstr "Aquest mòdul eliminarà TOTS els recursos (fotos/vídeos) i TOTS els àlbums de la carpeta de fotos local."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in NextCloud Photos."
+msgstr "Aquest mòdul eliminarà TOTS els recursos (fotos/vídeos) i TOTS els àlbums de NextCloud Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Synology Photos."
+msgstr "Aquest mòdul eliminarà TOTS els recursos (fotos/vídeos) i TOTS els àlbums de Synology Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in {0}."
+msgstr "Aquest mòdul eliminarà TOTS els recursos (fotos/vídeos) i TOTS els àlbums de {0}."
+
+msgid "This module will delete albums in Immich Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà els àlbums d'Immich Photos el nom dels quals coincideixi amb el vostre patró. Els recursos es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete albums in Local Photos Folder whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà els àlbums de la carpeta de fotos local el nom dels quals coincideixi amb el vostre patró. Els recursos es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete albums in NextCloud Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà els àlbums de NextCloud Photos el nom dels quals coincideixi amb el vostre patró. Els recursos es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete albums in Synology Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà els àlbums de Synology Photos el nom dels quals coincideixi amb el vostre patró. Els recursos es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete albums in {0} whose names match your pattern, and it will also delete all assets inside those albums."
+msgstr "Aquest mòdul eliminarà els àlbums de {0} el nom dels quals coincideixi amb el vostre patró, i també tots els recursos d'aquests àlbums."
+
+msgid "This module will delete albums in {0} whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Aquest mòdul eliminarà els àlbums de {0} el nom dels quals coincideixi amb el vostre patró. Els recursos es conservaran tret que altres operacions els eliminin."
+
+msgid "This module will delete all empty albums in Immich Photos."
+msgstr "Aquest mòdul eliminarà tots els àlbums buits d'Immich Photos."
+
+msgid "This module will delete all empty albums in Local Photos Folder."
+msgstr "Aquest mòdul eliminarà tots els àlbums buits de la carpeta de fotos local."
+
+msgid "This module will delete all empty albums in NextCloud Photos."
+msgstr "Aquest mòdul eliminarà tots els àlbums buits de NextCloud Photos."
+
+msgid "This module will delete all empty albums in Synology Photos."
+msgstr "Aquest mòdul eliminarà tots els àlbums buits de Synology Photos."
+
+msgid "This module will delete all empty albums in {0}."
+msgstr "Aquest mòdul eliminarà tots els àlbums buits de {0}."
+
+msgid "This module will delete duplicated albums in Immich Photos (same name and size)."
+msgstr "Aquest mòdul eliminarà els àlbums duplicats d'Immich Photos (mateix nom i mida)."
+
+msgid "This module will delete duplicated albums in Local Photos Folder (same name and size)."
+msgstr "Aquest mòdul eliminarà els àlbums duplicats de la carpeta de fotos local (mateix nom i mida)."
+
+msgid "This module will delete duplicated albums in NextCloud Photos (same name and size)."
+msgstr "Aquest mòdul eliminarà els àlbums duplicats de NextCloud Photos (mateix nom i mida)."
+
+msgid "This module will delete duplicated albums in Synology Photos (same name and size)."
+msgstr "Aquest mòdul eliminarà els àlbums duplicats de Synology Photos (mateix nom i mida)."
+
+msgid "This module will delete duplicated albums in {0} (same name and size)."
+msgstr "Aquest mòdul eliminarà els àlbums duplicats de {0} (mateix nom i mida)."
+
+msgid "This module will delete orphan assets from the Immich database (assets referenced in DB but missing on disk)."
+msgstr "Aquest mòdul eliminarà els recursos orfes de la base de dades d'Immich (recursos referenciats a la BD però que falten al disc)."
+
+msgid "This module will keep the selected oldest/newest asset for every same-name/same-size group and permanently delete redundant assets when the selected cloud API supports deletion."
+msgstr "Aquest mòdul conservarà el recurs més antic/més recent seleccionat de cada grup de mateix nom i mida, i eliminarà definitivament els recursos redundants quan l'API al núvol seleccionada admeti l'eliminació."
+
+msgid "This module will merge duplicated albums in Immich Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Aquest mòdul fusionarà els àlbums duplicats d'Immich Photos movent-ne els recursos a l'àlbum més rellevant i eliminant els duplicats."
+
+msgid "This module will merge duplicated albums in Local Photos Folder by moving assets into the most relevant album and removing duplicates."
+msgstr "Aquest mòdul fusionarà els àlbums duplicats de la carpeta de fotos local movent-ne els recursos a l'àlbum més rellevant i eliminant els duplicats."
+
+msgid "This module will merge duplicated albums in NextCloud Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Aquest mòdul fusionarà els àlbums duplicats de NextCloud Photos movent-ne els recursos a l'àlbum més rellevant i eliminant els duplicats."
+
+msgid "This module will merge duplicated albums in Synology Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Aquest mòdul fusionarà els àlbums duplicats de Synology Photos movent-ne els recursos a l'àlbum més rellevant i eliminant els duplicats."
+
+msgid "This module will merge duplicated albums in {0} by moving assets into the most relevant album and removing duplicates."
+msgstr "Aquest mòdul fusionarà els àlbums duplicats de {0} movent-ne els recursos a l'àlbum més rellevant i eliminant els duplicats."
+
+msgid "This module will move the original local folder into the processed output before reorganizing it by date. The source folder path will no longer exist after the move. Do you want to continue?"
+msgstr "Aquest mòdul mourà la carpeta local original a la sortida processada abans de reorganitzar-la per data. La ruta de la carpeta d'origen deixarà d'existir després del moviment. Voleu continuar?"
+
+msgid "This module will rename albums in Immich Photos whose names match your pattern, using the replacement pattern."
+msgstr "Aquest mòdul canviarà el nom dels àlbums d'Immich Photos el nom dels quals coincideixi amb el vostre patró, amb el patró de reemplaçament."
+
+msgid "This module will rename albums in Local Photos Folder whose names match your pattern, using the replacement pattern."
+msgstr "Aquest mòdul canviarà el nom dels àlbums de la carpeta de fotos local el nom dels quals coincideixi amb el vostre patró, amb el patró de reemplaçament."
+
+msgid "This module will rename albums in NextCloud Photos whose names match your pattern, using the replacement pattern."
+msgstr "Aquest mòdul canviarà el nom dels àlbums de NextCloud Photos el nom dels quals coincideixi amb el vostre patró, amb el patró de reemplaçament."
+
+msgid "This module will rename albums in Synology Photos whose names match your pattern, using the replacement pattern."
+msgstr "Aquest mòdul canviarà el nom dels àlbums de Synology Photos el nom dels quals coincideixi amb el vostre patró, amb el patró de reemplaçament."
+
+msgid "This module will rename albums in {0} whose names match your pattern, using the replacement pattern."
+msgstr "Aquest mòdul canviarà el nom dels àlbums de {0} el nom dels quals coincideixi amb el vostre patró, amb el patró de reemplaçament."
+
+msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk."
+msgstr "Aquest mòdul canviarà el nom de les carpetes d'àlbums locals directament segons les dates del contingut. Els noms originals de les carpetes es canviaran al disc."
+
+msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
+msgstr "Aquest mòdul canviarà el nom de les carpetes d'àlbums locals directament segons les dates del contingut. Els noms originals de les carpetes es canviaran al disc. Voleu continuar?"
+
+msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
+msgstr "Això eliminarà la sol·licitud de compte de '{0}' i li enviarà un correu informant que no s'ha aprovat. Voleu continuar?"
+
+msgid "This will interrupt the current execution. Do you want to stop the running module?"
+msgstr "Això interromprà l'execució actual. Voleu aturar el mòdul en execució?"
+
+msgid "This will overwrite your user Config.ini stored in database."
+msgstr "Això sobreescriurà el Config.ini de l'usuari desat a la base de dades."
+
+msgid "This will permanently delete user '{0}'. Do you want to continue?"
+msgstr "Això eliminarà definitivament l'usuari '{0}'. Voleu continuar?"
+
+msgid "This will permanently delete {0} selected folder(s) and all their contents."
+msgstr "Això eliminarà definitivament {0} carpeta(es) seleccionada(es) i tot el seu contingut."
+
+msgid "Time zone"
+msgstr "Fus horari"
+
+msgid "Time zone used by PhotoMigrator to interpret and display date/time values in logs and date-based operations."
+msgstr "Fus horari que PhotoMigrator utilitza per interpretar i mostrar els valors de data/hora als registres i a les operacions basades en dates."
+
+msgid "TimeZone"
+msgstr "TimeZone"
+
+msgid "Timestamp ▼"
+msgstr "Marca de temps ▼"
+
+msgid "To save any other configuration field, enter active admin credentials."
+msgstr "Per desar qualsevol altre camp de configuració, introduïu les credencials d'un administrador actiu."
+
+msgid "Toggle {0}"
+msgstr "Commuta {0}"
+
+msgid "Tools"
+msgstr "Eines"
+
+msgid "Transfer"
+msgstr "Transferència"
+
+msgid "Treat a local folder as a photo library and run the same album and asset actions used for cloud services."
+msgstr "Tracteu una carpeta local com una biblioteca de fotos i executeu les mateixes accions d'àlbums i recursos que s'usen per als serveis al núvol."
+
+msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album."
+msgstr "Tracta els noms d'àlbum de destinació equivalents com una sola família i fusiona'n els recursos a l'àlbum canònic que es conserva."
+
+msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album. Redundant albums are removed only when the target service supports album deletion."
+msgstr "Tracta els noms d'àlbum de destinació equivalents com una sola família i fusiona'n els recursos a l'àlbum canònic que es conserva. Els àlbums redundants només s'eliminen quan el servei de destinació admet l'eliminació d'àlbums."
+
+msgid "Try Date Prefix Albums Grouping"
+msgstr "Prova l'agrupació d'àlbums per prefix de data"
+
+msgid "Try Equivalent Albums Grouping"
+msgstr "Prova l'agrupació d'àlbums equivalents"
+
+msgid "Try Small Albums Grouping"
+msgstr "Prova l'agrupació d'àlbums petits"
+
+msgid "Try Truncated Albums Grouping"
+msgstr "Prova l'agrupació d'àlbums truncats"
+
+msgid "Type an answer when the running job asks for input"
+msgstr "Escriviu una resposta quan la tasca en execució demani una entrada"
+
+msgid "Unable to create folder"
+msgstr "No s'ha pogut crear la carpeta"
+
+msgid "Unable to create user."
+msgstr "No s'ha pogut crear l'usuari."
+
+msgid "Unable to load document."
+msgstr "No s'ha pogut carregar el document."
+
+msgid "Unable to remove selected folder(s)."
+msgstr "No s'han pogut eliminar les carpetes seleccionades."
+
+msgid "Unable to remove selected folder(s): {0}"
+msgstr "No s'han pogut eliminar les carpetes seleccionades: {0}"
+
+msgid "Unable to run command"
+msgstr "No s'ha pogut executar l'ordre"
+
+msgid "Unable to send the request"
+msgstr "No s'ha pogut enviar la sol·licitud"
+
+msgid "Unable to stop job"
+msgstr "No s'ha pogut aturar la tasca"
+
+msgid "Upload Albums"
+msgstr "Puja àlbums"
+
+msgid "Upload All"
+msgstr "Puja-ho tot"
+
+msgid "Upload Completed with Warnings"
+msgstr "Pujada completada amb avisos"
+
+msgid "Upload Failed"
+msgstr "Ha fallat la pujada"
+
+msgid "Upload Here"
+msgstr "Puja aquí"
+
+msgid "Upload Local Folder"
+msgstr "Puja una carpeta local"
+
+msgid "Upload Local Zip"
+msgstr "Puja un ZIP local"
+
+msgid "Upload a folder"
+msgstr "Pujar una carpeta"
+
+msgid "Upload a local folder or ZIP file to the server so the features can use it."
+msgstr "Pugeu una carpeta local o un fitxer ZIP al servidor perquè les funcions el puguin utilitzar."
+
+msgid "Upload albums from <ALBUMS_FOLDER>."
+msgstr "Puja àlbums des de <ALBUMS_FOLDER>."
+
+msgid "Upload albums from <ALBUMS_FOLDER>. One album per subfolder."
+msgstr "Puja àlbums des de <ALBUMS_FOLDER>. Un àlbum per subcarpeta."
+
+msgid "Upload albums from <ALBUMS_FOLDER>. One album per subfolder. Example: --upload-albums ./My_Albums_Folder"
+msgstr "Puja àlbums des de <ALBUMS_FOLDER>. Un àlbum per subcarpeta. Exemple: --upload-albums ./My_Albums_Folder"
+
+msgid "Upload all assets from <INPUT_FOLDER> to the selected client."
+msgstr "Puja tots els recursos de <INPUT_FOLDER> al client seleccionat."
+
+msgid "Upload all assets from <INPUT_FOLDER> to the selected client. - A new Album will be created per subfolder found in 'Albums' subfolder. - If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too. Example: --upload-all ./MyLibrary"
+msgstr "Puja tots els recursos de <INPUT_FOLDER> al client seleccionat. - Es crearà un àlbum nou per cada subcarpeta trobada a la subcarpeta 'Albums'. - Si també s'indica '-AlbFolder, --albums-folders <ALBUMS_FOLDER>', també es crearan àlbums per a aquestes carpetes. Exemple: --upload-all ./MyLibrary"
+
+msgid "Upload behavior: ZIP extraction follows the \"Extract ZIPs on upload\" option (Yes/No) in Upload to Server."
+msgstr "Comportament de la pujada: l'extracció de ZIP segueix l'opció \"Extreu els ZIP en pujar\" (Sí/No) de Puja al servidor."
+
+msgid "Upload from this computer"
+msgstr "Puja des d'aquest ordinador"
+
+msgid "Upload local content (a folder or a ZIP file) into the selected destination folder on the server, so the other features can use it."
+msgstr "Pugeu contingut local (una carpeta o un fitxer ZIP) a la carpeta de destinació seleccionada del servidor perquè les altres funcions el puguin utilitzar."
+
+msgid "Upload mode active: this feature runs direct upload (no CLI command preview)."
+msgstr "Mode de pujada actiu: aquesta funció executa una pujada directa (sense previsualització d'ordre de la CLI)."
+
+msgid "Upload status: done | Uploaded: {0} |"
+msgstr "Estat de la pujada: fet | Pujats: {0} |"
+
+msgid "Upload status: failed ({0})"
+msgstr "Estat de la pujada: ha fallat ({0})"
+
+msgid "Upload status: idle"
+msgstr "Estat de la pujada: inactiu"
+
+msgid "Upload status: uploading..."
+msgstr "Estat de la pujada: pujant..."
+
+msgid "Upload to Server"
+msgstr "Puja al servidor"
+
+msgid "Upload to Server · PhotoMigrator"
+msgstr "Puja al servidor · PhotoMigrator"
+
+msgid "Upload, download, organize and clean up albums and assets in your Google Photos library."
+msgstr "Pugeu, descarregueu, organitzeu i netegeu àlbums i recursos de la vostra biblioteca de Google Photos."
+
+msgid "Upload, download, organize and clean up albums and assets in your Immich library."
+msgstr "Pugeu, descarregueu, organitzeu i netegeu àlbums i recursos de la vostra biblioteca d'Immich."
+
+msgid "Upload, download, organize and clean up albums and assets in your NextCloud Photos library."
+msgstr "Pugeu, descarregueu, organitzeu i netegeu àlbums i recursos de la vostra biblioteca de NextCloud Photos."
+
+msgid "Upload, download, organize and clean up albums and assets in your Synology Photos library."
+msgstr "Pugeu, descarregueu, organitzeu i netegeu àlbums i recursos de la vostra biblioteca de Synology Photos."
+
+msgid "Upload, download, rename, clean up and deduplicate albums and assets."
+msgstr "Pugeu, descarregueu, canvieu el nom, netegeu i desduplicueu àlbums i recursos."
+
+msgid "Uploaded: {0}\\n"
+msgstr "Pujats: {0}\\n"
+
+msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
+msgstr "Useu '--organize-folder-structure' per canviar la disposició, '--organize-output-folder-suffix' per canviar el sufix generat quan no s'indica cap carpeta de sortida explícita, i '--move-original-files' per moure en lloc de copiar."
+
+msgid "Use '--preview-album-actions' to preview and confirm the detected album families before applying changes."
+msgstr "Useu '--preview-album-actions' per previsualitzar i confirmar les famílies d'àlbums detectades abans d'aplicar els canvis."
+
+msgid "Use '--preview-album-actions' to preview matches and request confirmation before applying changes."
+msgstr "Useu '--preview-album-actions' per previsualitzar les coincidències i demanar confirmació abans d'aplicar els canvis."
+
+msgid "Use 'ALL' to download ALL albums."
+msgstr "Useu 'ALL' per descarregar TOTS els àlbums."
+
+msgid "Use --consolidate-similar-albums if you want cloud targets to reuse and consolidate equivalent album families such as 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album', or 'New_Album {1}' instead of only exact matches."
+msgstr "Useu --consolidate-similar-albums si voleu que les destinacions al núvol reutilitzin i consolidin famílies d'àlbums equivalents com 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album' o 'New_Album {1}' en lloc de només les coincidències exactes."
+
+msgid "Use --prefer-canonical-album-names if you want new destination albums to be created with the preferred clean keeper form even when the target does not already contain any similar variant, for example 'Album_1' -> 'Album' or 'New_Album {0}' -> 'New Album'."
+msgstr "Useu --prefer-canonical-album-names si voleu que els àlbums nous de destinació es creïn amb la forma neta preferida, encara que la destinació no tingui cap variant semblant, per exemple 'Album_1' -> 'Album' o 'New_Album {0}' -> 'New Album'."
+
+msgid "Use Current"
+msgstr "Utilitza l'actual"
+
+msgid "Use Selected"
+msgstr "Utilitza la selecció"
+
+msgid "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
+msgstr "Useu Puja una carpeta local o Puja un ZIP local al tauler Puja al servidor."
+
+msgid "Use patterns: e.g. --download-albums 'dron*'"
+msgstr "Useu patrons: p. ex. --download-albums 'dron*'"
+
+msgid "Use the password your administrator gave you."
+msgstr "Useu la contrasenya que us ha donat l'administrador."
+
+msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
+msgstr "Utilitzeu-ho després de '--find-duplicates' per aplicar les decisions manuals del CSV revisat."
+
+msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
+msgstr "S'utilitza per als avisos del compte (sol·licituds, activacions, canvis de contrasenya) i per als correus de tasques finalitzades. Els camps buits utilitzen les"
+
+msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
+msgstr "Útil després de moure o canviar el nom de carpetes a OUTPUT_TAKEOUT_FOLDER quan alguns àlbums apareixen buits."
+
+msgid "User"
+msgstr "Usuari"
+
+msgid "Username"
+msgstr "Nom d'usuari"
+
+msgid "Username or email"
+msgstr "Nom d'usuari o correu electrònic"
+
+msgid "Users"
+msgstr "Usuaris"
+
+msgid "Uses the configured cloud account ID."
+msgstr "Utilitza l'ID del compte al núvol configurat."
+
+msgid "Uses the configured cloud account ID. If omitted, account ID {0} is used."
+msgstr "Utilitza l'ID del compte al núvol configurat. Si s'omet, s'utilitza l'ID de compte {0}."
+
+msgid "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album')."
+msgstr "Utilitza la mateixa lògica de famílies d'àlbums que '--consolidate-similar-albums' (per exemple 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album')."
+
+msgid "Using Settings defaults"
+msgstr "S'utilitzen els valors per defecte de Configuració"
+
+msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
+msgstr "Accions vàlides: restore_duplicate / remove_duplicate / replace_duplicate."
+
+msgid "Version v5.0.0 · Sign in to continue"
+msgstr "Versió v5.0.0 · Inicieu la sessió per continuar"
+
+msgid "Warm palette"
+msgstr "Paleta càlida"
+
+msgid "We received your account request"
+msgstr "Hem rebut la vostra sol·licitud de compte"
+
+msgid "Web Interface"
+msgstr "Interfície web"
+
+msgid "Website"
+msgstr "Lloc web"
+
+msgid "Welcome back, admin"
+msgstr "Us donem la benvinguda de nou, admin"
+
+msgid "Welcome back, {0}"
+msgstr "Us donem la benvinguda de nou, {0}"
+
+msgid "What do you want to move today?"
+msgstr "Què vols moure avui?"
+
+msgid "What to do with detected duplicates: list, move, or delete."
+msgstr "Què cal fer amb els duplicats detectats: llistar-los, moure'ls o eliminar-los."
+
+msgid "What to do with duplicates"
+msgstr "Què cal fer amb els duplicats"
+
+msgid "What would you like to do today?"
+msgstr "Què voleu fer avui?"
+
+msgid "When a destination album must be created, use the canonical form of its source name."
+msgstr "Quan s'ha de crear un àlbum de destinació, s'utilitza la forma canònica del nom d'origen."
+
+msgid "When a destination album must be created, use the canonical form of its source name. It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+msgstr "Quan s'ha de crear un àlbum de destinació, s'utilitza la forma canònica del nom d'origen. Normalitza les variants inofensives de guió baix/espai i de sufix d'estil duplicat, però no fusiona àlbums existents."
+
+msgid "When an uploaded album must be created, use the canonical form of its source name."
+msgstr "Quan s'ha de crear un àlbum pujat, s'utilitza la forma canònica del nom d'origen."
+
+msgid "When an uploaded album must be created, use the canonical form of its source name. It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+msgstr "Quan s'ha de crear un àlbum pujat, s'utilitza la forma canònica del nom d'origen. Normalitza les variants inofensives de guió baix/espai i de sufix d'estil duplicat, però no fusiona àlbums existents."
+
+msgid "When enabled, Memories CSV collections are also reconstructed as album-like folders."
+msgstr "Quan està activat, les col·leccions CSV de Memories també es reconstrueixen com a carpetes semblants a àlbums."
+
+msgid "When enabled, uploaded .zip files are extracted on the server and the .zip file is removed."
+msgstr "Quan està activat, els fitxers .zip pujats s'extreuen al servidor i se n'elimina el fitxer .zip."
+
+msgid "When multiple folders are provided, order matters: files in the first folder have priority to be kept."
+msgstr "Quan es proporcionen diverses carpetes, l'ordre importa: els fitxers de la primera carpeta tenen prioritat per ser conservats."
+
+msgid "When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow."
+msgstr "Quan l'entrada és un Takeout només d'àlbums sense carpetes d'any, PhotoMigrator ho detecta automàticament i canvia GPTH al flux de recuperació adequat."
+
+msgid "When the task finishes, PhotoMigrator emails {0} with the result and the last lines of the log."
+msgstr "Quan la tasca acabi, PhotoMigrator enviarà un correu a {0} amb el resultat i les últimes línies del registre."
+
+msgid "When you run a feature, its progress and log appear here."
+msgstr "Quan executis una funció, el seu progrés i el registre apareixeran aquí."
+
+msgid "Where from and where to"
+msgstr "D'on i cap a on"
+
+msgid "Where to put the files on the server"
+msgstr "On col·locar els fitxers al servidor"
+
+msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
+msgstr "Funciona amb Google Photos, Synology Photos, Immich Photos, NextCloud Photos i carpetes locals, en qualsevol direcció."
+
+msgid "Workspace"
+msgstr "Espai de treball"
+
+msgid "Yes"
+msgstr "Sí"
+
+msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
+msgstr "Podeu editar les cel·les i fer clic a Desa la fila, o a Elimina la fila. Les insercions utilitzen la sintaxi d'objecte JSON."
+
+msgid "You will be asked to confirm before it runs."
+msgstr "Se us demanarà confirmació abans que s'executi."
+
+msgid "Your PhotoMigrator account"
+msgstr "El vostre compte de PhotoMigrator"
+
+msgid "Your account has been disabled"
+msgstr "El vostre compte s'ha desactivat"
+
+msgid "Your account has no email. Ask your administrator to add one to get task emails."
+msgstr "El vostre compte no té correu electrònic. Demaneu a l'administrador que n'hi afegeixi un per rebre els correus de tasques."
+
+msgid "Your account is active"
+msgstr "El vostre compte està actiu"
+
+msgid "Your account request"
+msgstr "La vostra sol·licitud de compte"
+
+msgid "Your own library"
+msgstr "La teva pròpia biblioteca"
+
+msgid "Your password was changed"
+msgstr "S'ha canviat la vostra contrasenya"
+
+msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
+msgstr "La vostra contrasenya temporal és <b>{0}</b>. Triareu la vostra contrasenya la primera vegada que inicieu la sessió."
+
+msgid "access_logs ({0})"
+msgstr "access_logs ({0})"
+
+msgid "an administrator changed the password of your PhotoMigrator account <b>{0}</b>. Ask them for the new password if you did not get it. If you did not expect this change, contact them."
+msgstr "un administrador ha canviat la contrasenya del vostre compte de PhotoMigrator <b>{0}</b>. Demaneu-li la contrasenya nova si no l'heu rebuda. Si no esperàveu aquest canvi, contacteu amb ell."
+
+msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
+msgstr "un administrador ha desactivat el vostre compte de PhotoMigrator <b>{0}</b>. Si creieu que és un error, responeu a aquest correu."
+
+msgid "backup_schedules ({0})"
+msgstr "backup_schedules ({0})"
+
+msgid "data subpath (default username)"
+msgstr "subruta de data (per defecte, el nom d'usuari)"
+
+msgid "e.g. photos-2026 or /app/data/photos-2026"
+msgstr "p. ex. photos-2026 o /app/data/photos-2026"
+
+msgid "environment variables."
+msgstr "variables d'entorn."
+
+msgid "iCloud Takeout"
+msgstr "iCloud Takeout"
+
+msgid "iCloud Takeout · PhotoMigrator"
+msgstr "iCloud Takeout · PhotoMigrator"
+
+msgid "immich-photos-1 -> immich-photos-1"
+msgstr "immich-photos-1 -> immich-photos-1"
+
+msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
+msgstr "està establert a Sí, els fitxers .zip pujats s'extreuen al servidor i se n'elimina el fitxer .zip. Si s'estableix a No, els fitxers .zip es conserven tal com s'han pujat."
+
+msgid "max size {0} MB"
+msgstr "mida màxima {0} MB"
+
+msgid "max size {0} MB · timeout {1} s"
+msgstr "mida màxima {0} MB · temps d'espera {1} s"
+
+msgid "nextcloud-photos-1 -> nextcloud-photos-1"
+msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
+
+msgid "sessions ({0})"
+msgstr "sessions ({0})"
+
+msgid "synology-photos-1 -> immich-photos-1"
+msgstr "synology-photos-1 -> immich-photos-1"
+
+msgid "synology-photos-1 -> synology-photos-1"
+msgstr "synology-photos-1 -> synology-photos-1"
+
+msgid "the password of your PhotoMigrator account <b>{0}</b> was changed. If it was not you, contact your administrator right away."
+msgstr "s'ha canviat la contrasenya del vostre compte de PhotoMigrator <b>{0}</b>. Si no heu estat vosaltres, contacteu amb l'administrador immediatament."
+
+msgid "the password you chose"
+msgstr "la contrasenya que vau triar"
+
+msgid "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can send account notices (requests, activations and password changes) and the emails of finished tasks."
+msgstr "aquest és el correu de prova que vau demanar des del tauler d'administració. Si l'heu rebut, PhotoMigrator pot enviar avisos del compte (sol·licituds, activacions i canvis de contrasenya) i els correus de tasques finalitzades."
+
+msgid "user_configs ({0})"
+msgstr "user_configs ({0})"
+
+msgid "user_states ({0})"
+msgstr "user_states ({0})"
+
+msgid "users ({0})"
+msgstr "users ({0})"
+
+msgid "v5.0.0 · 2026-12-01"
+msgstr "v5.0.0 · 2026-12-01"
+
+msgid "volumes subpath (default username)"
+msgstr "subruta de volumes (per defecte, el nom d'usuari)"
+
+msgid "web_settings ({0})"
+msgstr "web_settings ({0})"
+
+msgid "your PhotoMigrator account is now active. Sign in with the username <b>{0}</b> or your email address and {1}."
+msgstr "el vostre compte de PhotoMigrator ja és actiu. Inicieu la sessió amb el nom d'usuari <b>{0}</b> o la vostra adreça electrònica i {1}."
+
+msgid "your password"
+msgstr "la vostra contrasenya"
+
+msgid "your request for a PhotoMigrator account was not approved. If you think this is a mistake, reply to this email."
+msgstr "la vostra sol·licitud de compte de PhotoMigrator no s'ha aprovat. Si creieu que és un error, responeu a aquest correu."
+
+msgid "your request for a PhotoMigrator account with the username <b>{0}</b> is waiting for approval. We will email you as soon as it is active."
+msgstr "la vostra sol·licitud de compte de PhotoMigrator amb el nom d'usuari <b>{0}</b> està pendent d'aprovació. Us enviarem un correu tan bon punt estigui actiu."
+
+msgid "your task <b>{0}</b> ended with errors (exit code {1})."
+msgstr "la vostra tasca <b>{0}</b> ha acabat amb errors (codi de sortida {1})."
+
+msgid "your task <b>{0}</b> finished successfully."
+msgstr "la vostra tasca <b>{0}</b> ha acabat correctament."
+
+msgid "your task <b>{0}</b> was stopped before it finished."
+msgstr "la vostra tasca <b>{0}</b> s'ha aturat abans d'acabar."
+
+msgid "{0} accounts"
+msgstr "{0} comptes"
+
+msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
+msgstr "{0} us ha creat un compte de PhotoMigrator. Inicieu la sessió amb el nom d'usuari <b>{1}</b> o amb aquesta adreça electrònica."
+
+msgid "{0} failed"
+msgstr "{0} ha fallat"
+
+msgid "{0} features"
+msgstr "{0} funcions"
+
+msgid "{0} finished"
+msgstr "{0} ha acabat"
+
+msgid "{0} options"
+msgstr "Opcions de {0}"
+
+msgid "{0} stopped"
+msgstr "{0} aturat"
+
+msgid "⏱️ Delayed Recovered"
+msgstr "⏱️ Recuperats amb retard"
+
+msgid "⏱️ Delayed Retries"
+msgstr "⏱️ Reintents ajornats"
+
+msgid "⏱️ Delayed Retries Queue"
+msgstr "⏱️ Cua de reintents ajornats"
+
+msgid "⏳ Remaining Time"
+msgstr "⏳ Temps restant"
+
+msgid "❔ Unknown Files"
+msgstr "❔ Fitxers desconeguts"
+
+msgid "⬆️ Push Panel"
+msgstr "⬆️ Panell d'enviament"
+
+msgid "⬆️ Push Panel - -"
+msgstr "⬆️ Panell d'enviament - -"
+
+msgid "⬆️ Push Panel - immich-photos-1"
+msgstr "⬆️ Panell d'enviament - immich-photos-1"
+
+msgid "⬆️ Push Panel - nextcloud-photos-1"
+msgstr "⬆️ Panell d'enviament - nextcloud-photos-1"
+
+msgid "⬆️ Push Panel - synology-photos-1"
+msgstr "⬆️ Panell d'enviament - synology-photos-1"
+
+msgid "⬇️ Pull Panel"
+msgstr "⬇️ Panell de descàrrega"
+
+msgid "⬇️ Pull Panel - -"
+msgstr "⬇️ Panell de descàrrega - -"
+
+msgid "⬇️ Pull Panel - immich-photos-1"
+msgstr "⬇️ Panell de descàrrega - immich-photos-1"
+
+msgid "⬇️ Pull Panel - nextcloud-photos-1"
+msgstr "⬇️ Panell de descàrrega - nextcloud-photos-1"
+
+msgid "⬇️ Pull Panel - synology-photos-1"
+msgstr "⬇️ Panell de descàrrega - synology-photos-1"
+
+msgid "🎬 Pulled Videos"
+msgstr "🎬 Vídeos descarregats"
+
+msgid "🎬 Pushed Videos"
+msgstr "🎬 Vídeos enviats"
+
+msgid "🎬 Total Videos"
+msgstr "🎬 Total de vídeos"
+
+msgid "🎯 Pulled Assets"
+msgstr "🎯 Recursos descarregats"
+
+msgid "🎯 Pushed Assets"
+msgstr "🎯 Recursos enviats"
+
+msgid "🎯 Total Assets"
+msgstr "🎯 Total de recursos"
+
+msgid "📂 Pulled Albums"
+msgstr "📂 Àlbums descarregats"
+
+msgid "📂 Pushed Albums"
+msgstr "📂 Àlbums enviats"
+
+msgid "📂 Total Albums"
+msgstr "📂 Total d'àlbums"
+
+msgid "📅 Estimated End"
+msgstr "📅 Final estimat"
+
+msgid "📊 Assets in Queue"
+msgstr "📊 Recursos a la cua"
+
+msgid "📊 Info Panel"
+msgstr "📊 Panell d'informació"
+
+msgid "📜 Total Metadata"
+msgstr "📜 Total de metadades"
+
+msgid "📷 Pulled Photos"
+msgstr "📷 Fotos descarregades"
+
+msgid "📷 Pushed Photos"
+msgstr "📷 Fotos enviades"
+
+msgid "📷 Total Photos"
+msgstr "📷 Total de fotos"
+
+msgid "🔒 Blocked Albums"
+msgstr "🔒 Àlbums bloquejats"
+
+msgid "🔒 Blocked Assets"
+msgstr "🔒 Recursos bloquejats"
+
+msgid "🔗 Total Sidecar"
+msgstr "🔗 Total d'auxiliars"
+
+msgid "🔢 Total Albums (New / Duplicates / Failed)"
+msgstr "🔢 Total d'àlbums (nous / duplicats / fallits)"
+
+msgid "🔢 Total Assets (New / Duplicates / Failed)"
+msgstr "🔢 Total de recursos (nous / duplicats / fallits)"
+
+msgid "🔢 Total Photos (New / Duplicates / Failed)"
+msgstr "🔢 Total de fotos (noves / duplicades / fallides)"
+
+msgid "🔢 Total Videos (New / Duplicates / Failed)"
+msgstr "🔢 Total de vídeos (nous / duplicats / fallits)"
+
+msgid "🕒 Elapsed Time"
+msgstr "🕒 Temps transcorregut"
+
+msgid "🚩 Album Assoc Failed"
+msgstr "🚩 Associació d'àlbum fallida"
+
+msgid "🚩 Failed Albums"
+msgstr "🚩 Àlbums fallits"
+
+msgid "🚩 Failed Assets"
+msgstr "🚩 Recursos fallits"
+
+msgid "🚩 Failed Photos"
+msgstr "🚩 Fotos fallides"
+
+msgid "🚩 Failed Videos"
+msgstr "🚩 Vídeos fallits"
+
+msgid "🧾 Album Assoc Queue"
+msgstr "🧾 Cua d'associació d'àlbums"

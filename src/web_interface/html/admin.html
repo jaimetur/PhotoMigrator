@@ -3,25 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{ i18n_head(request) }}
     <title>{{ tool_name }} Admin</title>
-    <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
-    <link rel="apple-touch-icon" href="/assets/logos/logo_17_1024x1024.png?v=1">
-    <link rel="stylesheet" href="/static/style.css?v=20261201-v5-redesign">
+    <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
+    <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-colour">
 </head>
 <body class="admin-page">
 <main class="admin-wrapper">
     <header class="admin-header">
+        <img class="admin-header__logo" src="/assets/logos/logo_18_1024x1024.png?v=18" alt="">
         <h1>Administration Panel</h1>
         <div class="admin-header__actions">
-            <a href="/" class="ghost-btn">Back to Web UI</a>
+            <span data-lang-picker></span>
+            <a href="/features?view=home" class="ghost-btn">Back to Web UI</a>
             <button id="logout-btn" class="ghost-btn">Logout</button>
         </div>
     </header>
+    <nav class="admin-tabs" id="admin-tabs" role="tablist" aria-label="Administration sections">
+        <button type="button" role="tab" class="admin-tab tv-mig" data-admin-tab="users" aria-selected="true">Users</button>
+        <button type="button" role="tab" class="admin-tab tv-upl" data-admin-tab="email" aria-selected="false">Email (SMTP)</button>
+        <button type="button" role="tab" class="admin-tab tv-gph" data-admin-tab="database" aria-selected="false">Database Manager</button>
+        <button type="button" role="tab" class="admin-tab tv-ico" data-admin-tab="backups" aria-selected="false">Backups Scheduler</button>
+        <button type="button" role="tab" class="admin-tab tv-tool" data-admin-tab="logs" aria-selected="false">Access Logs</button>
+    </nav>
 
-    <section class="admin-section">
+    <section class="admin-section" data-admin-section="users">
         <h2>Create User</h2>
-        <form id="create-user-form" class="admin-form-grid" autocomplete="off">
+        <form id="create-user-form" class="admin-form-grid admin-form-grid--create" autocomplete="off">
             <input id="new-username" placeholder="username" required>
+            <input id="new-email" type="email" placeholder="email" required autocomplete="off" spellcheck="false">
             <input id="new-password" type="password" placeholder="password" required autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
             <select id="new-role">
                 <option value="user" selected>User</option>
@@ -40,7 +51,7 @@
         </form>
     </section>
 
-    <section class="admin-section">
+    <section class="admin-section" data-admin-section="users">
         <h2>Users</h2>
         <div id="admin-status" class="status">Status: loading...</div>
         <table class="admin-table" id="users-table">
@@ -48,6 +59,7 @@
             <tr>
                 <th>ID</th>
                 <th>User</th>
+                <th>Email</th>
                 <th>Role</th>
                 <th>Active</th>
                 <th>Force Password Change</th>
@@ -60,7 +72,31 @@
         </table>
     </section>
 
-    <section class="admin-section">
+    <section class="admin-section" data-admin-section="email">
+        <h2>Email (SMTP)</h2>
+        <p class="admin-section__hint">Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the <code>SMTP_*</code> environment variables.</p>
+        <form id="mail-form" class="admin-form-grid admin-form-grid--mail" autocomplete="off">
+            <input id="mail-host" class="field__input" placeholder="SMTP server (for example mail.example.com)" spellcheck="false">
+            <input id="mail-port" class="field__input" type="number" min="1" max="65535" placeholder="Port (465, 587 or 25)">
+            <select id="mail-security" class="field__input" title="Connection security">
+                <option value="ssl">SSL/TLS</option>
+                <option value="starttls">STARTTLS</option>
+                <option value="none">None</option>
+            </select>
+            <input id="mail-username" class="field__input" placeholder="SMTP username" autocomplete="off" spellcheck="false">
+            <input id="mail-password" class="field__input" type="password" placeholder="SMTP password" autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+            <input id="mail-from-address" class="field__input" type="email" placeholder="Sender email" spellcheck="false">
+            <input id="mail-from-name" class="field__input" placeholder="Sender name (PhotoMigrator)">
+            <button id="mail-save" type="submit" class="run-btn">Save Email Settings</button>
+        </form>
+        <div class="admin-form-grid admin-form-grid--test">
+            <input id="mail-test-to" class="field__input" type="email" placeholder="Send the test email to (default: your email)" spellcheck="false">
+            <button id="mail-test" type="button" class="run-btn">Send Test Email</button>
+        </div>
+        <div id="mail-status" class="status">Email status: loading...</div>
+    </section>
+
+    <section class="admin-section" data-admin-section="database">
         <h2>Database Manager</h2>
         <div class="admin-db-toolbar">
             <select id="db-table-select" class="field__input"></select>
@@ -73,10 +109,10 @@
             <button id="db-insert-btn" type="button" class="run-btn">Insert Row</button>
         </div>
         <div id="db-table-meta" class="status">Table status: idle</div>
-        <div id="db-table-container" class="admin-db-table-wrap"></div>
+        <div id="db-table-container" class="admin-db-table-wrap" data-no-i18n></div>
     </section>
 
-    <section class="admin-section">
+    <section class="admin-section" data-admin-section="backups">
         <h2>Backups Scheduler</h2>
         <div class="admin-backup-grid">
             <label class="admin-checkbox"><input id="backup-enabled" type="checkbox"> Enabled</label>
@@ -93,7 +129,7 @@
         <div id="backup-status" class="status">Backup status: idle</div>
     </section>
 
-    <section class="admin-section">
+    <section class="admin-section" data-admin-section="logs">
         <h2>Access Logs</h2>
         <div class="admin-db-toolbar">
             <select id="access-logs-user-filter" class="field__input">
@@ -139,6 +175,19 @@
     </div>
 </dialog>
 
+<dialog id="email-dialog" class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h3 id="email-dialog-title" class="confirm-dialog__title">Change Email</h3>
+        <p class="confirm-dialog__message">The user can sign in with this email and receives account and task notices there.</p>
+        <input id="email-new" class="field__input" type="email" placeholder="Email" autocomplete="off" spellcheck="false">
+        <div id="email-dialog-status" class="status">Status: idle</div>
+        <div class="confirm-dialog__actions">
+            <button type="button" id="email-dialog-cancel" class="ghost-btn">Cancel</button>
+            <button type="button" id="email-dialog-save" class="run-btn">Save Email</button>
+        </div>
+    </div>
+</dialog>
+
 <dialog id="password-dialog" class="confirm-dialog">
     <div class="confirm-dialog__card">
         <h3 id="password-dialog-title" class="confirm-dialog__title">Reset Password</h3>
@@ -156,6 +205,20 @@
 </dialog>
 
 <script>
+    (function setupAdminTabs() {
+        const tabs = [...document.querySelectorAll("[data-admin-tab]")];
+        const sections = [...document.querySelectorAll("[data-admin-section]")];
+        function show(key) {
+            tabs.forEach((tab) => tab.setAttribute("aria-selected", tab.dataset.adminTab === key ? "true" : "false"));
+            sections.forEach((section) => { section.hidden = section.dataset.adminSection !== key; });
+            try { sessionStorage.setItem("pm_admin_tab", key); } catch (error) { /* storage unavailable */ }
+        }
+        tabs.forEach((tab) => tab.addEventListener("click", () => show(tab.dataset.adminTab)));
+        let initial = "users";
+        try { initial = sessionStorage.getItem("pm_admin_tab") || initial; } catch (error) { /* storage unavailable */ }
+        show(tabs.some((tab) => tab.dataset.adminTab === initial) ? initial : "users");
+    })();
+
     const THEMES = new Set(["ocean", "emerald", "dark", "sunset"]);
     let activePasswordUserId = null;
     let dbTablesCache = [];
@@ -266,6 +329,84 @@
         if (dialog.open) dialog.close();
     }
 
+    let activeEmailUserId = null;
+
+    function openEmailDialog(user) {
+        activeEmailUserId = user.id;
+        document.getElementById("email-dialog-title").textContent = `Change Email: ${user.username}`;
+        document.getElementById("email-new").value = user.email || "";
+        document.getElementById("email-dialog-status").textContent = "Status: idle";
+        document.getElementById("email-dialog").showModal();
+    }
+
+    function closeEmailDialog() {
+        activeEmailUserId = null;
+        const dialog = document.getElementById("email-dialog");
+        if (dialog.open) dialog.close();
+    }
+
+    async function loadMailSettings() {
+        let data;
+        try {
+            data = await apiFetch("/api/admin/mail");
+        } catch (error) {
+            document.getElementById("mail-status").textContent = `Email status: ${String(error)}`;
+            return;
+        }
+        document.getElementById("mail-host").value = data.host || "";
+        document.getElementById("mail-port").value = data.port || "";
+        document.getElementById("mail-security").value = data.security || "ssl";
+        document.getElementById("mail-username").value = data.username || "";
+        document.getElementById("mail-password").value = "";
+        document.getElementById("mail-password").placeholder = data.has_password ? "SMTP password (saved, leave empty to keep it)" : "SMTP password";
+        document.getElementById("mail-from-address").value = data.from_address || "";
+        document.getElementById("mail-from-name").value = data.from_name || "";
+        const requests = data.account_requests_enabled ? "account requests from the login page are enabled" : "account requests from the login page are disabled";
+        document.getElementById("mail-status").textContent = data.configured
+            ? `Email status: configured (${data.from_address} via ${data.host}:${data.port}); ${requests}.`
+            : `Email status: not configured, no emails are sent; ${requests}.`;
+    }
+
+    async function saveMailSettings(event) {
+        event.preventDefault();
+        const statusEl = document.getElementById("mail-status");
+        statusEl.textContent = "Email status: saving...";
+        try {
+            const portValue = document.getElementById("mail-port").value.trim();
+            await apiFetch("/api/admin/mail", {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    host: document.getElementById("mail-host").value.trim(),
+                    port: portValue ? Number(portValue) : null,
+                    security: document.getElementById("mail-security").value,
+                    username: document.getElementById("mail-username").value.trim(),
+                    password: document.getElementById("mail-password").value,
+                    from_address: document.getElementById("mail-from-address").value.trim(),
+                    from_name: document.getElementById("mail-from-name").value.trim()
+                })
+            });
+            await loadMailSettings();
+        } catch (error) {
+            statusEl.textContent = `Email status: ${String(error)}`;
+        }
+    }
+
+    async function sendTestMail() {
+        const statusEl = document.getElementById("mail-status");
+        statusEl.textContent = "Email status: sending test email...";
+        try {
+            const data = await apiFetch("/api/admin/mail/test", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({to: document.getElementById("mail-test-to").value.trim()})
+            });
+            statusEl.textContent = `Email status: test email sent to ${data.to}.`;
+        } catch (error) {
+            statusEl.textContent = `Email status: ${String(error)}`;
+        }
+    }
+
     async function loadUsers() {
         const statusEl = document.getElementById("admin-status");
         statusEl.textContent = "Status: loading users...";
@@ -278,6 +419,7 @@
             tr.innerHTML = `
                 <td>${user.id}</td>
                 <td>${user.username}</td>
+                <td class="admin-email-cell"></td>
                 <td>${user.role}</td>
                 <td>${user.is_active ? "yes" : "no"}</td>
                 <td>${user.must_change_password ? "yes" : "no"}</td>
@@ -285,6 +427,16 @@
                 <td>${user.volume1_subpath || ""}</td>
                 <td></td>
             `;
+            const emailCell = tr.querySelector(".admin-email-cell");
+            emailCell.textContent = user.email || "missing";
+            if (!user.email) emailCell.classList.add("admin-email-cell--missing");
+            if (user.pending_request) {
+                const badge = document.createElement("span");
+                badge.className = "admin-request-badge";
+                badge.textContent = "Account request";
+                badge.title = user.request_note ? `Message: ${user.request_note}` : "Requested from the login page";
+                tr.children[1].appendChild(badge);
+            }
             const actions = tr.querySelector("td:last-child");
             const roleSelect = document.createElement("select");
             roleSelect.className = "admin-role-select";
@@ -311,7 +463,7 @@
             actions.appendChild(roleSelect);
 
             const activeBtnClass = user.is_active ? "admin-action-btn admin-action-btn--active" : "admin-action-btn admin-action-btn--inactive";
-            const activeBtnLabel = user.is_active ? "Active" : "Inactive";
+            const activeBtnLabel = user.pending_request ? "Approve" : (user.is_active ? "Active" : "Inactive");
             actions.appendChild(rowActionButton(activeBtnLabel, async () => {
                 try {
                     await apiFetch(`/api/admin/users/${user.id}`, {
@@ -324,11 +476,18 @@
                     showAdminNotice({title: "Warning", message: String(error)});
                 }
             }, activeBtnClass));
+            actions.appendChild(rowActionButton("Email", async () => {
+                openEmailDialog(user);
+            }, "admin-action-btn admin-action-btn--neutral"));
             actions.appendChild(rowActionButton("Reset Password", async () => {
                 openPasswordDialog(user);
             }, "admin-action-btn admin-action-btn--neutral"));
-            actions.appendChild(rowActionButton("Delete", async () => {
-                const confirmed = await askAdminConfirmation({
+            actions.appendChild(rowActionButton(user.pending_request ? "Reject" : "Delete", async () => {
+                const confirmed = await askAdminConfirmation(user.pending_request ? {
+                    title: "Reject Account Request",
+                    message: `This will delete the account request of '${user.username}' and email them that it was not approved. Do you want to continue?`,
+                    acceptLabel: "Reject Request"
+                } : {
                     title: "Delete User",
                     message: `This will permanently delete user '${user.username}'. Do you want to continue?`,
                     acceptLabel: "Delete User"
@@ -343,7 +502,13 @@
             }, "admin-action-btn admin-action-btn--danger"));
             tbody.appendChild(tr);
         }
-        statusEl.textContent = `Status: loaded ${data.users?.length || 0} users`;
+        const pendingCount = (data.users || []).filter((user) => user.pending_request).length;
+        const missingEmails = (data.users || []).filter((user) => !user.email).length;
+        const notes = [];
+        if (pendingCount) notes.push(`${pendingCount} account request(s) waiting for approval`);
+        if (missingEmails) notes.push(`${missingEmails} user(s) without email`);
+        if (!data.mail_configured) notes.push("email is not configured, no notices are sent");
+        statusEl.textContent = `Status: loaded ${data.users?.length || 0} users${notes.length ? ` · ${notes.join(" · ")}` : ""}`;
     }
 
     function updateAccessLogUserFilter(users) {
@@ -682,6 +847,7 @@
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     username: document.getElementById("new-username").value.trim(),
+                    email: document.getElementById("new-email").value.trim(),
                     password,
                     role: document.getElementById("new-role").value,
                     is_active: document.getElementById("new-active").checked,
@@ -726,6 +892,25 @@
         th.addEventListener("click", () => toggleAccessLogsSort(String(th.dataset.sortCol || "")));
     });
 
+    document.getElementById("mail-form").addEventListener("submit", saveMailSettings);
+    document.getElementById("mail-test").addEventListener("click", sendTestMail);
+    document.getElementById("email-dialog-cancel").addEventListener("click", closeEmailDialog);
+    document.getElementById("email-dialog-save").addEventListener("click", async () => {
+        const statusEl = document.getElementById("email-dialog-status");
+        if (!activeEmailUserId) return;
+        statusEl.textContent = "Status: saving...";
+        try {
+            await apiFetch(`/api/admin/users/${activeEmailUserId}`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({email: document.getElementById("email-new").value.trim()})
+            });
+            closeEmailDialog();
+            await loadUsers();
+        } catch (error) {
+            statusEl.textContent = `Status: ${String(error)}`;
+        }
+    });
     document.getElementById("password-dialog-cancel").addEventListener("click", closePasswordDialog);
     document.getElementById("admin-notice-close").addEventListener("click", () => {
         const dialog = document.getElementById("admin-notice-dialog");
@@ -757,6 +942,7 @@
     Promise.resolve()
         .then(loadThemeFromState)
         .then(loadUsers)
+        .then(loadMailSettings)
         .then(loadDbTables)
         .then(() => loadDbTableRows())
         .then(loadBackupConfig)

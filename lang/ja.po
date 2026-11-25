@@ -1,0 +1,3367 @@
+# PhotoMigrator Web Interface - 日本語 (ja)
+# msgid: English text. msgstr: translation. Keep {0}, {1}... and HTML tags such as <b> in the translation.
+
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ja\n"
+
+msgid "(Use General Arguments value)"
+msgstr "(一般引数の値を使用)"
+
+msgid "(default)"
+msgstr "(デフォルト)"
+
+msgid "(default: all)"
+msgstr "(デフォルト: すべて)"
+
+msgid "(no output)"
+msgstr "(出力なし)"
+
+msgid "/app/data subpath"
+msgstr "/app/data のサブパス"
+
+msgid "/app/volumes subpath"
+msgstr "/app/volumes のサブパス"
+
+msgid "<ACTION> can be 'list', 'move' or 'remove'. Default: 'list'."
+msgstr "<ACTION> には 'list'、'move'、'remove' を指定できます。デフォルト: 'list'。"
+
+msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account."
+msgstr "<b>{0}</b> ({1}) が PhotoMigrator アカウントを申請しました。"
+
+msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
+msgstr "<b>{0}</b> ({1}) が PhotoMigrator アカウントを申請しました。<br>メッセージ: <i>{2}</i>"
+
+msgid "A job${lastMeta ?"
+msgstr "A job${lastMeta ?"
+
+msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
+msgstr "'Albums' サブフォルダー内のサブフォルダーごとに新しいアルバムが作成されます。"
+
+msgid "A whole folder, albums included"
+msgstr "アルバムを含むフォルダー全体"
+
+msgid "ALL_PHOTOS Folder Name"
+msgstr "ALL_PHOTOS フォルダー名"
+
+msgid "About Auto Rename Folders Content Based"
+msgstr "コンテンツに基づくフォルダー自動名前変更について"
+
+msgid "About Automatic Migration"
+msgstr "自動移行について"
+
+msgid "About Consolidate Albums Names"
+msgstr "アルバム名の統合について"
+
+msgid "About Download Albums"
+msgstr "アルバムのダウンロードについて"
+
+msgid "About Download All"
+msgstr "すべてダウンロードについて"
+
+msgid "About Find Duplicates"
+msgstr "重複の検索について"
+
+msgid "About Fix Broken Symlinks"
+msgstr "壊れたシンボリックリンクの修復について"
+
+msgid "About Google Takeout"
+msgstr "Google Takeout について"
+
+msgid "About Merge Duplicates Albums"
+msgstr "重複アルバムの統合について"
+
+msgid "About Organize Local Folder By Date"
+msgstr "ローカルフォルダーの日付別整理について"
+
+msgid "About Process Duplicates"
+msgstr "重複の処理について"
+
+msgid "About Remove Albums"
+msgstr "アルバムの削除について"
+
+msgid "About Remove All Albums"
+msgstr "すべてのアルバムの削除について"
+
+msgid "About Remove All Assets"
+msgstr "すべてのアセットの削除について"
+
+msgid "About Remove Duplicates Albums"
+msgstr "重複アルバムの削除について"
+
+msgid "About Remove Duplicates Assets"
+msgstr "重複アセットの削除について"
+
+msgid "About Remove Empty Albums"
+msgstr "空のアルバムの削除について"
+
+msgid "About Rename Albums"
+msgstr "アルバム名の変更について"
+
+msgid "About Upload Albums"
+msgstr "アルバムのアップロードについて"
+
+msgid "About Upload All"
+msgstr "すべてアップロードについて"
+
+msgid "About Upload to Server"
+msgstr "サーバーへのアップロードについて"
+
+msgid "About iCloud Takeout"
+msgstr "iCloud Takeout について"
+
+msgid "About {0}"
+msgstr "{0} について"
+
+msgid "Access Logs"
+msgstr "アクセスログ"
+
+msgid "Access logs: loaded {0} entries"
+msgstr "アクセスログ: {0} 件を読み込みました"
+
+msgid "Access logs: loading..."
+msgstr "アクセスログ: 読み込み中..."
+
+msgid "Access logs: {0}"
+msgstr "アクセスログ: {0}"
+
+msgid "Account"
+msgstr "アカウント"
+
+msgid "Account ID"
+msgstr "アカウント ID"
+
+msgid "Account name"
+msgstr "アカウント名"
+
+msgid "Account request"
+msgstr "アカウント申請"
+
+msgid "Account request from {0}"
+msgstr "{0} からのアカウント申請"
+
+msgid "Account {0}"
+msgstr "アカウント {0}"
+
+msgid "Action"
+msgstr "アクション"
+
+msgid "Actions"
+msgstr "アクション"
+
+msgid "Active"
+msgstr "有効"
+
+msgid "Activity"
+msgstr "アクティビティ"
+
+msgid "Activity · PhotoMigrator"
+msgstr "アクティビティ · PhotoMigrator"
+
+msgid "Add the URL and credentials of each account in"
+msgstr "各アカウントの URL と認証情報を次の場所に追加してください:"
+
+msgid "Add them in Settings"
+msgstr "設定で追加してください"
+
+msgid "Admin"
+msgstr "管理者"
+
+msgid "Admin Authorization Failed"
+msgstr "管理者認証に失敗しました"
+
+msgid "Admin Authorization Required"
+msgstr "管理者認証が必要です"
+
+msgid "Admin Panel"
+msgstr "管理パネル"
+
+msgid "Admin password"
+msgstr "管理者パスワード"
+
+msgid "Admin username"
+msgstr "管理者ユーザー名"
+
+msgid "Administration Panel"
+msgstr "管理パネル"
+
+msgid "Administration sections"
+msgstr "管理セクション"
+
+msgid "Advanced options"
+msgstr "詳細オプション"
+
+msgid "Advanced · push recovery"
+msgstr "詳細 · プッシュ復旧"
+
+msgid "Album creation date lower bound. Example: 2024-01-01"
+msgstr "アルバム作成日の下限。例: 2024-01-01"
+
+msgid "Album creation date upper bound. Example: 2024-12-31"
+msgstr "アルバム作成日の上限。例: 2024-12-31"
+
+msgid "Album name pattern (text, wildcard, or regex)"
+msgstr "アルバム名パターン(テキスト、ワイルドカード、正規表現)"
+
+msgid "Album name pattern (text, wildcard, or regex). Example: *Temp* or ^Temp|^Test"
+msgstr "アルバム名パターン(テキスト、ワイルドカード、正規表現)。例: *Temp* または ^Temp|^Test"
+
+msgid "Albums Folder"
+msgstr "アルバムフォルダー"
+
+msgid "Albums Folders"
+msgstr "アルバムフォルダー"
+
+msgid "Albums Name Pattern"
+msgstr "アルバム名パターン"
+
+msgid "Albums Name(s)"
+msgstr "アルバム名"
+
+msgid "Albums and assets"
+msgstr "アルバムとメディア"
+
+msgid "Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened)."
+msgstr "アルバムは <OUTPUT_FOLDER>/Albums/<AlbumName> にダウンロードされます(フラット化)。"
+
+msgid "Albums folder"
+msgstr "アルバムフォルダー"
+
+msgid "Albums folder structure"
+msgstr "アルバムフォルダーの構造"
+
+msgid "Albums matching a pattern"
+msgstr "パターンに一致するアルバム"
+
+msgid "Albums whose names match this text, wildcard or regex are renamed."
+msgstr "名前がこのテキスト、ワイルドカード、正規表現に一致するアルバムの名前が変更されます。"
+
+msgid "Albums with no assets"
+msgstr "アセットのないアルバム"
+
+msgid "Albums with the same name"
+msgstr "同じ名前のアルバム"
+
+msgid "All Users"
+msgstr "すべてのユーザー"
+
+msgid "All photos folder name"
+msgstr "すべての写真フォルダー名"
+
+msgid "All photos folder structure"
+msgstr "すべての写真フォルダーの構造"
+
+msgid "Allow login into Synology Photos using 2FA with an OTP token."
+msgstr "OTP トークンを使用した 2FA で Synology Photos にログインできるようにします。"
+
+msgid "Allow login into Synology Photos using 2FA with an OTP token. Example: --download-all ./MyLibrary --one-time-password"
+msgstr "OTP トークンを使用した 2FA で Synology Photos にログインできるようにします。例: --download-all ./MyLibrary --one-time-password"
+
+msgid "Also reconstruct iCloud 'Memories' CSV collections as folders."
+msgstr "iCloud の 'Memories' CSV コレクションもフォルダーとして再構築します。"
+
+msgid "Also requires module selector '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'."
+msgstr "モジュールセレクター '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}' も必要です。"
+
+msgid "An administrator reviews every request. You will get an email when your account is active."
+msgstr "すべての申請は管理者が確認します。アカウントが有効になるとメールが届きます。"
+
+msgid "Any value saved here is kept in the database but ignored while that override remains set."
+msgstr "ここで保存した値はデータベースに保持されますが、その上書きが設定されている間は無視されます。"
+
+msgid "App settings"
+msgstr "アプリ設定"
+
+msgid "App settings status:"
+msgstr "アプリ設定の状態:"
+
+msgid "App settings status: loaded (db://users/admin/Config.ini)"
+msgstr "アプリ設定の状態: 読み込み済み (db://users/admin/Config.ini)"
+
+msgid "Apple Photos"
+msgstr "Apple Photos"
+
+msgid "Apple iCloud Photos export"
+msgstr "Apple iCloud 写真のエクスポート"
+
+msgid "Apply a reviewed duplicates CSV"
+msgstr "確認済みの重複 CSV を適用"
+
+msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
+msgstr "管理パネルでアカウントを有効化して承認するか、同じ一覧から却下してください。"
+
+msgid "Are you sure?"
+msgstr "よろしいですか?"
+
+msgid "Arguments must be passed as two values separated by comma."
+msgstr "引数はカンマ区切りの 2 つの値として渡す必要があります。"
+
+msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
+msgstr "アセットは移行後にソースから削除されます。コピーする場合は「アセットを移動」をオフにしてください。"
+
+msgid "Authorize"
+msgstr "認証"
+
+msgid "Auto Rename Folders Content Based"
+msgstr "コンテンツに基づくフォルダー自動名前変更"
+
+msgid "Auto Scroll"
+msgstr "自動スクロール"
+
+msgid "Automatic Migration"
+msgstr "自動移行"
+
+msgid "Automatic Migration Live Dashboard"
+msgstr "自動移行ライブダッシュボード"
+
+msgid "Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run, with a live dashboard."
+msgstr "自動移行は、ライブダッシュボードを表示しながら、すべての写真、動画、アルバムをソースからターゲットへ 1 回の実行でコピー(または移動)します。"
+
+msgid "Automatic Migration · PhotoMigrator"
+msgstr "自動移行 · PhotoMigrator"
+
+msgid "Avoid special folder names: {0}."
+msgstr "特殊なフォルダー名は避けてください: {0}。"
+
+msgid "Back to Web UI"
+msgstr "Web UI に戻る"
+
+msgid "Back to sign in"
+msgstr "サインインに戻る"
+
+msgid "Backup Error"
+msgstr "バックアップエラー"
+
+msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
+msgstr "バックアップの状態: アイドル | モード: daily_2am | 最終実行: - | 次回: -"
+
+msgid "Backup status: schedule saved | Next: {0}"
+msgstr "バックアップの状態: スケジュールを保存しました | 次回: {0}"
+
+msgid "Backup status: {0}"
+msgstr "バックアップの状態: {0}"
+
+msgid "Backup status: {0} | File: {1}"
+msgstr "バックアップの状態: {0} | ファイル: {1}"
+
+msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
+msgstr "バックアップの状態: {0} | モード: {1} | 最終実行: {2} | 次回: {3}"
+
+msgid "Backups Scheduler"
+msgstr "バックアップスケジューラー"
+
+msgid "Blue palette"
+msgstr "ブルーパレット"
+
+msgid "Browse"
+msgstr "参照"
+
+msgid "By default migration runs in parallel with live dashboard enabled."
+msgstr "デフォルトでは、移行はライブダッシュボードを有効にして並列実行されます。"
+
+msgid "By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided."
+msgstr "デフォルトでは、出力は 'year/month' 構造を使用し、'-o/--output-folder' が指定されていない限り '<INPUT_FOLDER>_processed_<TIMESTAMP>' に保存されます。"
+
+msgid "CSV endpoint not available in backend. Restart/update the web backend."
+msgstr "バックエンドで CSV エンドポイントが利用できません。Web バックエンドを再起動または更新してください。"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Change Email"
+msgstr "メールアドレスを変更"
+
+msgid "Change Email: {0}"
+msgstr "メールアドレスの変更: {0}"
+
+msgid "Changes your library"
+msgstr "ライブラリを変更します"
+
+msgid "Check the command preview, press Run and watch it live in"
+msgstr "コマンドのプレビューを確認し、「実行」を押して、次の画面でライブ表示を確認してください:"
+
+msgid "Check the command, press Run and watch it live in"
+msgstr "コマンドを確認し、Run を押して次の画面でライブで確認します："
+
+msgid "Choose a subfolder inside one of your assigned roots."
+msgstr "割り当てられたルートのいずれかの中にあるサブフォルダーを選択してください。"
+
+msgid "Choose a task"
+msgstr "タスクを選択"
+
+msgid "Choose a tool"
+msgstr "ツールを選択"
+
+msgid "Choose an action"
+msgstr "アクションを選択"
+
+msgid "Choose the retained asset for '--remove-duplicates-assets'."
+msgstr "'--remove-duplicates-assets' で残すアセットを選択します。"
+
+msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
+msgstr "'--remove-duplicates-assets' で残すアセットを選択します。more-people/tags 戦略では、異なる人物の数が最も多いアセットを残し、次にタグ数を比較し、最後に指定された同点時の基準を適用します。'better-quality' は Immich ネイティブの提案を使用し、'oldest' と 'newest' はアップロード日を使用します(デフォルト: Immich ネイティブの重複アルゴリズムでは more-people/tags-then-better-quality、PhotoMigrator の重複アルゴリズムでは more-people/tags-then-oldest)。"
+
+msgid "Clean up"
+msgstr "クリーンアップ"
+
+msgid "Client ID"
+msgstr "クライアント ID"
+
+msgid "Client secret"
+msgstr "クライアントシークレット"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Close menu"
+msgstr "メニューを閉じる"
+
+msgid "Collapse panel"
+msgstr "パネルを折りたたむ"
+
+msgid "Comma-separated folder paths to scan for duplicates."
+msgstr "重複をスキャンするフォルダーのパスをカンマ区切りで指定します。"
+
+msgid "Comma-separated folders"
+msgstr "カンマ区切りのフォルダー"
+
+msgid "Command"
+msgstr "コマンド"
+
+msgid "Command copied"
+msgstr "コマンドをコピーしました"
+
+msgid "Config status: auto-save failed ({0})"
+msgstr "設定の状態: 自動保存に失敗しました ({0})"
+
+msgid "Config status: auto-saved ({0}) at {1}"
+msgstr "設定の状態: 自動保存しました ({0}) {1}"
+
+msgid "Config status: auto-saving app settings..."
+msgstr "設定の状態: アプリ設定を自動保存中..."
+
+msgid "Config status: export canceled"
+msgstr "設定の状態: エクスポートをキャンセルしました"
+
+msgid "Config status: export failed ({0})"
+msgstr "設定の状態: エクスポートに失敗しました ({0})"
+
+msgid "Config status: exported ({0})"
+msgstr "設定の状態: エクスポートしました ({0})"
+
+msgid "Config status: import canceled"
+msgstr "設定の状態: インポートをキャンセルしました"
+
+msgid "Config status: import failed ({0})"
+msgstr "設定の状態: インポートに失敗しました ({0})"
+
+msgid "Config status: imported ({0})"
+msgstr "設定の状態: インポートしました ({0})"
+
+msgid "Config status: loaded (db://users/admin/Config.ini)"
+msgstr "設定の状態: 読み込み済み (db://users/admin/Config.ini)"
+
+msgid "Config status: loaded ({0})"
+msgstr "設定の状態: 読み込み済み ({0})"
+
+msgid "Config status: save canceled by user"
+msgstr "設定の状態: ユーザーが保存をキャンセルしました"
+
+msgid "Config status: save failed ({0})"
+msgstr "設定の状態: 保存に失敗しました ({0})"
+
+msgid "Config status: saved ({0})"
+msgstr "設定の状態: 保存しました ({0})"
+
+msgid "Config status: saving with demo restrictions (only TimeZone/Theme changes are allowed)"
+msgstr "設定の状態: デモ制限付きで保存中(TimeZone/Theme の変更のみ許可されています)"
+
+msgid "Config.ini has been overwritten successfully in the user database."
+msgstr "Config.ini はユーザーデータベース内で正常に上書きされました。"
+
+msgid "Configuration File"
+msgstr "設定ファイル"
+
+msgid "Configuration Saved"
+msgstr "設定を保存しました"
+
+msgid "Configuration file"
+msgstr "設定ファイル"
+
+msgid "Configuration for Google Photos"
+msgstr "Google Photos の設定"
+
+msgid "Configured"
+msgstr "設定済み"
+
+msgid "Confirm"
+msgstr "確認"
+
+msgid "Confirm Action"
+msgstr "操作の確認"
+
+msgid "Confirm new password"
+msgstr "新しいパスワードの確認"
+
+msgid "Confirm password"
+msgstr "パスワードの確認"
+
+msgid "Connect your services"
+msgstr "サービスを接続"
+
+msgid "Connection security"
+msgstr "接続のセキュリティ"
+
+msgid "Consolidate Albums Names"
+msgstr "アルバム名の統合"
+
+msgid "Consolidate Similar Albums"
+msgstr "類似アルバムを統合"
+
+msgid "Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets."
+msgstr "新しいアセットをアップロードせずに、ターゲットサービス上で同等の既存クラウドアルバム名のグループを直接統合します。"
+
+msgid "Copy album files instead of symlinks"
+msgstr "シンボリックリンクの代わりにアルバムファイルをコピー"
+
+msgid "Copy command"
+msgstr "コマンドをコピー"
+
+msgid "Copy failed"
+msgstr "コピーに失敗しました"
+
+msgid "Copy log"
+msgstr "ログをコピー"
+
+msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
+msgstr "すべての写真、動画、アルバムをソースからターゲットへ 1 回の実行でコピーまたは移動します。アルバムはターゲット上に再作成されます。"
+
+msgid "Create"
+msgstr "作成"
+
+msgid "Create Folder"
+msgstr "フォルダーを作成"
+
+msgid "Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an Automatic Migration with an Immich destination."
+msgstr "Immich を宛先とするすべてアップロード、アルバムのアップロード、または自動移行の後に、連写のような写真の Immich スタックを作成します。"
+
+msgid "Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an Automatic Migration with an Immich destination. (default: True)."
+msgstr "Immich を宛先とするすべてアップロード、アルバムのアップロード、または自動移行の後に、連写のような写真の Immich スタックを作成します。(デフォルト: True)"
+
+msgid "Create User"
+msgstr "ユーザーを作成"
+
+msgid "Create User Error"
+msgstr "ユーザー作成エラー"
+
+msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date."
+msgstr "<INPUT_FOLDER> の処理済みコピー(または移動したクローン)を作成し、ファイルを日付別に整理します。"
+
+msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date. By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided. Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy. Example: --organize-local-folder-by-date ./UnsortedLibrary"
+msgstr "<INPUT_FOLDER> の処理済みコピー(または移動したクローン)を作成し、ファイルを日付別に整理します。デフォルトでは、出力は 'year/month' 構造を使用し、'-o/--output-folder' が指定されていない限り '<INPUT_FOLDER>_processed_<TIMESTAMP>' に保存されます。レイアウトを変更するには '--organize-folder-structure'、出力フォルダーが明示されていない場合に生成されるサフィックスを変更するには '--organize-output-folder-suffix'、コピーではなく移動するには '--move-original-files' を使用します。例: --organize-local-folder-by-date ./UnsortedLibrary"
+
+msgid "Create failed: {0}"
+msgstr "作成に失敗しました: {0}"
+
+msgid "Create stacks"
+msgstr "スタックを作成"
+
+msgid "Created From"
+msgstr "作成日(開始)"
+
+msgid "Created To"
+msgstr "作成日(終了)"
+
+msgid "Created: {0}"
+msgstr "作成日時: {0}"
+
+msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
+msgstr "認証情報とサービス設定は、ユーザーごとに Web データベースへ保存されます。機密値は保存時に暗号化され、すべての機能で再利用されます。"
+
+msgid "Credentials for account {0} found in Settings"
+msgstr "設定でアカウント {0} の認証情報が見つかりました"
+
+msgid "Current run"
+msgstr "現在の実行"
+
+msgid "Current: {0}"
+msgstr "現在: {0}"
+
+msgid "Current: {0} | Error: {1}"
+msgstr "現在: {0} | エラー: {1}"
+
+msgid "Current: {0} | Selected: {1}"
+msgstr "現在: {0} | 選択中: {1}"
+
+msgid "Current: {0} | {1}"
+msgstr "現在: {0} | {1}"
+
+msgid "DB Delete Error"
+msgstr "DB 削除エラー"
+
+msgid "DB Insert Error"
+msgstr "DB 挿入エラー"
+
+msgid "DB Update Error"
+msgstr "DB 更新エラー"
+
+msgid "Dangerous Module"
+msgstr "危険なモジュール"
+
+msgid "Dark UI palette"
+msgstr "ダーク UI パレット"
+
+msgid "Dashboard"
+msgstr "ダッシュボード"
+
+msgid "Database Manager"
+msgstr "データベースマネージャー"
+
+msgid "Date and range separators"
+msgstr "日付と範囲の区切り文字"
+
+msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
+msgstr "日付と範囲の区切り文字は '--date-separator' と '--range-separator' でカスタマイズできます。"
+
+msgid "Date separator"
+msgstr "日付の区切り文字"
+
+msgid "Default account available:"
+msgstr "利用可能なデフォルトアカウント:"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Delete DB Row"
+msgstr "DB 行を削除"
+
+msgid "Delete Failed"
+msgstr "削除に失敗しました"
+
+msgid "Delete Row"
+msgstr "行を削除"
+
+msgid "Delete Selected Folders?"
+msgstr "選択したフォルダーを削除しますか?"
+
+msgid "Delete User"
+msgstr "ユーザーを削除"
+
+msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
+msgstr "削除エンドポイントが利用できません。Web インターフェースのバックエンドを再起動してからもう一度お試しください。"
+
+msgid "Delete row"
+msgstr "行を削除"
+
+msgid "Delete row {0} from '{1}'?"
+msgstr "'{1}' から行 {0} を削除しますか?"
+
+msgid "Demo"
+msgstr "デモ"
+
+msgid "Demo Role Restricted"
+msgstr "デモロールは制限されています"
+
+msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
+msgstr "デモロールではこの設定操作を直接実行できません。有効な管理者のユーザー名とパスワードを入力してください。"
+
+msgid "Destination Required"
+msgstr "宛先が必要です"
+
+msgid "Destination folder"
+msgstr "宛先フォルダー"
+
+msgid "Do not save the GPTH log"
+msgstr "GPTH ログを保存しない"
+
+msgid "Document"
+msgstr "ドキュメント"
+
+msgid "Documentation"
+msgstr "ドキュメント"
+
+msgid "Download Albums"
+msgstr "アルバムをダウンロード"
+
+msgid "Download All"
+msgstr "すべてダウンロード"
+
+msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>."
+msgstr "すべてのアルバムと、アルバムに属さないすべてのアセットを <OUTPUT_FOLDER> にダウンロードします。"
+
+msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened). - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure. Example: --download-all ./MyLibrary"
+msgstr "すべてのアルバムと、アルバムに属さないすべてのアセットを <OUTPUT_FOLDER> にダウンロードします。- アルバムは <OUTPUT_FOLDER>/Albums/<AlbumName> にダウンロードされます(フラット化)。- アルバムに属さないアセットは year/month 構造で <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ に保存されます。例: --download-all ./MyLibrary"
+
+msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
+msgstr "特定のアルバムを <OUTPUT_FOLDER> にダウンロードします(必須: -o/--output-folder)。"
+
+msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder). - Use 'ALL' to download ALL albums. - Use patterns: e.g. --download-albums 'dron*' - Multiple albums can be separated by comma or space and quoted. Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+msgstr "特定のアルバムを <OUTPUT_FOLDER> にダウンロードします(必須: -o/--output-folder)。- 'ALL' を使用するとすべてのアルバムをダウンロードします。- パターンも使用できます(例: --download-albums 'dron*')。- 複数のアルバムはカンマまたはスペースで区切り、引用符で囲めます。例: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+
+msgid "Drag from bottom edge or bottom corners to resize the log panel"
+msgstr "下端または下隅からドラッグしてログパネルのサイズを変更します"
+
+msgid "Dup asset keeper"
+msgstr "重複アセットの保持基準"
+
+msgid "Dup immich native algorithm"
+msgstr "Immich ネイティブ重複アルゴリズム"
+
+msgid "Dup immich native deletion"
+msgstr "Immich ネイティブ重複削除"
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>."
+msgstr "<ALL_PHOTOS_FOLDER> 内の元のアセットへのシンボリックリンクを作成する代わりに、アルバムのアセットを複製します。"
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>. (Makes your output portable but requires more HDD space). IMPORTANT: This can considerably increase output size, especially if you have many albums."
+msgstr "<ALL_PHOTOS_FOLDER> 内の元のアセットへのシンボリックリンクを作成する代わりに、アルバムのアセットを複製します。(出力を持ち運び可能にしますが、より多くのディスク容量が必要です)。重要: 特にアルバムが多い場合、出力サイズが大幅に増加する可能性があります。"
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>. (Makes your output portable but requires more HDD space). IMPORTANT: This can considerably increase output size, especially if you have many albums. Example: if one asset belongs to 3 albums, you will end up with 4 copies (original + 3)."
+msgstr "<ALL_PHOTOS_FOLDER> 内の元のアセットへのシンボリックリンクを作成する代わりに、アルバムのアセットを複製します。(出力を持ち運び可能にしますが、より多くのディスク容量が必要です)。重要: 特にアルバムが多い場合、出力サイズが大幅に増加する可能性があります。例: 1 つのアセットが 3 つのアルバムに属している場合、コピーは合計 4 つ(元のファイル + 3)になります。"
+
+msgid "Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>."
+msgstr "<ALL_PHOTOS_FOLDER> 内の元のアセットへのシンボリックリンクを作成する代わりに、再構築された iCloud アルバムのアセットを複製します。"
+
+msgid "Duplicates"
+msgstr "重複"
+
+msgid "Duplicates CSV"
+msgstr "重複 CSV"
+
+msgid "Duplicates, folders"
+msgstr "重複、フォルダー"
+
+msgid "Duration: <b>{0}</b>. Last lines of the log:"
+msgstr "所要時間: <b>{0}</b>。ログの最後の行:"
+
+msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper."
+msgstr "アップロード中、同等の既存アルバム名を 1 つのグループとして扱い、それらのアセットを正規のアルバムに統合します。"
+
+msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
+msgstr "アップロード中、同等の既存アルバム名を 1 つのグループとして扱い、それらのアセットを正規のアルバムに統合します。余分なアルバムは、サービスがアルバム削除に対応している場合にのみ削除されます。"
+
+msgid "Elapsed Time"
+msgstr "経過時間"
+
+msgid "Elapsed Time: 00:00:00"
+msgstr "経過時間: 00:00:00"
+
+msgid "Elapsed Time: {0}"
+msgstr "経過時間: {0}"
+
+msgid "Email"
+msgstr "メール"
+
+msgid "Email (SMTP)"
+msgstr "メール (SMTP)"
+
+msgid "Email check"
+msgstr "メールの確認"
+
+msgid "Email is not configured on this server yet."
+msgstr "このサーバーではまだメールが設定されていません。"
+
+msgid "Email me when it finishes"
+msgstr "完了したらメールで通知"
+
+msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
+msgstr "メールの状態: 未設定のため、メールは送信されません。ログインページからのアカウント申請は有効です。"
+
+msgid "Email status: saving..."
+msgstr "メールの状態: 保存中..."
+
+msgid "Email status: sending test email..."
+msgstr "メールの状態: テストメールを送信中..."
+
+msgid "Email status: test email sent to {0}."
+msgstr "メールの状態: {0} にテストメールを送信しました。"
+
+msgid "Email status: {0}"
+msgstr "メールの状態: {0}"
+
+msgid "Enable or disable Error messages during GPTH Processing."
+msgstr "GPTH 処理中のエラーメッセージを有効または無効にします。"
+
+msgid "Enable or disable Error messages during GPTH Processing. (default: True)."
+msgstr "GPTH 処理中のエラーメッセージを有効または無効にします。(デフォルト: True)"
+
+msgid "Enable or disable Info messages during GPTH Processing."
+msgstr "GPTH 処理中の情報メッセージを有効または無効にします。"
+
+msgid "Enable or disable Info messages during GPTH Processing. (default: True)."
+msgstr "GPTH 処理中の情報メッセージを有効または無効にします。(デフォルト: True)"
+
+msgid "Enable or disable Live Dashboard feature during Automated Migration job."
+msgstr "自動移行ジョブ中のライブダッシュボード機能を有効または無効にします。"
+
+msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
+msgstr "自動移行ジョブ中のライブダッシュボード機能を有効または無効にします。この引数は '--source' と '--target' の両方が指定された場合にのみ適用されます。(デフォルト: True)"
+
+msgid "Enabled"
+msgstr "有効"
+
+msgid "Enter a folder name, or an absolute path inside"
+msgstr "フォルダー名、または次の内部の絶対パスを入力してください:"
+
+msgid "Env override"
+msgstr "環境変数による上書き"
+
+msgid "Error: {0}"
+msgstr "エラー: {0}"
+
+msgid "Estimated End"
+msgstr "終了予定"
+
+msgid "Every album and asset"
+msgstr "すべてのアルバムとアセット"
+
+msgid "Every album, optionally its assets"
+msgstr "すべてのアルバム(必要に応じてアセットも)"
+
+msgid "Every asset and album"
+msgstr "すべてのアセットとアルバム"
+
+msgid "Every day (2:00 AM)"
+msgstr "毎日 (午前 2:00)"
+
+msgid "Every hour"
+msgstr "毎時"
+
+msgid "Every week (Monday 2:00 AM)"
+msgstr "毎週 (月曜日 午前 2:00)"
+
+msgid "Example: --consolidate-albums-names --preview-album-actions"
+msgstr "例: --consolidate-albums-names --preview-album-actions"
+
+msgid "Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+msgstr "例: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+
+msgid "Example: --download-all ./MyLibrary"
+msgstr "例: --download-all ./MyLibrary"
+
+msgid "Example: --find-duplicates move ./Albums ./ALL_PHOTOS"
+msgstr "例: --find-duplicates move ./Albums ./ALL_PHOTOS"
+
+msgid "Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
+msgstr "例: --fix-symlinks-broken ./OUTPUT_FOLDER"
+
+msgid "Example: --merge-duplicates-albums"
+msgstr "例: --merge-duplicates-albums"
+
+msgid "Example: --organize-local-folder-by-date ./UnsortedLibrary"
+msgstr "例: --organize-local-folder-by-date ./UnsortedLibrary"
+
+msgid "Example: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+msgstr "例: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+
+msgid "Example: --remove-albums \"^Temp\" --remove-albums-assets"
+msgstr "例: --remove-albums \"^Temp\" --remove-albums-assets"
+
+msgid "Example: --remove-all-albums --remove-albums-assets"
+msgstr "例: --remove-all-albums --remove-albums-assets"
+
+msgid "Example: --remove-all-assets"
+msgstr "例: --remove-all-assets"
+
+msgid "Example: --remove-duplicates-albums"
+msgstr "例: --remove-duplicates-albums"
+
+msgid "Example: --remove-duplicates-assets --dup-asset-keeper newest"
+msgstr "例: --remove-duplicates-assets --dup-asset-keeper newest"
+
+msgid "Example: --remove-empty-albums"
+msgstr "例: --remove-empty-albums"
+
+msgid "Example: --rename-albums \"*-*, --\" (single comma-separated value, useful when replacement starts with '--')"
+msgstr "例: --rename-albums \"*-*, --\"(カンマ区切りの単一の値。置換文字列が '--' で始まる場合に便利です)"
+
+msgid "Example: --rename-albums \"*--*\", \"-\""
+msgstr "例: --rename-albums \"*--*\", \"-\""
+
+msgid "Example: --rename-albums \"--\", \"-\""
+msgstr "例: --rename-albums \"--\", \"-\""
+
+msgid "Example: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\""
+msgstr "例: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\""
+
+msgid "Example: --rename-folders-content-based ./MyLocalPhotoLibrary"
+msgstr "例: --rename-folders-content-based ./MyLocalPhotoLibrary"
+
+msgid "Example: --source=/homes/MyTakeout --target=synology-1"
+msgstr "例: --source=/homes/MyTakeout --target=synology-1"
+
+msgid "Example: --source=synology-2 --target=google-photos-1"
+msgstr "例: --source=synology-2 --target=google-photos-1"
+
+msgid "Example: --upload-albums ./My_Albums_Folder"
+msgstr "例: --upload-albums ./My_Albums_Folder"
+
+msgid "Example: --upload-all ./MyLibrary"
+msgstr "例: --upload-all ./MyLibrary"
+
+msgid "Example: 2024-01-31, 31/01/2024, 2024"
+msgstr "例: 2024-01-31, 31/01/2024, 2024"
+
+msgid "Example: 2025-12-31, 31/12/2025, 2025"
+msgstr "例: 2025-12-31, 31/12/2025, 2025"
+
+msgid "Example: @eaDir, .@__thumb, @Recycle"
+msgstr "例: @eaDir, .@__thumb, @Recycle"
+
+msgid "Example: Madrid"
+msgstr "例: Madrid"
+
+msgid "Example: Peter"
+msgstr "例: Peter"
+
+msgid "Example: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store"
+msgstr "例: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store"
+
+msgid "Example: Spain"
+msgstr "例: Spain"
+
+msgid "Exclude Files"
+msgstr "除外するファイル"
+
+msgid "Exclude Folders"
+msgstr "除外するフォルダー"
+
+msgid "Exclude files"
+msgstr "除外するファイル"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration."
+msgstr "ローカル写真フォルダーの処理または移行中に、1 つ以上の glob パターンに一致するファイルを除外します。"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration. --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+msgstr "ローカル写真フォルダーの処理または移行中に、1 つ以上の glob パターンに一致するファイルを除外します。--exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration. Examples: --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+msgstr "ローカル写真フォルダーの処理または移行中に、1 つ以上の glob パターンに一致するファイルを除外します。例: --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+
+msgid "Exclude folders"
+msgstr "除外するフォルダー"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration."
+msgstr "ローカル写真フォルダーの処理または移行中に、1 つ以上の glob パターンに一致するフォルダーを除外します。"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration. --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+msgstr "ローカル写真フォルダーの処理または移行中に、1 つ以上の glob パターンに一致するフォルダーを除外します。--exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration. Examples: --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+msgstr "ローカル写真フォルダーの処理または移行中に、1 つ以上の glob パターンに一致するフォルダーを除外します。例: --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+
+msgid "Exec EXIF tool"
+msgstr "EXIF ツールを実行"
+
+msgid "Exec GPTH tool"
+msgstr "GPTH ツールを実行"
+
+msgid "Execution"
+msgstr "実行"
+
+msgid "Expand panel"
+msgstr "パネルを展開"
+
+msgid "Expand/collapse section"
+msgstr "セクションを展開/折りたたむ"
+
+msgid "Export Config"
+msgstr "設定をエクスポート"
+
+msgid "Extract ZIPs on upload"
+msgstr "アップロード時に ZIP を展開"
+
+msgid "Extracted ZIPs: {0} ({1} files) |"
+msgstr "展開した ZIP: {0} ({1} ファイル) |"
+
+msgid "Extracted ZIPs: {0}\\n"
+msgstr "展開した ZIP: {0}\\n"
+
+msgid "Failed: {0}"
+msgstr "失敗: {0}"
+
+msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
+msgstr "必須項目を入力してください。詳細オプションは、開かない限りデフォルト値のままです。"
+
+msgid "Filter by city"
+msgstr "都市で絞り込み"
+
+msgid "Filter by country"
+msgstr "国で絞り込み"
+
+msgid "Filter by person"
+msgstr "人物で絞り込み"
+
+msgid "Filter by type"
+msgstr "種類で絞り込み"
+
+msgid "Filter from date"
+msgstr "開始日で絞り込み"
+
+msgid "Filter to date"
+msgstr "終了日で絞り込み"
+
+msgid "Filters"
+msgstr "フィルター"
+
+msgid "Find Duplicates"
+msgstr "重複を検索"
+
+msgid "Find Duplicates Input"
+msgstr "重複検索の入力"
+
+msgid "Find duplicates"
+msgstr "重複を検索"
+
+msgid "Find duplicates in one or more folders using file size and content checks."
+msgstr "ファイルサイズと内容の確認を使用して、1 つ以上のフォルダー内の重複を検索します。"
+
+msgid "Fix Broken Symlinks"
+msgstr "壊れたシンボリックリンクを修復"
+
+msgid "Fix a Google Takeout"
+msgstr "Google Takeout を修正"
+
+msgid "Fix a Google export"
+msgstr "Google のエクスポートを修正"
+
+msgid "Fix an Apple export"
+msgstr "Apple のエクスポートを修正"
+
+msgid "Fix an export from Google or Apple"
+msgstr "Google または Apple のエクスポートを修復"
+
+msgid "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."
+msgstr "Google Photos Takeout エクスポートの日付とメタデータを修正し、アルバムを整ったライブラリとして再構築します。"
+
+msgid "Fix symlinks · Rename folders · Organize by date · Duplicates"
+msgstr "シンボリックリンクの修復 · フォルダー名の変更 · 日付別に整理 · 重複"
+
+msgid "Folder"
+msgstr "フォルダー"
+
+msgid "Folder Structure"
+msgstr "フォルダー構造"
+
+msgid "Folder path"
+msgstr "フォルダーのパス"
+
+msgid "Folder structure"
+msgstr "フォルダー構造"
+
+msgid "Folder to fix"
+msgstr "修復するフォルダー"
+
+msgid "Folder(s)"
+msgstr "フォルダー"
+
+msgid "Foldername albums"
+msgstr "アルバムのフォルダー名"
+
+msgid "Foldername duplicates output"
+msgstr "重複出力のフォルダー名"
+
+msgid "Foldername extracted dates"
+msgstr "抽出日付のフォルダー名"
+
+msgid "Foldername logs"
+msgstr "ログのフォルダー名"
+
+msgid "Foldername no albums"
+msgstr "アルバムなしのフォルダー名"
+
+msgid "Folders"
+msgstr "フォルダー"
+
+msgid "Folders to scan"
+msgstr "スキャンするフォルダー"
+
+msgid "Follow its live progress and log in Activity."
+msgstr "進行状況とログは「アクティビティ」でライブ表示されます。"
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0})."
+msgstr "アルバム名の統合で、アルバムが小規模とみなされるアセット数の上限を設定します(デフォルト: {0})。"
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0}). Only used when '--try-small-albums-grouping' is enabled."
+msgstr "アルバム名の統合で、アルバムが小規模とみなされるアセット数の上限を設定します(デフォルト: {0})。'--try-small-albums-grouping' が有効な場合にのみ使用されます。"
+
+msgid "For Consolidate Albums Names, try canonical/equivalent album-name grouping (default: True)."
+msgstr "アルバム名の統合で、正規名/同等名によるアルバム名のグループ化を試みます(デフォルト: True)。"
+
+msgid "For Consolidate Albums Names, try compatible YYYY/YYYY-MM/YYYY-MM-DD date-prefix grouping (default: True)."
+msgstr "アルバム名の統合で、互換性のある YYYY/YYYY-MM/YYYY-MM-DD 形式の日付プレフィックスによるグループ化を試みます(デフォルト: True)。"
+
+msgid "For Consolidate Albums Names, try grouping small albums into larger similarly named albums with matching capture dates (default: True)."
+msgstr "アルバム名の統合で、小規模なアルバムを、名前が似ていて撮影日が一致するより大きなアルバムにグループ化することを試みます(デフォルト: True)。"
+
+msgid "For Consolidate Albums Names, try guarded truncated album-name grouping (default: True)."
+msgstr "アルバム名の統合で、安全策を講じた切り詰めアルバム名によるグループ化を試みます(デフォルト: True)。"
+
+msgid "For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper location from duplicates."
+msgstr "Immich の重複アセット削除の手動解決のみを対象に、保持するアセットに位置情報がない場合に、重複アセットからのコピーを許可します。"
+
+msgid "For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper location from duplicates. Disabled by default to avoid propagating an incorrect GPS location. When enabled, at least two redundant assets must have the same complete coordinate pair; this option does not apply to Immich native duplicate deletion."
+msgstr "Immich の重複アセット削除の手動解決のみを対象に、保持するアセットに位置情報がない場合に、重複アセットからのコピーを許可します。誤った GPS 位置情報の伝播を避けるため、デフォルトでは無効です。有効にした場合、少なくとも 2 つの余分なアセットが同じ完全な座標のペアを持っている必要があります。このオプションは Immich ネイティブの重複削除には適用されません。"
+
+msgid "For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, merge albums, favorites, highest rating, combined descriptions, most restrictive visibility, matching locations, and tags, then trash redundant assets. This uses Immich's Alpha duplicate-resolution API and is available only with native detection and '--dup-asset-keeper=better-quality'. All other keeper strategies use PhotoMigrator's guarded merge and are sent to trash only after the selected keeper is verified. When enabled, the keeper must be 'better-quality'. It is enabled by default only for that supported combination and disabled otherwise."
+msgstr "Immich の重複アセット削除で、Immich に各ネイティブ重複グループを解決させ、アルバム、お気に入り、最高評価、結合した説明、最も制限の厳しい公開設定、一致する位置情報、タグを統合し、その後で余分なアセットをゴミ箱へ移動します。これは Immich の Alpha 版の重複解決 API を使用し、ネイティブ検出と '--dup-asset-keeper=better-quality' の組み合わせでのみ利用できます。それ以外の保持戦略では PhotoMigrator の保護付き統合が使用され、選択した保持アセットが確認された後にのみゴミ箱へ送られます。有効にする場合、保持基準は 'better-quality' である必要があります。サポートされている組み合わせでのみデフォルトで有効になり、それ以外では無効です。"
+
+msgid "For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, merge albums, favorites, highest rating, combined descriptions, most restrictive visibility, m…"
+msgstr "Immich の重複アセット削除で、Immich に各ネイティブ重複グループを解決させ、アルバム、お気に入り、最高評価、結合した説明、最も制限の厳しい公開設定、…"
+
+msgid "For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of same-filename-and-size grouping."
+msgstr "Immich の重複アセット削除で、同一ファイル名・同一サイズによるグループ化の代わりに、Immich ネイティブの視覚的な重複グループを使用します。"
+
+msgid "For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of same-filename-and-size grouping. Native detection is based on asset similarity rather than file size. When disabled, PhotoMigrator groups exact filename-and-size matches; this is useful for repeated uploads of the same processed Takeout on different dates when an EXIF tag value prevented Immich from rejecting the later upload (default: True)."
+msgstr "Immich の重複アセット削除で、同一ファイル名・同一サイズによるグループ化の代わりに、Immich ネイティブの視覚的な重複グループを使用します。ネイティブ検出はファイルサイズではなくアセットの類似性に基づきます。無効にすると、PhotoMigrator はファイル名とサイズが完全に一致するものをグループ化します。これは、EXIF タグの値のために Immich が後のアップロードを拒否できなかった場合に、処理済みの同じ Takeout を日を変えて繰り返しアップロードしたときに役立ちます(デフォルト: True)。"
+
+msgid "For Immich, native duplicate detection is enabled by default and the selector defaults to 'more-people/tags-then-better-quality'. Google Photos cannot delete library media through its public API."
+msgstr "Immich では、ネイティブの重複検出がデフォルトで有効になり、セレクターのデフォルトは 'more-people/tags-then-better-quality' です。Google Photos は公開 API ではライブラリのメディアを削除できません。"
+
+msgid "For Remove Albums, only match albums created on or after <DATE>."
+msgstr "アルバムの削除で、<DATE> 以降に作成されたアルバムのみを対象にします。"
+
+msgid "For Remove Albums, only match albums created on or after <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "アルバムの削除で、<DATE> 以降に作成されたアルバムのみを対象にします。'--remove-albums' と併用します。使用できる形式は YYYY、YYYY-MM、YYYY-MM-DD などです。"
+
+msgid "For Remove Albums, only match albums created on or before <DATE>."
+msgstr "アルバムの削除で、<DATE> 以前に作成されたアルバムのみを対象にします。"
+
+msgid "For Remove Albums, only match albums created on or before <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "アルバムの削除で、<DATE> 以前に作成されたアルバムのみを対象にします。'--remove-albums' と併用します。使用できる形式は YYYY、YYYY-MM、YYYY-MM-DD などです。"
+
+msgid "Force Password Change"
+msgstr "パスワード変更を強制"
+
+msgid "Force password change on first login"
+msgstr "初回ログイン時にパスワード変更を強制"
+
+msgid "GPTH messages"
+msgstr "GPTH メッセージ"
+
+msgid "General arguments"
+msgstr "一般引数"
+
+msgid "Get started in three steps"
+msgstr "3 ステップで始める"
+
+msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
+msgstr "すべての機能で共有されるグローバル引数: ログ、実行、フォルダー名、フィルター。"
+
+msgid "Global arguments shared by every feature: logging, execution, folder names and filters. They are the baseline for each run; a feature can override some of them, for example the migration filters."
+msgstr "すべての機能で共有されるグローバル引数: ログ、実行、フォルダー名、フィルター。これらは各実行の基準となり、機能によっては一部を上書きできます(例: 移行フィルター)。"
+
+msgid "Go to first line"
+msgstr "最初の行へ移動"
+
+msgid "Go to last line"
+msgstr "最後の行へ移動"
+
+msgid "Go to parent folder"
+msgstr "親フォルダーへ移動"
+
+msgid "Good afternoon"
+msgstr "こんにちは"
+
+msgid "Good evening"
+msgstr "こんばんは"
+
+msgid "Good morning"
+msgstr "おはようございます"
+
+msgid "Google"
+msgstr "Google"
+
+msgid "Google Photos"
+msgstr "Google Photos"
+
+msgid "Google Photos accounts"
+msgstr "Google Photos アカウント"
+
+msgid "Google Photos export"
+msgstr "Google Photos のエクスポート"
+
+msgid "Google Photos · PhotoMigrator"
+msgstr "Google Photos · PhotoMigrator"
+
+msgid "Google Photos, Synology, Immich, NextCloud, local folders and Takeout exports, in one place."
+msgstr "Google Photos、Synology、Immich、NextCloud、ローカルフォルダー、Takeout のエクスポートをひとつの場所で。"
+
+msgid "Google Takeout"
+msgstr "Google Takeout"
+
+msgid "Google Takeout · PhotoMigrator"
+msgstr "Google Takeout · PhotoMigrator"
+
+msgid "Green palette"
+msgstr "グリーンパレット"
+
+msgid "Help"
+msgstr "ヘルプ"
+
+msgid "Help index empty"
+msgstr "ヘルプインデックスが空です"
+
+msgid "Help index unavailable"
+msgstr "ヘルプインデックスを利用できません"
+
+msgid "Hi {0},"
+msgstr "{0} 様、"
+
+msgid "Hide password"
+msgstr "パスワードを非表示"
+
+msgid "Home"
+msgstr "ホーム"
+
+msgid "Home (data)"
+msgstr "ホーム (data)"
+
+msgid "Home (volumes)"
+msgstr "ホーム (volumes)"
+
+msgid "How to migrate"
+msgstr "移行の手順"
+
+msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
+msgstr "重要: 'move' と 'remove' はファイルを変更します。先に確認したい場合は 'list' から始めてください。"
+
+msgid "IMPORTANT: Configure Config.ini credentials/API keys before running cloud migrations."
+msgstr "重要: クラウド移行を実行する前に、Config.ini の認証情報/API キーを設定してください。"
+
+msgid "IMPORTANT: Links are only fixed when a valid target can be inferred from current files."
+msgstr "重要: リンクは、現在のファイルから有効なターゲットを推測できる場合にのみ修復されます。"
+
+msgid "IMPORTANT: This modifies original folder names in place; create a backup if needed."
+msgstr "重要: 元のフォルダー名がその場で変更されます。必要に応じてバックアップを作成してください。"
+
+msgid "IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "重要: このモジュールはローカルの前処理パイプラインです。それ自体ではクラウドターゲットに何もプッシュしません。"
+
+msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
+msgstr "重要: remove_duplicate と replace_duplicate は元に戻せない操作です。"
+
+msgid "IP Address"
+msgstr "IP アドレス"
+
+msgid "Idle"
+msgstr "アイドル"
+
+msgid "If"
+msgstr "条件"
+
+msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
+msgstr "'-AlbFolder, --albums-folders <ALBUMS_FOLDER>' も指定した場合、それらのフォルダーのアルバムも作成されます。"
+
+msgid "If empty, the value from Settings › General arguments is used."
+msgstr "空の場合は、設定 › 一般引数の値が使用されます。"
+
+msgid "If set to No, .zip files are kept as uploaded."
+msgstr "「いいえ」に設定すると、.zip ファイルはアップロードされたまま保持されます。"
+
+msgid "If the target supports album deletion (Immich, Synology, NextCloud), the redundant variants are then removed. Google Photos keeps them because the public API cannot delete albums."
+msgstr "ターゲットがアルバム削除に対応している場合(Immich、Synology、NextCloud)、余分なバリアントは削除されます。Google Photos は公開 API でアルバムを削除できないため、そのまま残ります。"
+
+msgid "If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied."
+msgstr "この引数を指定すると、アセットは <SOURCE> から <TARGET> へコピーではなく移動されます。"
+
+msgid "If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied. (default: False)."
+msgstr "この引数を指定すると、アセットは <SOURCE> から <TARGET> へコピーではなく移動されます。(デフォルト: False)"
+
+msgid "If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album."
+msgstr "'-rAllAlb, --remove-all-albums' または '-rAlb, --remove-albums' と併用すると、各アルバム内のアセット(写真/動画)も削除されます。"
+
+msgid "If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>."
+msgstr "'-uAll, --upload-all' と併用すると、<ALBUMS_FOLDER> 内の各サブフォルダーごとにアルバムが作成されます。"
+
+msgid "Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc.), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamps."
+msgstr "Google Takeout 構造のチェック('.json' ファイル、'Photos from ' サブフォルダーなど)を無視し、<TAKEOUT_FOLDER> 内で見つかったすべてのファイルについて、タイムスタンプを推測しながら修復します。"
+
+msgid "Ignore the Takeout structure check"
+msgstr "Takeout 構造のチェックを無視"
+
+msgid "Immich"
+msgstr "Immich"
+
+msgid "Immich Photos"
+msgstr "Immich Photos"
+
+msgid "Immich Photos · PhotoMigrator"
+msgstr "Immich Photos · PhotoMigrator"
+
+msgid "Immich Upload Timeout (seconds)"
+msgstr "Immich アップロードタイムアウト(秒)"
+
+msgid "Immich upload read timeout in seconds for Upload All, Upload Albums, and Automatic Migration when Immich is the target (default: {0})."
+msgstr "Immich がターゲットの場合の、すべてアップロード、アルバムのアップロード、自動移行における Immich アップロードの読み取りタイムアウト(秒)です(デフォルト: {0})。"
+
+msgid "Import Config"
+msgstr "設定をインポート"
+
+msgid "Import Google Takeout person labels into Immich when a Takeout people map is available."
+msgstr "Takeout の人物マップがある場合、Google Takeout の人物ラベルを Immich にインポートします。"
+
+msgid "Import Google Takeout person labels into Immich when a Takeout people map is available. Only applies to an Immich destination or Immich Upload All/Upload Albums. (default: True)."
+msgstr "Takeout の人物マップがある場合、Google Takeout の人物ラベルを Immich にインポートします。宛先が Immich の場合、または Immich へのすべてアップロード/アルバムのアップロードにのみ適用されます。(デフォルト: True)"
+
+msgid "Import people"
+msgstr "人物をインポート"
+
+msgid "Include Memories as albums"
+msgstr "思い出をアルバムとして含める"
+
+msgid "Input Folder"
+msgstr "入力フォルダー"
+
+msgid "Insert Row"
+msgstr "行を挿入"
+
+msgid "Invalid --google-takeout path: contains '{0}'."
+msgstr "--google-takeout のパスが無効です: '{0}' が含まれています。"
+
+msgid "Invalid --source path: contains '{0}'."
+msgstr "--source のパスが無効です: '{0}' が含まれています。"
+
+msgid "Invalid --{0} path: the user root folder cannot be used directly ({1})."
+msgstr "--{0} のパスが無効です: ユーザーのルートフォルダーは直接使用できません ({1})。"
+
+msgid "Invalid Folder Selection"
+msgstr "フォルダーの選択が無効です"
+
+msgid "Invalid JSON format."
+msgstr "JSON 形式が無効です。"
+
+msgid "Invalid admin credentials or insufficient permissions."
+msgstr "管理者の認証情報が無効か、権限が不足しています。"
+
+msgid "Invalid credentials"
+msgstr "認証情報が無効です"
+
+msgid "Job linked to your session"
+msgstr "セッションに関連付けられたジョブ"
+
+msgid "Keep an untouched Takeout copy"
+msgstr "未変更の Takeout コピーを保持"
+
+msgid "Keep an untouched copy of original Takeout (requires double space)."
+msgstr "元の Takeout の未変更コピーを保持します(2 倍の容量が必要です)。"
+
+msgid "Keep an untouched copy of original Takeout (requires double space). TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
+msgstr "元の Takeout の未変更コピーを保持します(2 倍の容量が必要です)。ヒント: <TAKEOUT_FOLDER> に元の zip ファイルが含まれている場合は、いずれにせよそれらが保持されます。"
+
+msgid "Keep last N backups"
+msgstr "最新 N 件のバックアップを保持"
+
+msgid "Keep the best copy of each"
+msgstr "それぞれ最良のコピーを残す"
+
+msgid "Language"
+msgstr "言語"
+
+msgid "Last Updated"
+msgstr "最終更新"
+
+msgid "Last Updated: -"
+msgstr "最終更新: -"
+
+msgid "Last Updated: {0}"
+msgstr "最終更新: {0}"
+
+msgid "Letters, numbers, dots, hyphens or underscores"
+msgstr "英字、数字、ドット、ハイフン、アンダースコア"
+
+msgid "Libraries & tools"
+msgstr "ライブラリとツール"
+
+msgid "List only, move the duplicates to a folder, or delete them."
+msgstr "一覧表示のみ、重複をフォルダーへ移動、または削除から選べます。"
+
+msgid "List, move or remove duplicates"
+msgstr "重複を一覧表示、移動、削除"
+
+msgid "Load Table"
+msgstr "テーブルを読み込む"
+
+msgid "Local Photos Folder"
+msgstr "ローカル写真フォルダー"
+
+msgid "Local Photos Folder · PhotoMigrator"
+msgstr "ローカル写真フォルダー · PhotoMigrator"
+
+msgid "Local folder"
+msgstr "ローカルフォルダー"
+
+msgid "Local helpers"
+msgstr "ローカルヘルパー"
+
+msgid "Local helpers: repair symlinks, rename or organize folders, and find or process duplicates."
+msgstr "ローカルヘルパー: シンボリックリンクの修復、フォルダー名の変更や整理、重複の検索と処理。"
+
+msgid "Log"
+msgstr "ログ"
+
+msgid "Log format"
+msgstr "ログ形式"
+
+msgid "Log level"
+msgstr "ログレベル"
+
+msgid "Logout"
+msgstr "ログアウト"
+
+msgid "Logs"
+msgstr "ログ"
+
+msgid "Main navigation"
+msgstr "メインナビゲーション"
+
+msgid "Manage a library"
+msgstr "ライブラリを管理"
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB."
+msgstr "自動移行のプッシュ再試行の対象となるアセットの最大サイズ(MB)。"
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB. Use {0} for no size limit (default: {1}). Retry count and delay settings still apply."
+msgstr "自動移行のプッシュ再試行の対象となるアセットの最大サイズ(MB)。サイズ制限を設けない場合は {0} を使用します(デフォルト: {1})。再試行回数と遅延の設定は引き続き適用されます。"
+
+msgid "Merge Duplicate Locations"
+msgstr "重複する位置情報を統合"
+
+msgid "Merge Duplicates Albums"
+msgstr "重複アルバムを統合"
+
+msgid "Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates."
+msgstr "重複したアルバム(同じ名前)を統合します: アセットを最も適切なアルバムに移動し、重複を削除します。"
+
+msgid "Merge equivalent album families"
+msgstr "同等のアルバムグループを統合"
+
+msgid "Message"
+msgstr "メッセージ"
+
+msgid "Message for the administrator (optional)"
+msgstr "管理者へのメッセージ(任意)"
+
+msgid "Message: {0}"
+msgstr "メッセージ: {0}"
+
+msgid "Migrate"
+msgstr "移行"
+
+msgid "Missing Required Arguments"
+msgstr "必須引数が不足しています"
+
+msgid "Missing required argument: --{0}"
+msgstr "必須引数が不足しています: --{0}"
+
+msgid "Missing tab."
+msgstr "タブが見つかりません。"
+
+msgid "Move Assets"
+msgstr "アセットを移動"
+
+msgid "Move Original Files"
+msgstr "元のファイルを移動"
+
+msgid "Move a whole library in one run"
+msgstr "ライブラリ全体を一度に移行"
+
+msgid "Move mode is on"
+msgstr "移動モードがオンです"
+
+msgid "Move the original folder into the processed output instead of copying it first."
+msgstr "最初にコピーする代わりに、元のフォルダーを処理済みの出力先へ移動します。"
+
+msgid "Move the original folder into the processed output instead of copying it first. Useful to avoid duplicating disk usage for large local libraries."
+msgstr "最初にコピーする代わりに、元のフォルダーを処理済みの出力先へ移動します。大規模なローカルライブラリでディスク使用量の重複を避けるのに便利です。"
+
+msgid "Move your photo library. Keep every memory."
+msgstr "写真ライブラリを移行して、思い出をすべて残しましょう。"
+
+msgid "Move your whole library to another service"
+msgstr "ライブラリ全体を別のサービスへ移行"
+
+msgid "Multiple albums can be separated by comma or space and quoted."
+msgstr "複数のアルバムはカンマまたはスペースで区切り、引用符で囲むことができます。"
+
+msgid "Naming & Folders"
+msgstr "名前とフォルダー"
+
+msgid "New account request"
+msgstr "新しいアカウント申請"
+
+msgid "New here?"
+msgstr "初めてですか?"
+
+msgid "New name for each matching album."
+msgstr "一致する各アルバムの新しい名前。"
+
+msgid "New password"
+msgstr "新しいパスワード"
+
+msgid "NextCloud"
+msgstr "NextCloud"
+
+msgid "NextCloud Photos"
+msgstr "NextCloud Photos"
+
+msgid "NextCloud Photos · PhotoMigrator"
+msgstr "NextCloud Photos · PhotoMigrator"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "No additional help for this field."
+msgstr "この項目に関する追加のヘルプはありません。"
+
+msgid "No credentials for account {0} yet."
+msgstr "アカウント {0} の認証情報はまだありません。"
+
+msgid "No extra arguments required"
+msgstr "追加の引数は不要です"
+
+msgid "No files found in selected local folder."
+msgstr "選択したローカルフォルダーにファイルが見つかりません。"
+
+msgid "No job is running. When you run a feature, its live progress and log appear in Activity."
+msgstr "実行中のジョブはありません。機能を実行すると、リアルタイムの進行状況とログがアクティビティに表示されます。"
+
+msgid "No job running"
+msgstr "実行中のジョブはありません"
+
+msgid "No log file"
+msgstr "ログファイルがありません"
+
+msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
+msgstr "アルバムに属さないアセットは year/month 構造で <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ に保存されます。"
+
+msgid "None"
+msgstr "なし"
+
+msgid "Not Found"
+msgstr "見つかりません"
+
+msgid "Not configured"
+msgstr "未設定"
+
+msgid "Not set"
+msgstr "未設定"
+
+msgid "Notice"
+msgstr "お知らせ"
+
+msgid "OAuth Client ID for Google Photos account {0}"
+msgstr "Google Photos アカウント {0} の OAuth クライアント ID"
+
+msgid "OAuth Client Secret for Google Photos account {0}"
+msgstr "Google Photos アカウント {0} の OAuth クライアントシークレット"
+
+msgid "OAuth Refresh Token for Google Photos account {0}"
+msgstr "Google Photos アカウント {0} の OAuth リフレッシュトークン"
+
+msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
+msgstr "対応しているクラウドターゲットでは、余分なバリアントは優先される保持アルバムに統合されます。API がアルバム削除に対応している場合(Immich、Synology、NextCloud)、その後で余分なアルバムが削除されます。Google Photos は公開 API でアルバムを削除できないため、余分なバリアントはそのまま残ります。"
+
+msgid "On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it."
+msgstr "対応しているクラウドターゲットでは、優先されるクリーンな保持名が使用され、余分なバリアントのアセットがそこに統合されます。"
+
+msgid "One album per subfolder"
+msgstr "サブフォルダーごとに 1 つのアルバム"
+
+msgid "One file pattern per line or comma-separated"
+msgstr "ファイルパターンを 1 行に 1 つ、またはカンマ区切りで入力"
+
+msgid "One folder pattern per line or comma-separated"
+msgstr "フォルダーパターンを 1 行に 1 つ、またはカンマ区切りで入力"
+
+msgid "One time password"
+msgstr "ワンタイムパスワード"
+
+msgid "One value per line or comma-separated"
+msgstr "値を 1 行に 1 つ、またはカンマ区切りで入力"
+
+msgid "Only an active admin can authorize this action. Enter admin username and password."
+msgstr "この操作を承認できるのは有効な管理者のみです。管理者のユーザー名とパスワードを入力してください。"
+
+msgid "Open Activity"
+msgstr "アクティビティを開く"
+
+msgid "Open Activity{0}"
+msgstr "アクティビティを開く{0}"
+
+msgid "Open CSV selector"
+msgstr "CSV セレクターを開く"
+
+msgid "Open Help"
+msgstr "ヘルプを開く"
+
+msgid "Open PhotoMigrator"
+msgstr "PhotoMigrator を開く"
+
+msgid "Open Readme"
+msgstr "Readme を開く"
+
+msgid "Open Release Notes"
+msgstr "リリースノートを開く"
+
+msgid "Open Roadmap"
+msgstr "ロードマップを開く"
+
+msgid "Open folder selector"
+msgstr "フォルダーセレクターを開く"
+
+msgid "Open menu"
+msgstr "メニューを開く"
+
+msgid "Optional"
+msgstr "任意"
+
+msgid "Optional arguments:"
+msgstr "オプション引数:"
+
+msgid "Optional display label for account {0} (used in dashboards/logs)"
+msgstr "アカウント {0} の表示ラベル(任意。ダッシュボードやログで使用されます)"
+
+msgid "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'."
+msgstr "必要に応じて、'-rAlbAsset, --remove-albums-assets' を使用してアルバム内のアセットも削除できます。"
+
+msgid "Options for Auto Rename Folders Content Based"
+msgstr "コンテンツに基づくフォルダー自動名前変更のオプション"
+
+msgid "Options for Consolidate Albums Names"
+msgstr "アルバム名の統合のオプション"
+
+msgid "Options for Download Albums"
+msgstr "アルバムのダウンロードのオプション"
+
+msgid "Options for Download All"
+msgstr "すべてダウンロードのオプション"
+
+msgid "Options for Find Duplicates"
+msgstr "重複の検索のオプション"
+
+msgid "Options for Fix Broken Symlinks"
+msgstr "壊れたシンボリックリンクの修復のオプション"
+
+msgid "Options for Merge Duplicates Albums"
+msgstr "重複アルバムの統合のオプション"
+
+msgid "Options for Organize Local Folder By Date"
+msgstr "ローカルフォルダーの日付別整理のオプション"
+
+msgid "Options for Process Duplicates"
+msgstr "重複の処理のオプション"
+
+msgid "Options for Remove Albums"
+msgstr "アルバムの削除のオプション"
+
+msgid "Options for Remove All Albums"
+msgstr "すべてのアルバムの削除のオプション"
+
+msgid "Options for Remove All Assets"
+msgstr "すべてのアセットの削除のオプション"
+
+msgid "Options for Remove Duplicates Albums"
+msgstr "重複アルバムの削除のオプション"
+
+msgid "Options for Remove Duplicates Assets"
+msgstr "重複アセットの削除のオプション"
+
+msgid "Options for Remove Empty Albums"
+msgstr "空のアルバムの削除のオプション"
+
+msgid "Options for Rename Albums"
+msgstr "アルバム名の変更のオプション"
+
+msgid "Options for Upload Albums"
+msgstr "アルバムのアップロードのオプション"
+
+msgid "Options for Upload All"
+msgstr "すべてアップロードのオプション"
+
+msgid "Options for {0}"
+msgstr "{0} のオプション"
+
+msgid "Organize"
+msgstr "整理"
+
+msgid "Organize Local Folder By Date"
+msgstr "ローカルフォルダーを日付別に整理"
+
+msgid "Other Features"
+msgstr "その他の機能"
+
+msgid "Other Features · PhotoMigrator"
+msgstr "その他の機能 · PhotoMigrator"
+
+msgid "Output Folder"
+msgstr "出力フォルダー"
+
+msgid "Output Folder Suffix"
+msgstr "出力フォルダーのサフィックス"
+
+msgid "Output Status: idle"
+msgstr "出力の状態: アイドル"
+
+msgid "Output folder suffix"
+msgstr "出力フォルダーのサフィックス"
+
+msgid "Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected."
+msgstr "出力形式は 'yyyy - Album Name' で、範囲が検出された場合は 'yyyy--yyyy - Album Name' になります。"
+
+msgid "Overridden at runtime by environment variable '{0}'."
+msgstr "実行時に環境変数 '{0}' によって上書きされます。"
+
+msgid "Overwrite Configuration?"
+msgstr "設定を上書きしますか?"
+
+msgid "Parallel Migration"
+msgstr "並列移行"
+
+msgid "Password"
+msgstr "パスワード"
+
+msgid "Password (at least {0} characters)"
+msgstr "パスワード({0} 文字以上)"
+
+msgid "Pattern and replacement"
+msgstr "パターンと置換"
+
+msgid "Photo libraries"
+msgstr "フォトライブラリ"
+
+msgid "PhotoMigrator"
+msgstr "PhotoMigrator"
+
+msgid "PhotoMigrator Admin"
+msgstr "PhotoMigrator 管理"
+
+msgid "PhotoMigrator Login"
+msgstr "PhotoMigrator ログイン"
+
+msgid "PhotoMigrator website"
+msgstr "PhotoMigrator の Web サイト"
+
+msgid "Photos, videos and albums from a source to a target, with a live dashboard."
+msgstr "写真、動画、アルバムを移行元から移行先へ。ライブダッシュボード付き。"
+
+msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
+msgstr "タスクを選んでください。PhotoMigrator は、そのタスクに必要なオプションと、実行前の正確なコマンドだけを表示します。"
+
+msgid "Please choose a path that does not contain: {0}."
+msgstr "次を含まないパスを選択してください: {0}。"
+
+msgid "Please confirm this action."
+msgstr "この操作を確認してください。"
+
+msgid "Please select a destination folder inside container first."
+msgstr "先にコンテナ内の宛先フォルダーを選択してください。"
+
+msgid "Please select a feature/module to run."
+msgstr "実行する機能/モジュールを選択してください。"
+
+msgid "Please verify username/password and try again."
+msgstr "ユーザー名とパスワードを確認して、もう一度お試しください。"
+
+msgid "Port ({0}, {1} or {2})"
+msgstr "ポート ({0}、{1}、または {2})"
+
+msgid "Prefer Canonical Album Names"
+msgstr "正規のアルバム名を優先"
+
+msgid "Prefer the native EXIF writer"
+msgstr "ネイティブ EXIF ライターを優先"
+
+msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool."
+msgstr "対応している iCloud 写真ファイルでは、ExifTool に切り替える前にネイティブ EXIF ライターを優先します。"
+
+msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool. Disabled by default in CLI."
+msgstr "対応している iCloud 写真ファイルでは、ExifTool に切り替える前にネイティブ EXIF ライターを優先します。CLI ではデフォルトで無効です。"
+
+msgid "Preferences for how the Web Interface looks and behaves for your user. Theme and time zone changes are applied immediately."
+msgstr "お客様のユーザーに対する Web インターフェースの外観と動作の設定です。テーマとタイムゾーンの変更は即座に適用されます。"
+
+msgid "Prefix album folders with their dates"
+msgstr "アルバムフォルダーの先頭に日付を付ける"
+
+msgid "Preview Album Actions"
+msgstr "アルバム操作をプレビュー"
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes."
+msgstr "変更を適用する前に、アルバム名の変更 / アルバムの削除 / アルバム名の統合の一致結果をプレビューします。"
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes. Enabled by default; use '--no-preview-album-actions' to disable it."
+msgstr "変更を適用する前に、アルバム名の変更 / アルバムの削除 / アルバム名の統合の一致結果をプレビューします。デフォルトで有効です。無効にするには '--no-preview-album-actions' を使用します。"
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes. Enabled by default; use '--no-preview-album-actions' to disable it. Example: --rename-albums \"--\" \"-\""
+msgstr "変更を適用する前に、アルバム名の変更 / アルバムの削除 / アルバム名の統合の一致結果をプレビューします。デフォルトで有効です。無効にするには '--no-preview-album-actions' を使用します。例: --rename-albums \"--\" \"-\""
+
+msgid "Preview unavailable"
+msgstr "プレビューを利用できません"
+
+msgid "Preview unavailable: {0}"
+msgstr "プレビューを利用できません: {0}"
+
+msgid "Process Duplicates"
+msgstr "重複を処理"
+
+msgid "Process Input: idle"
+msgstr "処理の入力: アイドル"
+
+msgid "Process Input: ready"
+msgstr "処理の入力: 準備完了"
+
+msgid "Process Input: waiting for input"
+msgstr "処理の入力: 入力待ち"
+
+msgid "Process Takeout"
+msgstr "Takeout を処理"
+
+msgid "Process a raw Apple iCloud Photos export before importing it into another photo service."
+msgstr "未加工の Apple iCloud Photos エクスポートを、別の写真サービスへインポートする前に処理します。"
+
+msgid "Process a raw Apple iCloud Photos export before importing it into another photo service. This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections, and writes a portable output library with ALL_PHOTOS and Albums. When enabled, Memories CSV collections are also reconstructed as album-like folders. IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "未加工の Apple iCloud Photos エクスポートを、別の写真サービスへインポートする前に処理します。この機能は Photo Details.csv のメタデータを読み取り、写真と動画に日付を復元し、Apple の CSV コレクションからアルバムを再構築して、ALL_PHOTOS と Albums を持つ持ち運び可能な出力ライブラリを書き出します。有効にすると、Memories CSV コレクションもアルバムのようなフォルダーとして再構築されます。重要: このモジュールはローカルの前処理パイプラインです。それ自体ではクラウドターゲットに何もプッシュしません。"
+
+msgid "Process a raw Google Photos Takeout export before importing it into another photo service."
+msgstr "未加工の Google Photos Takeout エクスポートを、別の写真サービスへインポートする前に処理します。"
+
+msgid "Process a raw Google Photos Takeout export before importing it into another photo service. This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files, organizes the output into ALL_PHOTOS and Albums, and can optionally create symbolic album entries instead of duplicating files. When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow. IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "未加工の Google Photos Takeout エクスポートを、別の写真サービスへインポートする前に処理します。この機能は日付とメタデータを修復し、サイドカー JSON ファイルからアルバムの所属を再構築し、出力を ALL_PHOTOS と Albums に整理します。必要に応じて、ファイルを複製する代わりにシンボリックなアルバムエントリを作成することもできます。入力が年別フォルダーのないアルバムのみの Takeout の場合、PhotoMigrator は自動的に検出し、GPTH を適切な復旧フローに切り替えます。重要: このモジュールはローカルの前処理パイプラインです。それ自体ではクラウドターゲットに何もプッシュしません。"
+
+msgid "Process a revised duplicates CSV and execute actions from the 'Action' column."
+msgstr "確認済みの重複 CSV を処理し、'Action' 列のアクションを実行します。"
+
+msgid "Process a revised duplicates CSV and execute actions from the 'Action' column. Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV. Valid actions: restore_duplicate / remove_duplicate / replace_duplicate. IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations. Example: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+msgstr "確認済みの重複 CSV を処理し、'Action' 列のアクションを実行します。'--find-duplicates' の後に使用して、確認済み CSV に記入した手動の判断を適用します。有効なアクション: restore_duplicate / remove_duplicate / replace_duplicate。重要: remove_duplicate と replace_duplicate は元に戻せない操作です。例: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+
+msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets."
+msgstr "Apple iCloud Photos のエクスポートフォルダー <ICLOUD_EXPORT_FOLDER> を処理し、'Photo Details.csv' ファイルから日付を復元してメディアファイルに設定し、アセットを整理します。"
+
+msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets. If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
+msgstr "Apple iCloud Photos のエクスポートフォルダー <ICLOUD_EXPORT_FOLDER> を処理し、'Photo Details.csv' ファイルから日付を復元してメディアファイルに設定し、アセットを整理します。内部に ZIP ファイルが見つかった場合は、最初に '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>' に展開され、そのフォルダーが入力として使用されます。処理済みのエクスポートは '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>' フォルダーに保存されます。"
+
+msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it."
+msgstr "Takeout フォルダー <TAKEOUT_FOLDER> を処理して、すべてのメタデータを修復し、内部のアセットを整理します。"
+
+msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'. This argument is mandatory to run the Google Takeout Processor feature."
+msgstr "Takeout フォルダー <TAKEOUT_FOLDER> を処理して、すべてのメタデータを修復し、内部のアセットを整理します。内部に Zip ファイルが見つかった場合は、'<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>' フォルダーに展開され、そのフォルダーが入力として使用されます。処理済みの Takeout は '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>' フォルダーに保存されます。この引数は、Google Takeout プロセッサー機能を実行するために必須です。"
+
+msgid "Processing"
+msgstr "処理中"
+
+msgid "Provide JSON values to insert."
+msgstr "挿入する JSON の値を指定してください。"
+
+msgid "Push Asset Max Size (MB)"
+msgstr "プッシュするアセットの最大サイズ (MB)"
+
+msgid "Quick tools"
+msgstr "クイックツール"
+
+msgid "Range separator"
+msgstr "範囲の区切り文字"
+
+msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output."
+msgstr "JSON サイドカーから Google Takeout の人物ラベルを読み取り、人物マップを処理済みの出力に保存します。"
+
+msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
+msgstr "JSON サイドカーから Google Takeout の人物ラベルを読み取り、人物マップを処理済みの出力に保存します。(デフォルト: True)"
+
+msgid "Readme"
+msgstr "Readme"
+
+msgid "Ready to run"
+msgstr "実行の準備完了"
+
+msgid "Reason: {0}"
+msgstr "理由: {0}"
+
+msgid "Refresh Logs"
+msgstr "ログを更新"
+
+msgid "Refresh Tables"
+msgstr "テーブルを更新"
+
+msgid "Refresh token"
+msgstr "リフレッシュトークン"
+
+msgid "Reject Account Request"
+msgstr "アカウント申請を却下"
+
+msgid "Reject Request"
+msgstr "申請を却下"
+
+msgid "Release Notes"
+msgstr "リリースノート"
+
+msgid "Remaining Time"
+msgstr "残り時間"
+
+msgid "Remove ALL albums."
+msgstr "すべてのアルバムを削除します。"
+
+msgid "Remove ALL assets (photos/videos) and ALL albums."
+msgstr "すべてのアセット(写真/動画)とすべてのアルバムを削除します。"
+
+msgid "Remove Albums"
+msgstr "アルバムを削除"
+
+msgid "Remove All Albums"
+msgstr "すべてのアルバムを削除"
+
+msgid "Remove All Assets"
+msgstr "すべてのアセットを削除"
+
+msgid "Remove Duplicates Albums"
+msgstr "重複アルバムを削除"
+
+msgid "Remove Duplicates Assets"
+msgstr "重複アセットを削除"
+
+msgid "Remove Empty Albums"
+msgstr "空のアルバムを削除"
+
+msgid "Remove Orphan Assets"
+msgstr "孤立したアセットを削除"
+
+msgid "Remove Selected"
+msgstr "選択項目を削除"
+
+msgid "Remove Selected ({0})"
+msgstr "選択項目を削除 ({0})"
+
+msgid "Remove album assets"
+msgstr "アルバムのアセットを削除"
+
+msgid "Remove albums matching a text, wildcard, or regex pattern."
+msgstr "テキスト、ワイルドカード、正規表現のパターンに一致するアルバムを削除します。"
+
+msgid "Remove albums matching a text, wildcard, or regex pattern. Use '--preview-album-actions' to preview matches and request confirmation before applying changes. Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'. Example: --remove-albums \"^Temp\" --remove-albums-assets"
+msgstr "テキスト、ワイルドカード、正規表現のパターンに一致するアルバムを削除します。'--preview-album-actions' を使用すると、変更を適用する前に一致結果をプレビューして確認を求めます。必要に応じて、'-rAlbAsset, --remove-albums-assets' を使用してアルバム内のアセットも削除できます。例: --remove-albums \"^Temp\" --remove-albums-assets"
+
+msgid "Remove duplicate assets while preserving available metadata and people on the selected keeper asset."
+msgstr "選択した保持アセットに、利用可能なメタデータと人物情報を引き継ぎながら、重複アセットを削除します。"
+
+msgid "Remove duplicate files"
+msgstr "重複ファイルを削除"
+
+msgid "Remove duplicate files in <OUTPUT_TAKEOUT_FOLDER> after fixing them."
+msgstr "修復後に <OUTPUT_TAKEOUT_FOLDER> 内の重複ファイルを削除します。"
+
+msgid "Remove duplicated albums (same name and size)."
+msgstr "重複したアルバム(同じ名前とサイズ)を削除します。"
+
+msgid "Remove empty albums."
+msgstr "空のアルバムを削除します。"
+
+msgid "Removed: {0} | Failed: {1}"
+msgstr "削除済み: {0} | 失敗: {1}"
+
+msgid "Rename Albums"
+msgstr "アルバム名を変更"
+
+msgid "Rename Pattern"
+msgstr "名前変更パターン"
+
+msgid "Rename album folders by date"
+msgstr "アルバムフォルダーを日付で名前変更"
+
+msgid "Rename album folders in <OUTPUT_TAKEOUT_FOLDER> based on content dates after fixing them."
+msgstr "修復後に、コンテンツの日付に基づいて <OUTPUT_TAKEOUT_FOLDER> 内のアルバムフォルダーの名前を変更します。"
+
+msgid "Rename albums using a text, wildcard, or regex pattern with a replacement value."
+msgstr "テキスト、ワイルドカード、正規表現のパターンと置換値を使用して、アルバム名を変更します。"
+
+msgid "Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates."
+msgstr "コンテンツの日付を使用して、<ALBUMS_FOLDER> 内のアルバムフォルダー名を変更し、統一します。"
+
+msgid "Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates. Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected. Date and range separators can be customized with '--date-separator' and '--range-separator'. IMPORTANT: This modifies original folder names in place; create a backup if needed. Example: --rename-folders-content-based ./MyLocalPhotoLibrary"
+msgstr "コンテンツの日付を使用して、<ALBUMS_FOLDER> 内のアルバムフォルダー名を変更し、統一します。出力形式は 'yyyy - Album Name' で、範囲が検出された場合は 'yyyy--yyyy - Album Name' になります。日付と範囲の区切り文字は '--date-separator' と '--range-separator' でカスタマイズできます。重要: 元のフォルダー名がその場で変更されます。必要に応じてバックアップを作成してください。例: --rename-folders-content-based ./MyLocalPhotoLibrary"
+
+msgid "Rename pattern"
+msgstr "名前変更パターン"
+
+msgid "Repair broken album links"
+msgstr "壊れたアルバムリンクを修復"
+
+msgid "Repair, rename, organize and deduplicate folders, or upload files to this server."
+msgstr "フォルダーの修復、名前変更、整理、重複排除を行うか、このサーバーにファイルをアップロードします。"
+
+msgid "Replacement Pattern"
+msgstr "置換パターン"
+
+msgid "Replacement pattern"
+msgstr "置換パターン"
+
+msgid "Replacement text"
+msgstr "置換テキスト"
+
+msgid "Request User Confirmation"
+msgstr "ユーザーの確認を要求"
+
+msgid "Request an account"
+msgstr "アカウントを申請"
+
+msgid "Request failed"
+msgstr "リクエストに失敗しました"
+
+msgid "Request user confirmation before executing a feature (default: True)."
+msgstr "機能を実行する前にユーザーの確認を要求します(デフォルト: True)。"
+
+msgid "Requested from the login page"
+msgstr "ログインページから申請されました"
+
+msgid "Required"
+msgstr "必須"
+
+msgid "Required arguments:"
+msgstr "必須引数:"
+
+msgid "Reset Password"
+msgstr "パスワードをリセット"
+
+msgid "Reset Password: {0}"
+msgstr "パスワードのリセット: {0}"
+
+msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
+msgstr "Apple iCloud Photos エクスポートの日付とアルバムを、持ち運び可能なライブラリとして復元します。"
+
+msgid "Restore dates and metadata and rebuild albums into a clean library."
+msgstr "日付とメタデータを復元し、アルバムを整ったライブラリとして再構築します。"
+
+msgid "Restore defaults"
+msgstr "デフォルトに戻す"
+
+msgid "Restore the default values of the fields shown for this feature"
+msgstr "この機能に表示されている項目をデフォルト値に戻します"
+
+msgid "Result is exported to a CSV to review duplicates and selected action per item."
+msgstr "結果は CSV にエクスポートされ、重複と各項目に選択したアクションを確認できます。"
+
+msgid "Review the request"
+msgstr "申請を確認"
+
+msgid "Roadmap"
+msgstr "ロードマップ"
+
+msgid "Role"
+msgstr "ロール"
+
+msgid "Run"
+msgstr "実行"
+
+msgid "Run Backup Now"
+msgstr "今すぐバックアップを実行"
+
+msgid "Run Error"
+msgstr "実行エラー"
+
+msgid "Run an end-to-end migration from <SOURCE> to <TARGET> including albums and non-album assets."
+msgstr "アルバムとアルバムに属さないアセットを含め、<SOURCE> から <TARGET> へのエンドツーエンドの移行を実行します。"
+
+msgid "Run and follow the progress"
+msgstr "実行して進行状況を確認"
+
+msgid "Run this feature"
+msgstr "この機能を実行"
+
+msgid "Running"
+msgstr "実行中"
+
+msgid "Runtime override active from environment variable {0}"
+msgstr "環境変数 {0} による実行時の上書きが有効です"
+
+msgid "SMTP password"
+msgstr "SMTP パスワード"
+
+msgid "SMTP password (saved, leave empty to keep it)"
+msgstr "SMTP パスワード(保存済み。変更しない場合は空のままにしてください)"
+
+msgid "SMTP server (for example mail.example.com)"
+msgstr "SMTP サーバー(例: mail.example.com)"
+
+msgid "SMTP username"
+msgstr "SMTP ユーザー名"
+
+msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
+msgstr "SOURCE と TARGET には、クラウドエンドポイント(アカウント付きの synology/immich/nextcloud/google)またはローカルフォルダーを指定できます。"
+
+msgid "Same name and size"
+msgstr "同じ名前とサイズ"
+
+msgid "Save Email"
+msgstr "メールを保存"
+
+msgid "Save Email Settings"
+msgstr "メール設定を保存"
+
+msgid "Save Failed"
+msgstr "保存に失敗しました"
+
+msgid "Save Password"
+msgstr "パスワードを保存"
+
+msgid "Save Schedule"
+msgstr "スケジュールを保存"
+
+msgid "Save app settings"
+msgstr "アプリ設定を保存"
+
+msgid "Save config"
+msgstr "設定を保存"
+
+msgid "Save people labels"
+msgstr "人物ラベルを保存"
+
+msgid "Save row"
+msgstr "行を保存"
+
+msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
+msgstr "<FOLDER_TO_FIX> を再帰的にスキャンし、壊れたシンボリックリンクの修復を試みます。"
+
+msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
+msgstr "<FOLDER_TO_FIX> を再帰的にスキャンし、壊れたシンボリックリンクの修復を試みます。OUTPUT_TAKEOUT_FOLDER 内のフォルダーを移動または名前変更した後に、一部のアルバムが空に見える場合に便利です。ツールは同じフォルダーツリー内で有効なターゲットファイルを探し、可能な場合はリンクし直します。重要: リンクは、現在のファイルから有効なターゲットを推測できる場合にのみ修復されます。例: --fix-symlinks-broken ./OUTPUT_FOLDER"
+
+msgid "Scroll log to the first line"
+msgstr "ログを最初の行までスクロール"
+
+msgid "Scroll log to the last line"
+msgstr "ログを最後の行までスクロール"
+
+msgid "Segoe UI"
+msgstr "Segoe UI"
+
+msgid "Select CSV File"
+msgstr "CSV ファイルを選択"
+
+msgid "Select File"
+msgstr "ファイルを選択"
+
+msgid "Select Parallel/Sequential migration during Automatic Migration job."
+msgstr "自動移行ジョブ中の並列/順次移行を選択します。"
+
+msgid "Select Parallel/Sequential migration during Automatic Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
+msgstr "自動移行ジョブ中の並列/順次移行を選択します。この引数は '--source' と '--target' の両方が指定された場合にのみ適用されます。(デフォルト: True)"
+
+msgid "Select a table first."
+msgstr "先にテーブルを選択してください。"
+
+msgid "Select at least one folder first."
+msgstr "先に少なくとも 1 つのフォルダーを選択してください。"
+
+msgid "Select destination folder"
+msgstr "宛先フォルダーを選択"
+
+msgid "Select folder"
+msgstr "フォルダーを選択"
+
+msgid "Select the time zone used by PhotoMigrator to display timestamps and process date/time-based operations."
+msgstr "PhotoMigrator がタイムスタンプの表示や日時に基づく処理に使用するタイムゾーンを選択します。"
+
+msgid "Select the visual theme used by your web interface."
+msgstr "Web インターフェースで使用するビジュアルテーマを選択します。"
+
+msgid "Select user role"
+msgstr "ユーザーロールを選択"
+
+msgid "Select {0}"
+msgstr "{0} を選択"
+
+msgid "Selected albums to a folder"
+msgstr "選択したアルバムをフォルダーへ"
+
+msgid "Selected folders (comma-separated)"
+msgstr "選択したフォルダー(カンマ区切り)"
+
+msgid "Selected option"
+msgstr "選択したオプション"
+
+msgid "Selected root: {0}\\n\\n"
+msgstr "選択したルート: {0}\\n\\n"
+
+msgid "Selected: {0}"
+msgstr "選択中: {0}"
+
+msgid "Send"
+msgstr "送信"
+
+msgid "Send Test Email"
+msgstr "テストメールを送信"
+
+msgid "Send a local folder or ZIP file to the server"
+msgstr "ローカルフォルダーまたは ZIP ファイルをサーバーへ送信"
+
+msgid "Send files here"
+msgstr "ここにファイルを送信"
+
+msgid "Send request"
+msgstr "申請を送信"
+
+msgid "Send the test email to (default: your email)"
+msgstr "テストメールの送信先(デフォルト: お客様のメールアドレス)"
+
+msgid "Sender email"
+msgstr "送信元メールアドレス"
+
+msgid "Sender name (PhotoMigrator)"
+msgstr "送信者名 (PhotoMigrator)"
+
+msgid "Service credentials"
+msgstr "サービスの認証情報"
+
+msgid "Set a new password and confirm it."
+msgstr "新しいパスワードを設定して、確認してください。"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Settings · PhotoMigrator"
+msgstr "設定 · PhotoMigrator"
+
+msgid "Settings › Service credentials"
+msgstr "設定 › サービスの認証情報"
+
+msgid "Shared arguments, service credentials and preferences used by every feature."
+msgstr "すべての機能で使用される共通の引数、サービスの認証情報、環境設定。"
+
+msgid "Show"
+msgstr "表示"
+
+msgid "Show Client secret"
+msgstr "クライアントシークレットを表示"
+
+msgid "Show GPTH error messages"
+msgstr "GPTH エラーメッセージを表示"
+
+msgid "Show GPTH info messages"
+msgstr "GPTH 情報メッセージを表示"
+
+msgid "Show Refresh token"
+msgstr "リフレッシュトークンを表示"
+
+msgid "Show password"
+msgstr "パスワードを表示"
+
+msgid "Show {0}"
+msgstr "{0} を表示"
+
+msgid "Sign in"
+msgstr "サインイン"
+
+msgid "Sign in to PhotoMigrator"
+msgstr "PhotoMigrator にサインイン"
+
+msgid "Skip GPTH tool (not recommended)"
+msgstr "GPTH ツールをスキップ(非推奨)"
+
+msgid "Skip extra files (-edited, -effects)"
+msgstr "追加ファイル(-edited、-effects)をスキップ"
+
+msgid "Skip moving albums"
+msgstr "アルバムの移動をスキップ"
+
+msgid "Skip moving albums to '<ALBUMS_FOLDER>'."
+msgstr "アルバムを '<ALBUMS_FOLDER>' へ移動する処理をスキップします。"
+
+msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums folders vs original assets {3}) Organize assets by year/month {4}) Auto rename album folders based on content dates {5}) Detect and remove duplicates {6}) Count albums {7}) Remove empty folders {8}) Clean final media library {9}) Show files without dates Not recommended to skip."
+msgstr "Google Takeout の後処理をスキップします。後処理には次が含まれます: {0}) Live Photo に関連付けられた MP4 ファイルを対応する HEIC/JPG と同期 {1}) 競合する動画の XMP 日付を修復 {2}) アルバムフォルダーと元のアセットを分離 {3}) アセットを year/month で整理 {4}) コンテンツの日付に基づいてアルバムフォルダーを自動名前変更 {5}) 重複の検出と削除 {6}) アルバム数のカウント {7}) 空のフォルダーを削除 {8}) 最終的なメディアライブラリをクリーンアップ {9}) 日付のないファイルを表示。スキップは推奨されません。"
+
+msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums fo…"
+msgstr "Google Takeout の後処理をスキップします。後処理には次が含まれます: {0}) Live Photo に関連付けられた MP4 ファイルを対応する HEIC/JPG と同期 {1}) 競合する動画の XMP 日付を修復 {2}) アルバムフォルダーと元の…"
+
+msgid "Skip post-processing"
+msgstr "後処理をスキップ"
+
+msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accuracy. If you already pre-processed the same Takeout using '-gKeepTakeout,--google-keep-takeout-folder', you can skip it."
+msgstr "Google Takeout の前処理をスキップします。前処理には次が含まれます: {0}) Takeout フォルダーのクリーンアップ {1}) MP4/Live Photo の関連付けの修復 {2}) 切り詰められたファイル名/拡張子の修復。これは高い精度を得るために重要です。同じ Takeout を '-gKeepTakeout,--google-keep-takeout-folder' で既に前処理済みの場合は、スキップできます。"
+
+msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accur…"
+msgstr "Google Takeout の前処理をスキップします。前処理には次が含まれます: {0}) Takeout フォルダーのクリーンアップ {1}) MP4/Live Photo の関連付けの修復 {2}) 切り詰められたファイル名/拡張子の修復。これは高い精度を…"
+
+msgid "Skip pre-processing"
+msgstr "前処理をスキップ"
+
+msgid "Skip processing extra photos such as -edited, -effects photos."
+msgstr "-edited、-effects などの追加写真の処理をスキップします。"
+
+msgid "Skip processing files with GPTH Tool."
+msgstr "GPTH ツールによるファイル処理をスキップします。"
+
+msgid "Skip processing files with GPTH Tool. CAUTION: NOT RECOMMENDED (core of the Google Takeout process). Use only for testing."
+msgstr "GPTH ツールによるファイル処理をスキップします。注意: 非推奨です(Google Takeout 処理の中核です)。テストにのみ使用してください。"
+
+msgid "Skip saving GPTH log messages into output folder."
+msgstr "GPTH ログメッセージを出力フォルダーに保存しません。"
+
+msgid "Skip saving output messages to execution log file."
+msgstr "出力メッセージを実行ログファイルに保存しません。"
+
+msgid "Small Album Max Assets"
+msgstr "小規模アルバムの最大アセット数"
+
+msgid "Sort a folder into date subfolders"
+msgstr "フォルダーを日付別のサブフォルダーに整理"
+
+msgid "Source"
+msgstr "ソース"
+
+msgid "Source Client"
+msgstr "ソースクライアント"
+
+msgid "Source endpoint or local folder to migrate from."
+msgstr "移行元のソースエンドポイントまたはローカルフォルダー。"
+
+msgid "Source service"
+msgstr "ソースサービス"
+
+msgid "Source to target"
+msgstr "移行元から移行先へ"
+
+msgid "Specify Date Separator used by feature `Auto-Rename Albums Content Based`."
+msgstr "機能 `Auto-Rename Albums Content Based` で使用する日付の区切り文字を指定します。"
+
+msgid "Specify Range of Dates Separator used by feature `Auto-Rename Albums Content Based`."
+msgstr "機能 `Auto-Rename Albums Content Based` で使用する日付範囲の区切り文字を指定します。"
+
+msgid "Specify an external version of EXIF Tool binary."
+msgstr "外部バージョンの EXIF Tool バイナリを指定します。"
+
+msgid "Specify an external version of EXIF Tool binary. PhotoMigrator contains an embedded version of EXIF Tool, but if you want to use a different version, you can use this argument."
+msgstr "外部バージョンの EXIF Tool バイナリを指定します。PhotoMigrator には EXIF Tool が組み込まれていますが、別のバージョンを使用したい場合はこの引数を使用できます。"
+
+msgid "Specify an external version of GPTH Tool binary."
+msgstr "外部バージョンの GPTH Tool バイナリを指定します。"
+
+msgid "Specify an external version of GPTH Tool binary. PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
+msgstr "外部バージョンの GPTH Tool バイナリを指定します。PhotoMigrator には GPTH Tool が組み込まれていますが、別のバージョンを使用したい場合はこの引数を使用できます。"
+
+msgid "Specify the Asset Type to filter assets in the different Photo Clients."
+msgstr "各フォトクライアントでアセットを絞り込むためのアセットの種類を指定します。"
+
+msgid "Specify the Asset Type to filter assets in the different Photo Clients. (default: all)"
+msgstr "各フォトクライアントでアセットを絞り込むためのアセットの種類を指定します。(デフォルト: all)"
+
+msgid "Specify the City Name to filter assets in the different Photo Clients."
+msgstr "各フォトクライアントでアセットを絞り込むための都市名を指定します。"
+
+msgid "Specify the Country Name to filter assets in the different Photo Clients."
+msgstr "各フォトクライアントでアセットを絞り込むための国名を指定します。"
+
+msgid "Specify the Person Name to filter assets in the different Photo Clients."
+msgstr "各フォトクライアントでアセットを絞り込むための人物名を指定します。"
+
+msgid "Specify the Takeout master-library folder name containing all assets."
+msgstr "すべてのアセットを含む Takeout マスターライブラリのフォルダー名を指定します。"
+
+msgid "Specify the Takeout master-library folder name containing all assets. Default: 'ALL_PHOTOS'."
+msgstr "すべてのアセットを含む Takeout マスターライブラリのフォルダー名を指定します。デフォルト: 'ALL_PHOTOS'。"
+
+msgid "Specify the final date to filter assets in the different Photo Clients."
+msgstr "各フォトクライアントでアセットを絞り込むための終了日を指定します。"
+
+msgid "Specify the folder name to save the Metadata outputs of 'Extracted Dates'."
+msgstr "'Extracted Dates' のメタデータ出力を保存するフォルダー名を指定します。"
+
+msgid "Specify the folder name to save the execution Logs."
+msgstr "実行ログを保存するフォルダー名を指定します。"
+
+msgid "Specify the folder name to save the outputs of 'Find Duplicates' Feature."
+msgstr "'Find Duplicates' 機能の出力を保存するフォルダー名を指定します。"
+
+msgid "Specify the folder name to store all your processed photos associated to any Album."
+msgstr "いずれかのアルバムに関連付けられた処理済みの写真をすべて保存するフォルダー名を指定します。"
+
+msgid "Specify the folder name used by cloud and local-library workflows for assets not associated to an album."
+msgstr "アルバムに関連付けられていないアセットについて、クラウドおよびローカルライブラリのワークフローで使用するフォルダー名を指定します。"
+
+msgid "Specify the folder structure type for each Album folder (Default: 'flatten')."
+msgstr "各アルバムフォルダーのフォルダー構造の種類を指定します(デフォルト: 'flatten')。"
+
+msgid "Specify the folder structure type for each reconstructed iCloud Album folder (Default: 'flatten')."
+msgstr "再構築された各 iCloud アルバムフォルダーのフォルダー構造の種類を指定します(デフォルト: 'flatten')。"
+
+msgid "Specify the folder structure type for the Google Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month')."
+msgstr "Google Takeout の '<ALL_PHOTOS_FOLDER>' マスターライブラリのフォルダー構造の種類を指定します(デフォルト: 'year/month')。"
+
+msgid "Specify the folder structure type for the iCloud Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month')."
+msgstr "iCloud Takeout の '<ALL_PHOTOS_FOLDER>' マスターライブラリのフォルダー構造の種類を指定します(デフォルト: 'year/month')。"
+
+msgid "Specify the folder structure type for the organized local-folder output (Default: 'year/month')."
+msgstr "整理されたローカルフォルダー出力のフォルダー構造の種類を指定します(デフォルト: 'year/month')。"
+
+msgid "Specify the initial date to filter assets in the different Photo Clients."
+msgstr "各フォトクライアントでアセットを絞り込むための開始日を指定します。"
+
+msgid "Specify the log file format."
+msgstr "ログファイルの形式を指定します。"
+
+msgid "Specify the log level for logging and screen messages."
+msgstr "ログと画面メッセージのログレベルを指定します。"
+
+msgid "Specify the managed Local Photos Folder root when '--client=local-photos-folder'."
+msgstr "'--client=local-photos-folder' の場合に、管理対象のローカル写真フォルダーのルートを指定します。"
+
+msgid "Specify the managed Local Photos Folder root when '--client=local-photos-folder'. It contains the Albums and No_Albums folders used by Local Photos Folder modules."
+msgstr "'--client=local-photos-folder' の場合に、管理対象のローカル写真フォルダーのルートを指定します。ローカル写真フォルダーのモジュールが使用する Albums フォルダーと No_Albums フォルダーが含まれます。"
+
+msgid "Specify the output folder to save the result of the processing action."
+msgstr "処理結果を保存する出力フォルダーを指定します。"
+
+msgid "Specify the suffix for the iCloud processed output folder."
+msgstr "iCloud の処理済み出力フォルダーのサフィックスを指定します。"
+
+msgid "Specify the suffix for the iCloud processed output folder. Default: 'processed'."
+msgstr "iCloud の処理済み出力フォルダーのサフィックスを指定します。デフォルト: 'processed'。"
+
+msgid "Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided."
+msgstr "'-o/--output-folder' が指定されていない場合の、整理されたローカルフォルダー出力のサフィックスを指定します。"
+
+msgid "Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided. Default: 'processed'."
+msgstr "'-o/--output-folder' が指定されていない場合の、整理されたローカルフォルダー出力のサフィックスを指定します。デフォルト: 'processed'。"
+
+msgid "Specify the suffix for the output folder."
+msgstr "出力フォルダーのサフィックスを指定します。"
+
+msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
+msgstr "出力フォルダーのサフィックスを指定します。デフォルト: 'processed'。出力フォルダーの名前は、入力フォルダーと同じ名前に、このサフィックスと実行時のタイムスタンプが続く形式になります。"
+
+msgid "Start Time: -"
+msgstr "開始時刻: -"
+
+msgid "Start Time: {0}"
+msgstr "開始時刻: {0}"
+
+msgid "Start a migration"
+msgstr "移行を開始"
+
+msgid "Start a migration{0}"
+msgstr "移行を開始{0}"
+
+msgid "Start here"
+msgstr "ここから始める"
+
+msgid "Status: authenticating..."
+msgstr "状態: 認証中..."
+
+msgid "Status: creating user..."
+msgstr "状態: ユーザーを作成中..."
+
+msgid "Status: enter admin username and password"
+msgstr "状態: 管理者のユーザー名とパスワードを入力してください"
+
+msgid "Status: idle"
+msgstr "状態: アイドル"
+
+msgid "Status: loaded {0} users · email is not configured, no notices are sent"
+msgstr "状態: {0} 人のユーザーを読み込みました · メールが未設定のため、通知は送信されません"
+
+msgid "Status: loaded {0} users${notes.length ?"
+msgstr "Status: loaded {0} users${notes.length ?"
+
+msgid "Status: loading users..."
+msgstr "状態: ユーザーを読み込み中..."
+
+msgid "Status: login successful"
+msgstr "状態: ログインに成功しました"
+
+msgid "Status: passwords do not match"
+msgstr "状態: パスワードが一致しません"
+
+msgid "Status: ready"
+msgstr "状態: 準備完了"
+
+msgid "Status: reconnecting"
+msgstr "状態: 再接続中"
+
+msgid "Status: request sent. You will get an email when an administrator activates your account."
+msgstr "状態: 申請を送信しました。管理者がアカウントを有効にするとメールが届きます。"
+
+msgid "Status: running"
+msgstr "状態: 実行中"
+
+msgid "Status: saving..."
+msgstr "状態: 保存中..."
+
+msgid "Status: sending request..."
+msgstr "状態: 申請を送信中..."
+
+msgid "Status: stop error (network failure)"
+msgstr "状態: 停止エラー(ネットワーク障害)"
+
+msgid "Status: stop error ({0})"
+msgstr "状態: 停止エラー ({0})"
+
+msgid "Status: stopping"
+msgstr "状態: 停止中"
+
+msgid "Status: the passwords do not match"
+msgstr "状態: パスワードが一致しません"
+
+msgid "Status: validating admin credentials..."
+msgstr "状態: 管理者の認証情報を検証中..."
+
+msgid "Status: validation error ({0})"
+msgstr "状態: 検証エラー ({0})"
+
+msgid "Status: waiting for credentials"
+msgstr "状態: 認証情報を待機中"
+
+msgid "Status: {0}"
+msgstr "状態: {0}"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Stop Running Module?"
+msgstr "実行中のモジュールを停止しますか?"
+
+msgid "Synology"
+msgstr "Synology"
+
+msgid "Synology Photos"
+msgstr "Synology Photos"
+
+msgid "Synology Photos · PhotoMigrator"
+msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table status: 'access_logs' loaded (2/2 rows)"
+msgstr "テーブルの状態: 'access_logs' を読み込みました (2/2 行)"
+
+msgid "Table status: 'access_logs' loaded (9/9 rows)"
+msgstr "テーブルの状態: 'access_logs' を読み込みました (9/9 行)"
+
+msgid "Table status: '{0}' loaded (0 rows)"
+msgstr "テーブルの状態: '{0}' を読み込みました (0 行)"
+
+msgid "Table status: '{0}' loaded ({1}/{2} rows)"
+msgstr "テーブルの状態: '{0}' を読み込みました ({1}/{2} 行)"
+
+msgid "Table status: loaded {0} tables"
+msgstr "テーブルの状態: {0} 個のテーブルを読み込みました"
+
+msgid "Table status: loading '{0}'..."
+msgstr "テーブルの状態: '{0}' を読み込み中..."
+
+msgid "Table status: loading table list..."
+msgstr "テーブルの状態: テーブル一覧を読み込み中..."
+
+msgid "Table status: no table selected"
+msgstr "テーブルの状態: テーブルが選択されていません"
+
+msgid "Table status: row {0} updated"
+msgstr "テーブルの状態: 行 {0} を更新しました"
+
+msgid "Table status: {0}"
+msgstr "テーブルの状態: {0}"
+
+msgid "Takeout"
+msgstr "Takeout"
+
+msgid "Takeout folder"
+msgstr "Takeout フォルダー"
+
+msgid "Takeout input and output"
+msgstr "Takeout の入力と出力"
+
+msgid "Target"
+msgstr "ターゲット"
+
+msgid "Target Client"
+msgstr "ターゲットクライアント"
+
+msgid "Target endpoint or local folder to migrate into."
+msgstr "移行先のターゲットエンドポイントまたはローカルフォルダー。"
+
+msgid "Target service"
+msgstr "ターゲットサービス"
+
+msgid "The account is not active yet. We will email you when it is."
+msgstr "アカウントはまだ有効ではありません。有効になりましたらメールでお知らせします。"
+
+msgid "The demo role cannot save configuration changes except TimeZone and Theme."
+msgstr "デモロールでは、TimeZone と Theme 以外の設定変更を保存できません。"
+
+msgid "The demo role cannot {0} configuration directly."
+msgstr "デモロールは設定を直接 {0} できません。"
+
+msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
+msgstr "選択したパスには '{0}' が含まれていますが、これは Google の特殊なフォルダー名として予約されています。\\n\\n"
+
+msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
+msgstr "ツールは同じフォルダーツリー内で有効なターゲットファイルを探し、可能な場合はリンクし直します。"
+
+msgid "The user can sign in with this email and receives account and task notices there."
+msgstr "ユーザーはこのメールアドレスでサインインでき、アカウントやタスクの通知もここで受け取ります。"
+
+msgid "Theme"
+msgstr "テーマ"
+
+msgid "Theme used by the PhotoMigrator web interface."
+msgstr "PhotoMigrator の Web インターフェースで使用するテーマ。"
+
+msgid "This argument only accepts one folder. Select exactly one."
+msgstr "この引数はフォルダーを 1 つだけ受け付けます。ちょうど 1 つ選択してください。"
+
+msgid "This converts dates from YYYY.MM.DD format to YYYY-MM-DD."
+msgstr "YYYY.MM.DD 形式の日付を YYYY-MM-DD に変換します。"
+
+msgid "This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections,"
+msgstr "この機能は Photo Details.csv のメタデータを読み取り、写真と動画に日付を復元し、Apple の CSV コレクションからアルバムを再構築し、"
+
+msgid "This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files,"
+msgstr "この機能は日付とメタデータを修復し、サイドカー JSON ファイルからアルバムの所属を再構築し、"
+
+msgid "This module will consolidate equivalent album-name families already existing in Google Photos without uploading new assets."
+msgstr "このモジュールは、新しいアセットをアップロードせずに、Google Photos に既に存在する同等のアルバム名のグループを統合します。"
+
+msgid "This module will consolidate equivalent album-name families already existing in Immich Photos without uploading new assets."
+msgstr "このモジュールは、新しいアセットをアップロードせずに、Immich Photos に既に存在する同等のアルバム名のグループを統合します。"
+
+msgid "This module will consolidate equivalent album-name families already existing in Local Photos Folder without uploading new assets."
+msgstr "このモジュールは、新しいアセットをアップロードせずに、ローカル写真フォルダーに既に存在する同等のアルバム名のグループを統合します。"
+
+msgid "This module will consolidate equivalent album-name families already existing in NextCloud Photos without uploading new assets."
+msgstr "このモジュールは、新しいアセットをアップロードせずに、NextCloud Photos に既に存在する同等のアルバム名のグループを統合します。"
+
+msgid "This module will consolidate equivalent album-name families already existing in Synology Photos without uploading new assets."
+msgstr "このモジュールは、新しいアセットをアップロードせずに、Synology Photos に既に存在する同等のアルバム名のグループを統合します。"
+
+msgid "This module will consolidate equivalent album-name families already existing in {0} without uploading new assets."
+msgstr "このモジュールは、新しいアセットをアップロードせずに、{0} に既に存在する同等のアルバム名のグループを統合します。"
+
+msgid "This module will delete ALL albums in Immich Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは Immich Photos のすべてのアルバムを削除します。関連するアセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete ALL albums in Local Photos Folder. Associated assets will be kept unless they are removed by other operations."
+msgstr "このモジュールはローカル写真フォルダーのすべてのアルバムを削除します。関連するアセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete ALL albums in NextCloud Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは NextCloud Photos のすべてのアルバムを削除します。関連するアセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete ALL albums in Synology Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは Synology Photos のすべてのアルバムを削除します。関連するアセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete ALL albums in {0} and also delete all assets associated with those albums."
+msgstr "このモジュールは {0} のすべてのアルバムを削除し、それらのアルバムに関連付けられたすべてのアセットも削除します。"
+
+msgid "This module will delete ALL albums in {0}. Associated assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは {0} のすべてのアルバムを削除します。関連するアセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Immich Photos."
+msgstr "このモジュールは Immich Photos のすべてのアセット(写真/動画)とすべてのアルバムを削除します。"
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Local Photos Folder."
+msgstr "このモジュールはローカル写真フォルダーのすべてのアセット(写真/動画)とすべてのアルバムを削除します。"
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in NextCloud Photos."
+msgstr "このモジュールは NextCloud Photos のすべてのアセット(写真/動画)とすべてのアルバムを削除します。"
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Synology Photos."
+msgstr "このモジュールは Synology Photos のすべてのアセット(写真/動画)とすべてのアルバムを削除します。"
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in {0}."
+msgstr "このモジュールは {0} のすべてのアセット(写真/動画)とすべてのアルバムを削除します。"
+
+msgid "This module will delete albums in Immich Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは、名前がパターンに一致する Immich Photos のアルバムを削除します。アセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete albums in Local Photos Folder whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは、名前がパターンに一致するローカル写真フォルダーのアルバムを削除します。アセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete albums in NextCloud Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは、名前がパターンに一致する NextCloud Photos のアルバムを削除します。アセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete albums in Synology Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは、名前がパターンに一致する Synology Photos のアルバムを削除します。アセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete albums in {0} whose names match your pattern, and it will also delete all assets inside those albums."
+msgstr "このモジュールは、名前がパターンに一致する {0} のアルバムを削除し、それらのアルバム内のすべてのアセットも削除します。"
+
+msgid "This module will delete albums in {0} whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "このモジュールは、名前がパターンに一致する {0} のアルバムを削除します。アセットは、他の操作で削除されない限り保持されます。"
+
+msgid "This module will delete all empty albums in Immich Photos."
+msgstr "このモジュールは Immich Photos のすべての空のアルバムを削除します。"
+
+msgid "This module will delete all empty albums in Local Photos Folder."
+msgstr "このモジュールはローカル写真フォルダーのすべての空のアルバムを削除します。"
+
+msgid "This module will delete all empty albums in NextCloud Photos."
+msgstr "このモジュールは NextCloud Photos のすべての空のアルバムを削除します。"
+
+msgid "This module will delete all empty albums in Synology Photos."
+msgstr "このモジュールは Synology Photos のすべての空のアルバムを削除します。"
+
+msgid "This module will delete all empty albums in {0}."
+msgstr "このモジュールは {0} のすべての空のアルバムを削除します。"
+
+msgid "This module will delete duplicated albums in Immich Photos (same name and size)."
+msgstr "このモジュールは Immich Photos の重複したアルバム(同じ名前とサイズ)を削除します。"
+
+msgid "This module will delete duplicated albums in Local Photos Folder (same name and size)."
+msgstr "このモジュールはローカル写真フォルダーの重複したアルバム(同じ名前とサイズ)を削除します。"
+
+msgid "This module will delete duplicated albums in NextCloud Photos (same name and size)."
+msgstr "このモジュールは NextCloud Photos の重複したアルバム(同じ名前とサイズ)を削除します。"
+
+msgid "This module will delete duplicated albums in Synology Photos (same name and size)."
+msgstr "このモジュールは Synology Photos の重複したアルバム(同じ名前とサイズ)を削除します。"
+
+msgid "This module will delete duplicated albums in {0} (same name and size)."
+msgstr "このモジュールは {0} の重複したアルバム(同じ名前とサイズ)を削除します。"
+
+msgid "This module will delete orphan assets from the Immich database (assets referenced in DB but missing on disk)."
+msgstr "このモジュールは Immich データベースから孤立したアセット(DB には登録されているがディスク上に存在しないアセット)を削除します。"
+
+msgid "This module will keep the selected oldest/newest asset for every same-name/same-size group and permanently delete redundant assets when the selected cloud API supports deletion."
+msgstr "このモジュールは、同じ名前・同じサイズのグループごとに、選択された最も古い/最も新しいアセットを保持し、選択したクラウド API が削除に対応している場合は、余分なアセットを完全に削除します。"
+
+msgid "This module will merge duplicated albums in Immich Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "このモジュールは、アセットを最も適切なアルバムに移動し、重複を削除することで、Immich Photos の重複したアルバムを統合します。"
+
+msgid "This module will merge duplicated albums in Local Photos Folder by moving assets into the most relevant album and removing duplicates."
+msgstr "このモジュールは、アセットを最も適切なアルバムに移動し、重複を削除することで、ローカル写真フォルダーの重複したアルバムを統合します。"
+
+msgid "This module will merge duplicated albums in NextCloud Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "このモジュールは、アセットを最も適切なアルバムに移動し、重複を削除することで、NextCloud Photos の重複したアルバムを統合します。"
+
+msgid "This module will merge duplicated albums in Synology Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "このモジュールは、アセットを最も適切なアルバムに移動し、重複を削除することで、Synology Photos の重複したアルバムを統合します。"
+
+msgid "This module will merge duplicated albums in {0} by moving assets into the most relevant album and removing duplicates."
+msgstr "このモジュールは、アセットを最も適切なアルバムに移動し、重複を削除することで、{0} の重複したアルバムを統合します。"
+
+msgid "This module will move the original local folder into the processed output before reorganizing it by date. The source folder path will no longer exist after the move. Do you want to continue?"
+msgstr "このモジュールは、日付別に再整理する前に、元のローカルフォルダーを処理済みの出力先へ移動します。移動後、ソースフォルダーのパスは存在しなくなります。続行しますか?"
+
+msgid "This module will rename albums in Immich Photos whose names match your pattern, using the replacement pattern."
+msgstr "このモジュールは、名前がパターンに一致する Immich Photos のアルバムの名前を、置換パターンを使用して変更します。"
+
+msgid "This module will rename albums in Local Photos Folder whose names match your pattern, using the replacement pattern."
+msgstr "このモジュールは、名前がパターンに一致するローカル写真フォルダーのアルバムの名前を、置換パターンを使用して変更します。"
+
+msgid "This module will rename albums in NextCloud Photos whose names match your pattern, using the replacement pattern."
+msgstr "このモジュールは、名前がパターンに一致する NextCloud Photos のアルバムの名前を、置換パターンを使用して変更します。"
+
+msgid "This module will rename albums in Synology Photos whose names match your pattern, using the replacement pattern."
+msgstr "このモジュールは、名前がパターンに一致する Synology Photos のアルバムの名前を、置換パターンを使用して変更します。"
+
+msgid "This module will rename albums in {0} whose names match your pattern, using the replacement pattern."
+msgstr "このモジュールは、名前がパターンに一致する {0} のアルバムの名前を、置換パターンを使用して変更します。"
+
+msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk."
+msgstr "このモジュールは、コンテンツの日付を使用して、ローカルのアルバムフォルダーの名前をその場で変更します。元のフォルダー名はディスク上で変更されます。"
+
+msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
+msgstr "このモジュールは、コンテンツの日付を使用して、ローカルのアルバムフォルダーの名前をその場で変更します。元のフォルダー名はディスク上で変更されます。続行しますか?"
+
+msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
+msgstr "'{0}' のアカウント申請を削除し、承認されなかったことをメールで通知します。続行しますか?"
+
+msgid "This will interrupt the current execution. Do you want to stop the running module?"
+msgstr "現在の実行が中断されます。実行中のモジュールを停止しますか?"
+
+msgid "This will overwrite your user Config.ini stored in database."
+msgstr "データベースに保存されているユーザーの Config.ini が上書きされます。"
+
+msgid "This will permanently delete user '{0}'. Do you want to continue?"
+msgstr "ユーザー '{0}' を完全に削除します。続行しますか?"
+
+msgid "This will permanently delete {0} selected folder(s) and all their contents."
+msgstr "選択した {0} 個のフォルダーとその内容がすべて完全に削除されます。"
+
+msgid "Time zone"
+msgstr "タイムゾーン"
+
+msgid "Time zone used by PhotoMigrator to interpret and display date/time values in logs and date-based operations."
+msgstr "PhotoMigrator がログや日付に基づく操作で日時の値を解釈および表示するために使用するタイムゾーン。"
+
+msgid "TimeZone"
+msgstr "TimeZone"
+
+msgid "Timestamp ▼"
+msgstr "タイムスタンプ ▼"
+
+msgid "To save any other configuration field, enter active admin credentials."
+msgstr "その他の設定項目を保存するには、有効な管理者の認証情報を入力してください。"
+
+msgid "Toggle {0}"
+msgstr "{0} を切り替え"
+
+msgid "Tools"
+msgstr "ツール"
+
+msgid "Transfer"
+msgstr "転送"
+
+msgid "Treat a local folder as a photo library and run the same album and asset actions used for cloud services."
+msgstr "ローカルフォルダーをフォトライブラリとして扱い、クラウドサービスと同じアルバムおよびアセットの操作を実行します。"
+
+msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album."
+msgstr "同等の宛先アルバム名を 1 つのグループとして扱い、それらのアセットを正規の保持アルバムに統合します。"
+
+msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album. Redundant albums are removed only when the target service supports album deletion."
+msgstr "同等の宛先アルバム名を 1 つのグループとして扱い、それらのアセットを正規の保持アルバムに統合します。余分なアルバムは、ターゲットサービスがアルバム削除に対応している場合にのみ削除されます。"
+
+msgid "Try Date Prefix Albums Grouping"
+msgstr "日付プレフィックスによるアルバムのグループ化を試行"
+
+msgid "Try Equivalent Albums Grouping"
+msgstr "同等アルバムのグループ化を試行"
+
+msgid "Try Small Albums Grouping"
+msgstr "小規模アルバムのグループ化を試行"
+
+msgid "Try Truncated Albums Grouping"
+msgstr "切り詰められたアルバムのグループ化を試行"
+
+msgid "Type an answer when the running job asks for input"
+msgstr "実行中のジョブが入力を求めたら、回答を入力してください"
+
+msgid "Unable to create folder"
+msgstr "フォルダーを作成できません"
+
+msgid "Unable to create user."
+msgstr "ユーザーを作成できません。"
+
+msgid "Unable to load document."
+msgstr "ドキュメントを読み込めません。"
+
+msgid "Unable to remove selected folder(s)."
+msgstr "選択したフォルダーを削除できません。"
+
+msgid "Unable to remove selected folder(s): {0}"
+msgstr "選択したフォルダーを削除できません: {0}"
+
+msgid "Unable to run command"
+msgstr "コマンドを実行できません"
+
+msgid "Unable to send the request"
+msgstr "申請を送信できません"
+
+msgid "Unable to stop job"
+msgstr "ジョブを停止できません"
+
+msgid "Upload Albums"
+msgstr "アルバムをアップロード"
+
+msgid "Upload All"
+msgstr "すべてアップロード"
+
+msgid "Upload Completed with Warnings"
+msgstr "警告付きでアップロードが完了しました"
+
+msgid "Upload Failed"
+msgstr "アップロードに失敗しました"
+
+msgid "Upload Here"
+msgstr "ここにアップロード"
+
+msgid "Upload Local Folder"
+msgstr "ローカルフォルダーをアップロード"
+
+msgid "Upload Local Zip"
+msgstr "ローカル ZIP をアップロード"
+
+msgid "Upload a folder"
+msgstr "フォルダーをアップロード"
+
+msgid "Upload a local folder or ZIP file to the server so the features can use it."
+msgstr "ローカルフォルダーまたは ZIP ファイルをサーバーにアップロードして、各機能で使用できるようにします。"
+
+msgid "Upload albums from <ALBUMS_FOLDER>."
+msgstr "<ALBUMS_FOLDER> からアルバムをアップロードします。"
+
+msgid "Upload albums from <ALBUMS_FOLDER>. One album per subfolder."
+msgstr "<ALBUMS_FOLDER> からアルバムをアップロードします。サブフォルダーごとに 1 つのアルバムが作成されます。"
+
+msgid "Upload albums from <ALBUMS_FOLDER>. One album per subfolder. Example: --upload-albums ./My_Albums_Folder"
+msgstr "<ALBUMS_FOLDER> からアルバムをアップロードします。サブフォルダーごとに 1 つのアルバムが作成されます。例: --upload-albums ./My_Albums_Folder"
+
+msgid "Upload all assets from <INPUT_FOLDER> to the selected client."
+msgstr "<INPUT_FOLDER> のすべてのアセットを、選択したクライアントへアップロードします。"
+
+msgid "Upload all assets from <INPUT_FOLDER> to the selected client. - A new Album will be created per subfolder found in 'Albums' subfolder. - If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too. Example: --upload-all ./MyLibrary"
+msgstr "<INPUT_FOLDER> のすべてのアセットを、選択したクライアントへアップロードします。- 'Albums' サブフォルダー内のサブフォルダーごとに新しいアルバムが作成されます。- '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' も指定した場合、それらのフォルダーのアルバムも作成されます。例: --upload-all ./MyLibrary"
+
+msgid "Upload behavior: ZIP extraction follows the \"Extract ZIPs on upload\" option (Yes/No) in Upload to Server."
+msgstr "アップロードの動作: ZIP の展開は、サーバーへのアップロードの「アップロード時に ZIP を展開」オプション(はい/いいえ)に従います。"
+
+msgid "Upload from this computer"
+msgstr "このコンピューターからアップロード"
+
+msgid "Upload local content (a folder or a ZIP file) into the selected destination folder on the server, so the other features can use it."
+msgstr "ローカルのコンテンツ(フォルダーまたは ZIP ファイル)をサーバー上の選択した宛先フォルダーにアップロードして、他の機能で使用できるようにします。"
+
+msgid "Upload mode active: this feature runs direct upload (no CLI command preview)."
+msgstr "アップロードモードが有効です: この機能は直接アップロードを実行します(CLI コマンドのプレビューはありません)。"
+
+msgid "Upload status: done | Uploaded: {0} |"
+msgstr "アップロードの状態: 完了 | アップロード済み: {0} |"
+
+msgid "Upload status: failed ({0})"
+msgstr "アップロードの状態: 失敗 ({0})"
+
+msgid "Upload status: idle"
+msgstr "アップロードの状態: アイドル"
+
+msgid "Upload status: uploading..."
+msgstr "アップロードの状態: アップロード中..."
+
+msgid "Upload to Server"
+msgstr "サーバーへアップロード"
+
+msgid "Upload to Server · PhotoMigrator"
+msgstr "サーバーへアップロード · PhotoMigrator"
+
+msgid "Upload, download, organize and clean up albums and assets in your Google Photos library."
+msgstr "Google Photos ライブラリのアルバムとアセットを、アップロード、ダウンロード、整理、クリーンアップします。"
+
+msgid "Upload, download, organize and clean up albums and assets in your Immich library."
+msgstr "Immich ライブラリのアルバムとアセットを、アップロード、ダウンロード、整理、クリーンアップします。"
+
+msgid "Upload, download, organize and clean up albums and assets in your NextCloud Photos library."
+msgstr "NextCloud Photos ライブラリのアルバムとアセットを、アップロード、ダウンロード、整理、クリーンアップします。"
+
+msgid "Upload, download, organize and clean up albums and assets in your Synology Photos library."
+msgstr "Synology Photos ライブラリのアルバムとアセットを、アップロード、ダウンロード、整理、クリーンアップします。"
+
+msgid "Upload, download, rename, clean up and deduplicate albums and assets."
+msgstr "アルバムとアセットを、アップロード、ダウンロード、名前変更、クリーンアップ、重複排除します。"
+
+msgid "Uploaded: {0}\\n"
+msgstr "アップロード済み: {0}\\n"
+
+msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
+msgstr "レイアウトを変更するには '--organize-folder-structure'、出力フォルダーが明示されていない場合に生成されるサフィックスを変更するには '--organize-output-folder-suffix'、コピーではなく移動するには '--move-original-files' を使用します。"
+
+msgid "Use '--preview-album-actions' to preview and confirm the detected album families before applying changes."
+msgstr "'--preview-album-actions' を使用すると、変更を適用する前に、検出されたアルバムグループをプレビューして確認できます。"
+
+msgid "Use '--preview-album-actions' to preview matches and request confirmation before applying changes."
+msgstr "'--preview-album-actions' を使用すると、変更を適用する前に、一致結果をプレビューして確認を求めます。"
+
+msgid "Use 'ALL' to download ALL albums."
+msgstr "'ALL' を使用すると、すべてのアルバムをダウンロードします。"
+
+msgid "Use --consolidate-similar-albums if you want cloud targets to reuse and consolidate equivalent album families such as 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album', or 'New_Album {1}' instead of only exact matches."
+msgstr "クラウドターゲットで、完全一致のみではなく、'Album'、'Album_1'、'Album ({0})'、'New_Album'、'New Album'、'New_Album {1}' などの同等のアルバムグループを再利用して統合したい場合は、--consolidate-similar-albums を使用します。"
+
+msgid "Use --prefer-canonical-album-names if you want new destination albums to be created with the preferred clean keeper form even when the target does not already contain any similar variant, for example 'Album_1' -> 'Album' or 'New_Album {0}' -> 'New Album'."
+msgstr "ターゲットに類似のバリアントがまだ存在しない場合でも、新しい宛先アルバムを優先されるクリーンな保持形式で作成したい場合は、--prefer-canonical-album-names を使用します。例: 'Album_1' -> 'Album'、'New_Album {0}' -> 'New Album'。"
+
+msgid "Use Current"
+msgstr "現在のものを使用"
+
+msgid "Use Selected"
+msgstr "選択したものを使用"
+
+msgid "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
+msgstr "サーバーへアップロードパネルで、ローカルフォルダーのアップロードまたはローカル ZIP のアップロードを使用してください。"
+
+msgid "Use patterns: e.g. --download-albums 'dron*'"
+msgstr "パターンを使用できます(例: --download-albums 'dron*')"
+
+msgid "Use the password your administrator gave you."
+msgstr "管理者から受け取ったパスワードを使用してください。"
+
+msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
+msgstr "'--find-duplicates' の後に使用して、確認済み CSV に記入した手動の判断を適用します。"
+
+msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
+msgstr "アカウントに関する通知(申請、有効化、パスワード変更)と、完了したタスクのメールに使用されます。空の項目では次を使用します:"
+
+msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
+msgstr "OUTPUT_TAKEOUT_FOLDER 内のフォルダーを移動または名前変更した後に、一部のアルバムが空に見える場合に便利です。"
+
+msgid "User"
+msgstr "ユーザー"
+
+msgid "Username"
+msgstr "ユーザー名"
+
+msgid "Username or email"
+msgstr "ユーザー名またはメールアドレス"
+
+msgid "Users"
+msgstr "ユーザー"
+
+msgid "Uses the configured cloud account ID."
+msgstr "設定済みのクラウドアカウント ID を使用します。"
+
+msgid "Uses the configured cloud account ID. If omitted, account ID {0} is used."
+msgstr "設定済みのクラウドアカウント ID を使用します。省略した場合は、アカウント ID {0} が使用されます。"
+
+msgid "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album')."
+msgstr "'--consolidate-similar-albums' と同じアルバムグループのロジックを使用します(例: 'Album'、'Album_1'、'Album ({0})'、'New_Album'、'New Album')。"
+
+msgid "Using Settings defaults"
+msgstr "設定のデフォルトを使用中"
+
+msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
+msgstr "有効なアクション: restore_duplicate / remove_duplicate / replace_duplicate。"
+
+msgid "Version v5.0.0 · Sign in to continue"
+msgstr "バージョン v5.0.0 · サインインして続行"
+
+msgid "Warm palette"
+msgstr "ウォームパレット"
+
+msgid "We received your account request"
+msgstr "アカウント申請を受け付けました"
+
+msgid "Web Interface"
+msgstr "Web インターフェース"
+
+msgid "Website"
+msgstr "Web サイト"
+
+msgid "Welcome back, admin"
+msgstr "おかえりなさい、admin さん"
+
+msgid "Welcome back, {0}"
+msgstr "おかえりなさい、{0} さん"
+
+msgid "What do you want to move today?"
+msgstr "今日は何を移行しますか？"
+
+msgid "What to do with detected duplicates: list, move, or delete."
+msgstr "検出された重複に対する操作: 一覧表示、移動、削除。"
+
+msgid "What to do with duplicates"
+msgstr "重複に対する操作"
+
+msgid "What would you like to do today?"
+msgstr "今日は何をしますか?"
+
+msgid "When a destination album must be created, use the canonical form of its source name."
+msgstr "宛先アルバムを作成する必要がある場合、ソース名の正規形を使用します。"
+
+msgid "When a destination album must be created, use the canonical form of its source name. It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+msgstr "宛先アルバムを作成する必要がある場合、ソース名の正規形を使用します。問題のないアンダースコア/スペースや、重複を示すサフィックスの違いを正規化しますが、既存のアルバムは統合しません。"
+
+msgid "When an uploaded album must be created, use the canonical form of its source name."
+msgstr "アップロードするアルバムを作成する必要がある場合、ソース名の正規形を使用します。"
+
+msgid "When an uploaded album must be created, use the canonical form of its source name. It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+msgstr "アップロードするアルバムを作成する必要がある場合、ソース名の正規形を使用します。問題のないアンダースコア/スペースや、重複を示すサフィックスの違いを正規化しますが、既存のアルバムは統合しません。"
+
+msgid "When enabled, Memories CSV collections are also reconstructed as album-like folders."
+msgstr "有効にすると、Memories CSV コレクションもアルバムのようなフォルダーとして再構築されます。"
+
+msgid "When enabled, uploaded .zip files are extracted on the server and the .zip file is removed."
+msgstr "有効にすると、アップロードされた .zip ファイルはサーバー上で展開され、.zip ファイルは削除されます。"
+
+msgid "When multiple folders are provided, order matters: files in the first folder have priority to be kept."
+msgstr "複数のフォルダーを指定する場合は順序が重要です: 最初のフォルダー内のファイルが優先して保持されます。"
+
+msgid "When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow."
+msgstr "入力が年別フォルダーのないアルバムのみの Takeout の場合、PhotoMigrator は自動的に検出し、GPTH を適切な復旧フローに切り替えます。"
+
+msgid "When the task finishes, PhotoMigrator emails {0} with the result and the last lines of the log."
+msgstr "タスクが完了すると、PhotoMigrator が結果とログの最後の行を {0} にメールで送信します。"
+
+msgid "When you run a feature, its progress and log appear here."
+msgstr "機能を実行すると、進行状況とログがここに表示されます。"
+
+msgid "Where from and where to"
+msgstr "移行元と移行先"
+
+msgid "Where to put the files on the server"
+msgstr "サーバー上でのファイルの保存先"
+
+msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
+msgstr "Google Photos、Synology Photos、Immich Photos、NextCloud Photos、ローカルフォルダーで、どの方向でも利用できます。"
+
+msgid "Workspace"
+msgstr "ワークスペース"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
+msgstr "セルを編集して「行を保存」をクリックするか、「行を削除」をクリックできます。挿入には JSON オブジェクトの構文を使用します。"
+
+msgid "You will be asked to confirm before it runs."
+msgstr "実行前に確認を求められます。"
+
+msgid "Your PhotoMigrator account"
+msgstr "お客様の PhotoMigrator アカウント"
+
+msgid "Your account has been disabled"
+msgstr "アカウントが無効になりました"
+
+msgid "Your account has no email. Ask your administrator to add one to get task emails."
+msgstr "アカウントにメールアドレスがありません。タスクのメールを受け取るには、管理者にメールアドレスの追加を依頼してください。"
+
+msgid "Your account is active"
+msgstr "アカウントが有効になりました"
+
+msgid "Your account request"
+msgstr "アカウント申請"
+
+msgid "Your own library"
+msgstr "自分のライブラリ"
+
+msgid "Your password was changed"
+msgstr "パスワードが変更されました"
+
+msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
+msgstr "仮パスワードは <b>{0}</b> です。初回サインイン時に、ご自身のパスワードを設定していただきます。"
+
+msgid "access_logs ({0})"
+msgstr "access_logs ({0})"
+
+msgid "an administrator changed the password of your PhotoMigrator account <b>{0}</b>. Ask them for the new password if you did not get it. If you did not expect this change, contact them."
+msgstr "管理者が PhotoMigrator アカウント <b>{0}</b> のパスワードを変更しました。新しいパスワードを受け取っていない場合は、管理者にお問い合わせください。この変更に心当たりがない場合も、管理者にご連絡ください。"
+
+msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
+msgstr "管理者が PhotoMigrator アカウント <b>{0}</b> を無効にしました。誤りだと思われる場合は、このメールに返信してください。"
+
+msgid "backup_schedules ({0})"
+msgstr "backup_schedules ({0})"
+
+msgid "data subpath (default username)"
+msgstr "data のサブパス(デフォルトはユーザー名)"
+
+msgid "e.g. photos-2026 or /app/data/photos-2026"
+msgstr "例: photos-2026 または /app/data/photos-2026"
+
+msgid "environment variables."
+msgstr "環境変数。"
+
+msgid "iCloud Takeout"
+msgstr "iCloud Takeout"
+
+msgid "iCloud Takeout · PhotoMigrator"
+msgstr "iCloud Takeout · PhotoMigrator"
+
+msgid "immich-photos-1 -> immich-photos-1"
+msgstr "immich-photos-1 -> immich-photos-1"
+
+msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
+msgstr "が「はい」に設定されている場合、アップロードされた .zip ファイルはサーバー上で展開され、.zip ファイルは削除されます。「いいえ」に設定すると、.zip ファイルはアップロードされたまま保持されます。"
+
+msgid "max size {0} MB"
+msgstr "最大サイズ {0} MB"
+
+msgid "max size {0} MB · timeout {1} s"
+msgstr "最大サイズ {0} MB · タイムアウト {1} 秒"
+
+msgid "nextcloud-photos-1 -> nextcloud-photos-1"
+msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
+
+msgid "sessions ({0})"
+msgstr "sessions ({0})"
+
+msgid "synology-photos-1 -> immich-photos-1"
+msgstr "synology-photos-1 -> immich-photos-1"
+
+msgid "synology-photos-1 -> synology-photos-1"
+msgstr "synology-photos-1 -> synology-photos-1"
+
+msgid "the password of your PhotoMigrator account <b>{0}</b> was changed. If it was not you, contact your administrator right away."
+msgstr "PhotoMigrator アカウント <b>{0}</b> のパスワードが変更されました。ご自身による変更でない場合は、すぐに管理者にご連絡ください。"
+
+msgid "the password you chose"
+msgstr "設定したパスワード"
+
+msgid "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can send account notices (requests, activations and password changes) and the emails of finished tasks."
+msgstr "管理パネルからご依頼いただいたテストメールです。このメールが届いていれば、PhotoMigrator はアカウントに関する通知(申請、有効化、パスワード変更)と、完了したタスクのメールを送信できます。"
+
+msgid "user_configs ({0})"
+msgstr "user_configs ({0})"
+
+msgid "user_states ({0})"
+msgstr "user_states ({0})"
+
+msgid "users ({0})"
+msgstr "users ({0})"
+
+msgid "v5.0.0 · 2026-12-01"
+msgstr "v5.0.0 · 2026-12-01"
+
+msgid "volumes subpath (default username)"
+msgstr "volumes のサブパス(デフォルトはユーザー名)"
+
+msgid "web_settings ({0})"
+msgstr "web_settings ({0})"
+
+msgid "your PhotoMigrator account is now active. Sign in with the username <b>{0}</b> or your email address and {1}."
+msgstr "PhotoMigrator アカウントが有効になりました。ユーザー名 <b>{0}</b> またはメールアドレスと、{1}でサインインしてください。"
+
+msgid "your password"
+msgstr "お客様のパスワード"
+
+msgid "your request for a PhotoMigrator account was not approved. If you think this is a mistake, reply to this email."
+msgstr "PhotoMigrator アカウントの申請は承認されませんでした。誤りだと思われる場合は、このメールに返信してください。"
+
+msgid "your request for a PhotoMigrator account with the username <b>{0}</b> is waiting for approval. We will email you as soon as it is active."
+msgstr "ユーザー名 <b>{0}</b> での PhotoMigrator アカウントの申請は承認待ちです。有効になり次第、メールでお知らせします。"
+
+msgid "your task <b>{0}</b> ended with errors (exit code {1})."
+msgstr "タスク <b>{0}</b> はエラーで終了しました(終了コード {1})。"
+
+msgid "your task <b>{0}</b> finished successfully."
+msgstr "タスク <b>{0}</b> は正常に完了しました。"
+
+msgid "your task <b>{0}</b> was stopped before it finished."
+msgstr "タスク <b>{0}</b> は完了前に停止されました。"
+
+msgid "{0} accounts"
+msgstr "{0} アカウント"
+
+msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
+msgstr "{0} が PhotoMigrator アカウントを作成しました。ユーザー名 <b>{1}</b> またはこのメールアドレスでサインインしてください。"
+
+msgid "{0} failed"
+msgstr "{0} が失敗しました"
+
+msgid "{0} features"
+msgstr "{0} 個の機能"
+
+msgid "{0} finished"
+msgstr "{0} が完了しました"
+
+msgid "{0} options"
+msgstr "{0} のオプション"
+
+msgid "{0} stopped"
+msgstr "{0} が停止しました"
+
+msgid "⏱️ Delayed Recovered"
+msgstr "⏱️ 遅延再試行で回復"
+
+msgid "⏱️ Delayed Retries"
+msgstr "⏱️ 遅延再試行"
+
+msgid "⏱️ Delayed Retries Queue"
+msgstr "⏱️ 遅延再試行キュー"
+
+msgid "⏳ Remaining Time"
+msgstr "⏳ 残り時間"
+
+msgid "❔ Unknown Files"
+msgstr "❔ 不明なファイル"
+
+msgid "⬆️ Push Panel"
+msgstr "⬆️ プッシュパネル"
+
+msgid "⬆️ Push Panel - -"
+msgstr "⬆️ プッシュパネル - -"
+
+msgid "⬆️ Push Panel - immich-photos-1"
+msgstr "⬆️ プッシュパネル - immich-photos-1"
+
+msgid "⬆️ Push Panel - nextcloud-photos-1"
+msgstr "⬆️ プッシュパネル - nextcloud-photos-1"
+
+msgid "⬆️ Push Panel - synology-photos-1"
+msgstr "⬆️ プッシュパネル - synology-photos-1"
+
+msgid "⬇️ Pull Panel"
+msgstr "⬇️ プルパネル"
+
+msgid "⬇️ Pull Panel - -"
+msgstr "⬇️ プルパネル - -"
+
+msgid "⬇️ Pull Panel - immich-photos-1"
+msgstr "⬇️ プルパネル - immich-photos-1"
+
+msgid "⬇️ Pull Panel - nextcloud-photos-1"
+msgstr "⬇️ プルパネル - nextcloud-photos-1"
+
+msgid "⬇️ Pull Panel - synology-photos-1"
+msgstr "⬇️ プルパネル - synology-photos-1"
+
+msgid "🎬 Pulled Videos"
+msgstr "🎬 プルした動画"
+
+msgid "🎬 Pushed Videos"
+msgstr "🎬 プッシュした動画"
+
+msgid "🎬 Total Videos"
+msgstr "🎬 動画の合計"
+
+msgid "🎯 Pulled Assets"
+msgstr "🎯 プルしたアセット"
+
+msgid "🎯 Pushed Assets"
+msgstr "🎯 プッシュしたアセット"
+
+msgid "🎯 Total Assets"
+msgstr "🎯 アセットの合計"
+
+msgid "📂 Pulled Albums"
+msgstr "📂 プルしたアルバム"
+
+msgid "📂 Pushed Albums"
+msgstr "📂 プッシュしたアルバム"
+
+msgid "📂 Total Albums"
+msgstr "📂 アルバムの合計"
+
+msgid "📅 Estimated End"
+msgstr "📅 終了予定"
+
+msgid "📊 Assets in Queue"
+msgstr "📊 キュー内のアセット"
+
+msgid "📊 Info Panel"
+msgstr "📊 情報パネル"
+
+msgid "📜 Total Metadata"
+msgstr "📜 メタデータの合計"
+
+msgid "📷 Pulled Photos"
+msgstr "📷 プルした写真"
+
+msgid "📷 Pushed Photos"
+msgstr "📷 プッシュした写真"
+
+msgid "📷 Total Photos"
+msgstr "📷 写真の合計"
+
+msgid "🔒 Blocked Albums"
+msgstr "🔒 ブロックされたアルバム"
+
+msgid "🔒 Blocked Assets"
+msgstr "🔒 ブロックされたアセット"
+
+msgid "🔗 Total Sidecar"
+msgstr "🔗 サイドカーの合計"
+
+msgid "🔢 Total Albums (New / Duplicates / Failed)"
+msgstr "🔢 アルバムの合計(新規 / 重複 / 失敗)"
+
+msgid "🔢 Total Assets (New / Duplicates / Failed)"
+msgstr "🔢 アセットの合計(新規 / 重複 / 失敗)"
+
+msgid "🔢 Total Photos (New / Duplicates / Failed)"
+msgstr "🔢 写真の合計(新規 / 重複 / 失敗)"
+
+msgid "🔢 Total Videos (New / Duplicates / Failed)"
+msgstr "🔢 動画の合計(新規 / 重複 / 失敗)"
+
+msgid "🕒 Elapsed Time"
+msgstr "🕒 経過時間"
+
+msgid "🚩 Album Assoc Failed"
+msgstr "🚩 アルバム関連付けの失敗"
+
+msgid "🚩 Failed Albums"
+msgstr "🚩 失敗したアルバム"
+
+msgid "🚩 Failed Assets"
+msgstr "🚩 失敗したアセット"
+
+msgid "🚩 Failed Photos"
+msgstr "🚩 失敗した写真"
+
+msgid "🚩 Failed Videos"
+msgstr "🚩 失敗した動画"
+
+msgid "🧾 Album Assoc Queue"
+msgstr "🧾 アルバム関連付けキュー"

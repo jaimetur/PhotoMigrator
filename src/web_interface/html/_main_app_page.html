@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{ i18n_head(request) }}
     <title>PhotoMigrator</title>
-    <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
-    <link rel="apple-touch-icon" href="/assets/logos/logo_17_1024x1024.png?v=1">
-    <link rel="stylesheet" href="/static/style.css?v=20261201-v5-redesign">
+    <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
+    <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-colour">
 </head>
 {% set is_home_view = active_page == 'features' and request.query_params.get('view') == 'home' %}
 <body data-theme="{{ initial_theme }}" data-page="{{ active_page }}" class="app-body{% if is_home_view %} is-home-view{% endif %}">
 <div class="app-shell">
     <aside class="sidebar" id="app-sidebar" aria-label="Main navigation">
         <div class="sidebar__brand">
-            <img class="sidebar__logo" src="/assets/logos/logo_17_1024x1024.png" alt="">
+            <img class="sidebar__logo" src="/assets/logos/logo_18_1024x1024.png?v=18" alt="">
             <div class="sidebar__brand-text">
                 <span class="sidebar__name">PhotoMigrator</span>
                 <span class="sidebar__version">{{ tool_version }} · {{ tool_date }}</span>
@@ -47,12 +48,13 @@
             <div class="user-card">
                 <span class="user-card__avatar" aria-hidden="true">{{ (username or "?")[:1] | upper }}</span>
                 <div class="user-card__text">
-                    <span id="session-user-label" class="user-card__name">{{ username }}</span>
+                    <span id="session-user-label" class="user-card__name" data-no-i18n>{{ username }}</span>
                     <span class="user-card__role">{{ role }}</span>
                 </div>
                 {% if is_admin %}
                 <a id="admin-link" href="/admin" target="_blank" rel="noopener noreferrer" class="icon-btn" title="Admin Panel" aria-label="Admin Panel"><span class="ico" data-icon="shield"></span></a>
                 {% endif %}
+                <span class="user-card__lang" data-lang-picker title="Language"></span>
                 <button type="button" id="logout-btn" class="icon-btn" title="Logout" aria-label="Logout"><span class="ico" data-icon="logout"></span></button>
             </div>
         </div>
@@ -128,12 +130,17 @@
                     <form id="module-form" class="form-grid module-grid"></form>
                 </section>
                 <div class="action-bar" role="region" aria-label="Run this feature">
+                    <span class="action-bar__title">Ready to run</span>
                     <div class="action-bar__preview command-preview-panel">
                         <span class="action-bar__label">Command</span>
                         <code id="command-preview-inline" class="command"></code>
                         <button type="button" id="copy-command-btn" class="icon-btn" title="Copy command" aria-label="Copy command"><span class="ico" data-icon="copy"></span></button>
                     </div>
                     <div class="module-actions">
+                        <label id="notify-email-toggle" class="notify-toggle">
+                            <input id="notify-email-check" type="checkbox" class="field__check">
+                            <span>Email me when it finishes</span>
+                        </label>
                         <button id="stop-btn" type="button" class="run-btn run-btn--danger" disabled><span class="ico" data-icon="stop"></span>Stop</button>
                         <button id="run-btn" type="button" class="run-btn run-btn--primary"><span class="ico" data-icon="play"></span>Run</button>
                     </div>
@@ -283,7 +290,7 @@
         <input id="folder-path-input" class="field__input" type="text" placeholder="Selected folders (comma-separated)" readonly>
         <button type="button" id="folder-use-selected" class="action-btn action-btn--select">Use Selected</button>
     </div>
-    <div id="folder-list" class="folder-list"></div>
+    <div id="folder-list" class="folder-list" data-no-i18n></div>
 </dialog>
 
 <dialog id="file-dialog" class="folder-dialog">
@@ -298,7 +305,7 @@
         <button type="button" id="file-select" class="action-btn action-btn--select" disabled>Select File</button>
     </div>
     <div id="file-current" class="folder-current"></div>
-    <div id="file-list" class="folder-list"></div>
+    <div id="file-list" class="folder-list" data-no-i18n></div>
 </dialog>
 
 <dialog id="folder-create-dialog" class="confirm-dialog">
@@ -503,22 +510,36 @@
         upload_folder: {label: "Upload to Server", icon: "upload", tone: "upl", tagline: "Upload a local folder or ZIP file to the server so the features can use it."}
     };
 
-    const HOME_TILE_TEXT = {
-        google_takeout: {desc: "Google Photos export"},
-        icloud_takeout: {desc: "Apple iCloud Photos export"},
-        google_photos: {short: "Google"},
-        synology_photos: {short: "Synology"},
-        immich_photos: {short: "Immich"},
-        nextcloud_photos: {short: "NextCloud"},
-        local_folder: {short: "Local folder"},
-        standalone_features: {desc: "Fix symlinks · Rename folders · Organize by date · Duplicates"},
-        upload_folder: {desc: "Send a local folder or ZIP file to the server"}
+    // Line art (48x48 viewBox) that tells every module apart on its card.
+    const MODULE_ART = {
+        automatic_migration: '<path d="M8 12h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V14a2 2 0 0 1 2-2zM30 22h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H30a2 2 0 0 1-2-2V24a2 2 0 0 1 2-2zM20 17h7a5 5 0 0 1 5 5M29 19l3 3 3-3"/>',
+        google_takeout: '<path d="M7 10h34v7H7zM9 17v21a2 2 0 0 0 2 2h26a2 2 0 0 0 2-2V17M20 25h8"/>',
+        icloud_takeout: '<path d="M15 36h19a8 8 0 0 0 1.2-15.9A11 11 0 0 0 14.5 21 7.5 7.5 0 0 0 15 36zM24 23v9M20 28.5l4 4 4-4"/>',
+        google_photos: '<path d="M10 9h28a2 2 0 0 1 2 2v26a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2zM8 30l9-9 8 8 5-5 10 10M28.5 17a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0"/>',
+        synology_photos: '<path d="M11 9h26a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2zM11 27h26a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2zM15 15h.01M15 33h.01M27 15h6M27 33h6"/>',
+        immich_photos: '<path d="M8 17a3 3 0 0 1 3-3h6l3-4h8l3 4h6a3 3 0 0 1 3 3v19a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3zM16 27a8 8 0 1 0 16 0a8 8 0 1 0-16 0M35 19h.01"/>',
+        nextcloud_photos: '<path d="M17 24a7 7 0 1 0 14 0a7 7 0 1 0-14 0M5 24a4 4 0 1 0 8 0a4 4 0 1 0-8 0M35 24a4 4 0 1 0 8 0a4 4 0 1 0-8 0"/>',
+        local_folder: '<path d="M7 13a2 2 0 0 1 2-2h9l4 4h17a2 2 0 0 1 2 2v19a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2zM7 19h34"/>',
+        standalone_features: '<path d="M30 6l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM8 40l17-17M38 28v6M35 31h6"/>',
+        upload_folder: '<path d="M8 30v7a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3v-7M24 30V8M16 16l8-8 8 8"/>'
     };
 
-    const HOME_GROUP_TEXT = {
-        takeout: {title: "Fix an export from Google or Apple", text: "Restore dates and metadata and rebuild albums into a clean library."},
-        libraries: {title: "Manage a library", text: "Upload, download, rename, clean up and deduplicate albums and assets."},
-        tools: {title: "Local helpers", text: "Repair, rename, organize and deduplicate folders, or upload files to this server."}
+    function moduleArtSvg(key, extraClass = "") {
+        const paths = MODULE_ART[key] || MODULE_ART.standalone_features;
+        return `<svg class="module-art ${extraClass}" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
+    }
+
+    const HOME_TILE_TEXT = {
+        automatic_migration: {card: "Source to target"},
+        google_takeout: {card: "Fix a Google export"},
+        icloud_takeout: {card: "Fix an Apple export"},
+        google_photos: {card: "Albums and assets"},
+        synology_photos: {card: "Albums and assets"},
+        immich_photos: {card: "Albums and assets"},
+        nextcloud_photos: {card: "Albums and assets"},
+        local_folder: {card: "Your own library"},
+        standalone_features: {card: "Duplicates, folders"},
+        upload_folder: {card: "Send files here"}
     };
 
     const ACTION_GROUPS = [
@@ -688,26 +709,34 @@
                 title.textContent = groupMeta ? groupMeta.title : "Other";
                 wrap.appendChild(title);
             }
+            if (wrap.lastElementChild?.classList.contains("action-picker__group")) {
+                wrap.lastElementChild.classList.add(`action-picker__group--${groupKey}`);
+            }
             const grid = document.createElement("div");
             grid.className = "action-picker__grid";
             grid.setAttribute("role", "radiogroup");
             items.forEach(({action, meta}) => {
                 const button = document.createElement("button");
                 button.type = "button";
-                button.className = `action-tile action-tile--${meta.tone}${action.dest === selectedDest ? " is-selected" : ""}`;
+                button.className = `action-tile action-tile--${meta.tone} action-tile--group-${meta.group}${action.dest === selectedDest ? " is-selected" : ""}`;
                 button.setAttribute("role", "radio");
                 button.setAttribute("aria-checked", action.dest === selectedDest ? "true" : "false");
                 button.dataset.actionDest = action.dest;
-                const icon = iconElement(meta.icon, "action-tile__icon");
-                button.appendChild(icon);
+                const text = document.createElement("span");
+                text.className = "action-tile__text";
                 const name = document.createElement("span");
                 name.className = "action-tile__name";
                 name.textContent = uiFeatureName(action);
-                button.appendChild(name);
+                text.appendChild(name);
                 const desc = document.createElement("span");
                 desc.className = "action-tile__desc";
                 desc.textContent = meta.desc || shortHelpText(uiHelpText(action), 60);
-                button.appendChild(desc);
+                text.appendChild(desc);
+                const bar = document.createElement("span");
+                bar.className = "card-underline";
+                text.appendChild(bar);
+                button.appendChild(text);
+                button.appendChild(iconElement(meta.icon, "action-tile__icon"));
                 button.addEventListener("click", () => {
                     if (action.dest !== selectedDest) onSelect(action.dest);
                 });
@@ -3997,7 +4026,7 @@
                 const button = document.createElement("button");
                 button.type = "button";
                 const isSelected = migrationEndpointsState[dest].kind === kindMeta.kind;
-                button.className = `service-option${isSelected ? " is-selected" : ""}`;
+                button.className = `service-option tv-${kindMeta.tone}${isSelected ? " is-selected" : ""}`;
                 button.setAttribute("role", "radio");
                 button.setAttribute("aria-checked", isSelected ? "true" : "false");
                 const icon = document.createElement("span");
@@ -4278,34 +4307,41 @@
         }
     }
 
-    function createHomeTile(key, compact = false) {
+    function createHomeTile(key) {
         const meta = moduleMeta(key);
         const tile = document.createElement("a");
         tile.href = "/features?manual_navigation=1";
-        tile.className = `home-tile${compact ? " home-tile--compact" : ""}`;
-        const icon = document.createElement("span");
-        icon.className = `home-tile__icon tone-${meta.tone}`;
-        icon.appendChild(iconElement(meta.icon));
-        tile.appendChild(icon);
+        tile.className = `home-card tv-${meta.tone}`;
         const text = document.createElement("span");
-        text.className = "home-tile__text";
+        text.className = "home-card__text";
         const name = document.createElement("span");
-        name.className = "home-tile__name";
-        name.textContent = compact ? (HOME_TILE_TEXT[key]?.short || meta.label) : meta.label;
+        name.className = "home-card__name";
+        name.textContent = meta.label;
         text.appendChild(name);
-        if (!compact) {
-            const desc = document.createElement("span");
-            desc.className = "home-tile__desc";
-            desc.textContent = HOME_TILE_TEXT[key]?.desc || shortHelpText(meta.tagline, 90);
-            text.appendChild(desc);
-        }
+        const desc = document.createElement("span");
+        desc.className = "home-card__desc";
+        desc.textContent = HOME_TILE_TEXT[key]?.card || HOME_TILE_TEXT[key]?.desc || shortHelpText(meta.tagline, 60);
+        text.appendChild(desc);
+        const bar = document.createElement("span");
+        bar.className = "card-underline";
+        text.appendChild(bar);
         tile.appendChild(text);
-        if (!compact) tile.appendChild(iconElement("chevronRight", "home-tile__chevron"));
+        const art = document.createElement("span");
+        art.className = "home-card__art";
+        art.innerHTML = moduleArtSvg(key);
+        tile.appendChild(art);
         tile.addEventListener("click", (event) => {
             event.preventDefault();
             openModuleFromNavigation(key);
         });
         return tile;
+    }
+
+    function homeGreeting() {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 20) return "Good afternoon";
+        return "Good evening";
     }
 
     function renderHomeView() {
@@ -4317,23 +4353,24 @@
         const intro = document.createElement("section");
         intro.className = "home-intro";
         intro.innerHTML = `
-            <span class="eyebrow">${escapeHtml(userName ? `Welcome back, ${userName}` : "Welcome")}</span>
-            <h1 id="home-title">What would you like to do today?</h1>
-            <p>Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs.</p>`;
+            <span class="eyebrow"><span>${homeGreeting()}</span>${userName ? `, <span data-no-i18n>${escapeHtml(userName)}</span>` : ""}</span>
+            <h1 id="home-title">What do you want to move today?</h1>`;
         root.appendChild(intro);
 
-        const migration = document.createElement("section");
-        migration.className = "card home-feature";
+        const hero = document.createElement("section");
+        hero.className = "home-hero";
+        const migration = document.createElement("div");
+        migration.className = "home-feature tv-mig";
         const migrationText = document.createElement("div");
         migrationText.className = "home-feature__text";
         migrationText.innerHTML = `
-            <div class="home-feature__eyebrow"><span class="home-tile__icon tone-mig">${iconSvg("migrate")}</span><span class="eyebrow">Migrate</span></div>
-            <h2>Move your whole library to another service</h2>
-            <p>Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run, with a live dashboard.</p>`;
+            <span class="home-feature__badge">Start here</span>
+            <h2>Move a whole library in one run</h2>
+            <p>Photos, videos and albums from a source to a target, with a live dashboard.</p>`;
         const migrationButton = document.createElement("button");
         migrationButton.type = "button";
-        migrationButton.className = "run-btn run-btn--primary";
-        migrationButton.innerHTML = `Start a migration${iconSvg("arrowRight")}`;
+        migrationButton.className = "home-feature__btn";
+        migrationButton.innerHTML = `${iconSvg("migrate")}Start a migration`;
         migrationButton.addEventListener("click", () => openModuleFromNavigation("automatic_migration"));
         migrationText.appendChild(migrationButton);
         migration.appendChild(migrationText);
@@ -4344,58 +4381,113 @@
         const endpointChip = (label, state) => {
             const kindMeta = MIGRATION_ENDPOINT_KINDS.find((item) => item.kind === state.kind) || MIGRATION_ENDPOINT_KINDS[0];
             const name = kindMeta.section || "Local folder";
-            return `<div class="route-chip"><span class="home-tile__icon tone-${kindMeta.tone}">${iconSvg(kindMeta.icon)}</span><span><span class="route-chip__label">${label}</span><span class="route-chip__name">${escapeHtml(name)}</span></span></div>`;
+            return `<div class="route-chip"><span class="route-chip__icon tv-${kindMeta.tone}">${iconSvg(kindMeta.icon)}</span><span><span class="route-chip__label">${label}</span><span class="route-chip__name">${escapeHtml(name)}</span></span></div>`;
         };
-        route.innerHTML = `
-            <div class="route-row">${endpointChip("Source", sourceState)}<span class="route-arrow">${iconSvg("arrowRight")}</span>${endpointChip("Target", targetState)}</div>
-            <p class="muted">Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction.</p>`;
+        route.innerHTML = `${endpointChip("Source", sourceState)}<span class="route-arrow">${iconSvg("chevronDown")}</span>${endpointChip("Target", targetState)}`;
         migration.appendChild(route);
-        root.appendChild(migration);
+        hero.appendChild(migration);
 
-        const grid = document.createElement("section");
-        grid.className = "home-grid";
-        MODULE_GROUPS.filter((group) => group.key !== "migrate").forEach((group) => {
-            const card = document.createElement("div");
-            card.className = "card home-group";
-            const text = HOME_GROUP_TEXT[group.key] || {title: group.title, text: ""};
-            card.innerHTML = `<div><span class="eyebrow">${escapeHtml(group.title)}</span><h3>${escapeHtml(text.title)}</h3><p class="muted">${escapeHtml(text.text)}</p></div>`;
-            const list = document.createElement("div");
-            list.className = group.key === "libraries" ? "home-group__grid" : "home-group__list";
-            group.modules.filter((key) => MODULE_TAB_NAMES[key]).forEach((key) => {
-                list.appendChild(createHomeTile(key, group.key === "libraries"));
-            });
-            card.appendChild(list);
-            grid.appendChild(card);
-        });
-        root.appendChild(grid);
+        const activity = document.createElement("div");
+        activity.className = "home-activity";
+        const activeJobId = String(uiState?.active_job_id || "").trim();
+        const lastTab = String(uiState?.active_job_tab || uiState?.last_visible_job_tab || "").trim();
+        const lastMeta = lastTab ? moduleMeta(lastTab) : null;
+        activity.innerHTML = `
+            <span class="home-activity__chip${activeJobId ? " home-activity__chip--live" : ""}"><span class="home-activity__dot"></span>${activeJobId ? "Job linked to your session" : "No job running"}</span>
+            <div class="home-activity__body">
+                <span class="home-activity__icon">${iconSvg(lastMeta ? lastMeta.icon : "activity")}</span>
+                <div><strong>${escapeHtml(activeJobId && lastMeta ? lastMeta.label : "Activity")}</strong>
+                <p>${activeJobId
+                    ? "Follow its live progress and log in Activity."
+                    : "When you run a feature, its progress and log appear here."}</p></div>
+            </div>`;
+        const activityLink = document.createElement("a");
+        activityLink.className = "home-activity__link";
+        activityLink.href = "/output?manual_navigation=1";
+        activityLink.innerHTML = `Open Activity${iconSvg("arrowRight")}`;
+        activity.appendChild(activityLink);
+        hero.appendChild(activity);
+        root.appendChild(hero);
+
+        const modules = MODULE_GROUPS.flatMap((group) => group.modules).filter((key) => MODULE_TAB_NAMES[key]);
+        const ordered = [...modules.filter((key) => key !== "automatic_migration"), ...modules.filter((key) => key === "automatic_migration")];
+        const cardsSection = document.createElement("section");
+        cardsSection.className = "home-section";
+        cardsSection.innerHTML = `<div class="home-section__head"><h2>Libraries &amp; tools</h2><span class="muted">${ordered.length} features</span></div>`;
+        const cards = document.createElement("div");
+        cards.className = "home-cards";
+        ordered.forEach((key) => cards.appendChild(createHomeTile(key)));
+        cardsSection.appendChild(cards);
+        root.appendChild(cardsSection);
 
         const bottom = document.createElement("section");
         bottom.className = "home-bottom";
         const steps = document.createElement("div");
         steps.className = "card home-steps";
         steps.innerHTML = `
-            <h3>Get started in three steps</h3>
+            <h3><span class="home-bottom__icon tv-mig">${iconSvg("sparkles")}</span>Get started in three steps</h3>
             <div class="home-step"><span class="home-step__num">1</span><div><strong>Connect your services</strong><p class="muted">Add the URL and credentials of each account in <a href="/configuration?manual_navigation=1">Settings › Service credentials</a>.</p></div></div>
             <div class="home-step"><span class="home-step__num">2</span><div><strong>Choose a task</strong><p class="muted">Fill the required fields. Advanced options keep their defaults unless you open them.</p></div></div>
-            <div class="home-step"><span class="home-step__num">3</span><div><strong>Run and follow the progress</strong><p class="muted">Check the command preview, press Run and watch it live in <a href="/output?manual_navigation=1">Activity</a>.</p></div></div>`;
+            <div class="home-step"><span class="home-step__num">3</span><div><strong>Run and follow the progress</strong><p class="muted">Check the command, press Run and watch it live in <a href="/output?manual_navigation=1">Activity</a>.</p></div></div>`;
         bottom.appendChild(steps);
-        const activity = document.createElement("div");
-        activity.className = "card home-activity";
-        const activeJobId = String(uiState?.active_job_id || "").trim();
-        const lastTab = String(uiState?.active_job_tab || uiState?.last_visible_job_tab || "").trim();
-        const lastMeta = lastTab ? moduleMeta(lastTab) : null;
-        activity.innerHTML = `
-            <h3>Activity</h3>
-            <p class="muted">${activeJobId
-                ? `A job${lastMeta ? ` (${escapeHtml(lastMeta.label)})` : ""} is linked to your session. Open Activity to follow its progress and log.`
-                : "No job is running. When you run a feature, its live progress and log appear in Activity."}</p>`;
-        const activityLink = document.createElement("a");
-        activityLink.className = "ghost-btn";
-        activityLink.href = "/output?manual_navigation=1";
-        activityLink.innerHTML = `${iconSvg("activity")}Open Activity`;
-        activity.appendChild(activityLink);
-        bottom.appendChild(activity);
+        const tools = document.createElement("div");
+        tools.className = "card home-quick";
+        tools.innerHTML = `<h3><span class="home-bottom__icon tv-tool">${iconSvg("sliders")}</span>Quick tools</h3>`;
+        const chips = document.createElement("div");
+        chips.className = "home-quick__chips";
+        [
+            {label: "Find duplicates", key: "standalone_features", tone: "tool"},
+            {label: "Fix a Google Takeout", key: "google_takeout", tone: "gto"},
+            {label: "Upload a folder", key: "upload_folder", tone: "upl"},
+            {label: "Service credentials", href: "/configuration?manual_navigation=1", tone: "syn"}
+        ].filter((item) => !item.key || MODULE_TAB_NAMES[item.key]).forEach((item) => {
+            const chip = document.createElement("a");
+            chip.className = `home-quick__chip tv-${item.tone}`;
+            chip.href = item.href || "/features?manual_navigation=1";
+            chip.textContent = item.label;
+            if (item.key) {
+                chip.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    openModuleFromNavigation(item.key);
+                });
+            }
+            chips.appendChild(chip);
+        });
+        tools.appendChild(chips);
+        bottom.appendChild(tools);
         root.appendChild(bottom);
+    }
+
+    // On wide screens the run panel (command, email toggle, Run/Stop) sits at the top of the
+    // right-hand column of the open feature; on narrow screens it stays as the sticky bottom bar.
+    const RUN_PANEL = {bar: null, preview: null};
+    const RUN_PANEL_SIDE_QUERY = window.matchMedia("(min-width: 1180px)");
+
+    function placeRunPanel() {
+        const bar = RUN_PANEL.bar;
+        const featureView = document.getElementById("feature-view");
+        if (!bar || !featureView) return;
+        let target = null;
+        if (RUN_PANEL_SIDE_QUERY.matches && !featureView.classList.contains("hidden")) {
+            target = [...featureView.querySelectorAll(".selector-side")].find((el) => el.offsetParent !== null) || null;
+        }
+        if (target) {
+            if (target.firstElementChild !== bar) target.insertBefore(bar, target.firstElementChild);
+            if (!bar.classList.contains("action-bar--side")) bar.classList.add("action-bar--side");
+        } else {
+            if (bar.classList.contains("action-bar--side")) bar.classList.remove("action-bar--side");
+            if (bar.parentElement !== featureView || featureView.lastElementChild !== bar) featureView.appendChild(bar);
+        }
+    }
+
+    function setupRunPanelPlacement() {
+        const featureView = document.getElementById("feature-view");
+        RUN_PANEL.bar = featureView?.querySelector(".action-bar") || null;
+        RUN_PANEL.preview = document.getElementById("command-preview-inline");
+        if (!RUN_PANEL.bar) return;
+        new MutationObserver(() => placeRunPanel()).observe(featureView, {childList: true, subtree: true, attributes: true, attributeFilter: ["class"]});
+        if (RUN_PANEL_SIDE_QUERY.addEventListener) RUN_PANEL_SIDE_QUERY.addEventListener("change", placeRunPanel);
+        placeRunPanel();
     }
 
     function renderAll() {
@@ -4638,7 +4730,7 @@
     function setCommandPreviewText(text) {
         const value = String(text || "");
         const outputPreview = document.getElementById("command-preview");
-        const inlinePreview = document.getElementById("command-preview-inline");
+        const inlinePreview = document.getElementById("command-preview-inline") || RUN_PANEL.preview;
         if (outputPreview) outputPreview.textContent = value;
         if (inlinePreview) inlinePreview.textContent = value;
     }
@@ -4868,6 +4960,7 @@
             iconEl.className = `feature-hero__icon tone-${meta.tone}`;
             iconEl.innerHTML = iconSvg(meta.icon);
         }
+        if (CURRENT_PAGE === "features") document.body.dataset.tone = homeViewActive ? "mig" : meta.tone;
         const topTitle = document.getElementById("topbar-title");
         const topEyebrow = document.getElementById("topbar-eyebrow");
         if (CURRENT_PAGE === "features") {
@@ -4905,6 +4998,7 @@
             runIcon.className = `feature-hero__icon tone-${effectiveMeta.tone}`;
             runIcon.innerHTML = iconSvg(effectiveMeta.icon);
         }
+        if (CURRENT_PAGE === "output") document.body.dataset.tone = effectiveMeta.tone;
         if (submoduleName) {
             titleEl.innerHTML =
                 `${escapeHtml(effectiveMeta.label || featureName)}` +
@@ -5226,7 +5320,7 @@
         const response = await fetch("/api/run", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
+            body: JSON.stringify({...payload, notify_email: notifyEmailRequested()})
         });
         const data = await response.json();
         if (!response.ok) {
@@ -6958,6 +7052,7 @@
         });
         document.getElementById("run-btn").addEventListener("click", runCommand);
         document.getElementById("stop-btn").addEventListener("click", stopCommand);
+        setupRunPanelPlacement();
         document.getElementById("run-btn-output").addEventListener("click", runCommand);
         document.getElementById("stop-btn-output").addEventListener("click", stopCommand);
         document.getElementById("copy-log-btn").addEventListener("click", copyLogToClipboard);
@@ -7243,10 +7338,38 @@
         }
     }
 
+    function notifyEmailRequested() {
+        const check = document.getElementById("notify-email-check");
+        return Boolean(check && !check.disabled && check.checked);
+    }
+
+    function setupNotifyEmailToggle() {
+        const toggle = document.getElementById("notify-email-toggle");
+        const check = document.getElementById("notify-email-check");
+        if (!toggle || !check) return;
+        const available = currentUser?.email_notifications_available === true;
+        check.disabled = !available;
+        check.checked = available && uiState?.notify_email === true;
+        toggle.classList.toggle("notify-toggle--disabled", !available);
+        if (available) {
+            toggle.title = `When the task finishes, PhotoMigrator emails ${currentUser.email} with the result and the last lines of the log.`;
+        } else if (!String(currentUser?.email || "").trim()) {
+            toggle.title = "Your account has no email. Ask your administrator to add one to get task emails.";
+        } else {
+            toggle.title = "Email is not configured on this server yet.";
+        }
+        check.addEventListener("change", () => {
+            if (!uiState) uiState = {};
+            uiState.notify_email = check.checked;
+            saveStateNow();
+        });
+    }
+
     async function boot() {
         await loadCurrentUser();
         await loadState();
         applyTheme(uiState.theme || "ocean", false);
+        setupNotifyEmailToggle();
         bindUi();
         applyPanelCollapseState();
         await loadConfig(); // Keep editor synced with active Config.ini by default

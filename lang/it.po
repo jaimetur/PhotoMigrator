@@ -1,0 +1,3367 @@
+# PhotoMigrator Web Interface - Italiano (it)
+# msgid: English text. msgstr: translation. Keep {0}, {1}... and HTML tags such as <b> in the translation.
+
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: it\n"
+
+msgid "(Use General Arguments value)"
+msgstr "(Usa il valore degli argomenti generali)"
+
+msgid "(default)"
+msgstr "(predefinito)"
+
+msgid "(default: all)"
+msgstr "(predefinito: tutti)"
+
+msgid "(no output)"
+msgstr "(nessun output)"
+
+msgid "/app/data subpath"
+msgstr "Sottopercorso di /app/data"
+
+msgid "/app/volumes subpath"
+msgstr "Sottopercorso di /app/volumes"
+
+msgid "<ACTION> can be 'list', 'move' or 'remove'. Default: 'list'."
+msgstr "<ACTION> può essere 'list', 'move' o 'remove'. Predefinito: 'list'."
+
+msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account."
+msgstr "<b>{0}</b> ({1}) ha richiesto un account PhotoMigrator."
+
+msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
+msgstr "<b>{0}</b> ({1}) ha richiesto un account PhotoMigrator.<br>Messaggio: <i>{2}</i>"
+
+msgid "A job${lastMeta ?"
+msgstr "A job${lastMeta ?"
+
+msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
+msgstr "Verrà creato un nuovo album per ogni sottocartella trovata nella sottocartella 'Albums'."
+
+msgid "A whole folder, albums included"
+msgstr "Un'intera cartella, album inclusi"
+
+msgid "ALL_PHOTOS Folder Name"
+msgstr "Nome della cartella ALL_PHOTOS"
+
+msgid "About Auto Rename Folders Content Based"
+msgstr "Informazioni su Rinomina automatica cartelle in base al contenuto"
+
+msgid "About Automatic Migration"
+msgstr "Informazioni su Migrazione automatica"
+
+msgid "About Consolidate Albums Names"
+msgstr "Informazioni su Consolida nomi degli album"
+
+msgid "About Download Albums"
+msgstr "Informazioni su Scarica album"
+
+msgid "About Download All"
+msgstr "Informazioni su Scarica tutto"
+
+msgid "About Find Duplicates"
+msgstr "Informazioni su Trova duplicati"
+
+msgid "About Fix Broken Symlinks"
+msgstr "Informazioni su Ripara collegamenti simbolici interrotti"
+
+msgid "About Google Takeout"
+msgstr "Informazioni su Google Takeout"
+
+msgid "About Merge Duplicates Albums"
+msgstr "Informazioni su Unisci album duplicati"
+
+msgid "About Organize Local Folder By Date"
+msgstr "Informazioni su Organizza cartella locale per data"
+
+msgid "About Process Duplicates"
+msgstr "Informazioni su Elabora duplicati"
+
+msgid "About Remove Albums"
+msgstr "Informazioni su Rimuovi album"
+
+msgid "About Remove All Albums"
+msgstr "Informazioni su Rimuovi tutti gli album"
+
+msgid "About Remove All Assets"
+msgstr "Informazioni su Rimuovi tutti gli asset"
+
+msgid "About Remove Duplicates Albums"
+msgstr "Informazioni su Rimuovi album duplicati"
+
+msgid "About Remove Duplicates Assets"
+msgstr "Informazioni su Rimuovi asset duplicati"
+
+msgid "About Remove Empty Albums"
+msgstr "Informazioni su Rimuovi album vuoti"
+
+msgid "About Rename Albums"
+msgstr "Informazioni su Rinomina album"
+
+msgid "About Upload Albums"
+msgstr "Informazioni su Carica album"
+
+msgid "About Upload All"
+msgstr "Informazioni su Carica tutto"
+
+msgid "About Upload to Server"
+msgstr "Informazioni su Carica sul server"
+
+msgid "About iCloud Takeout"
+msgstr "Informazioni su iCloud Takeout"
+
+msgid "About {0}"
+msgstr "Informazioni su {0}"
+
+msgid "Access Logs"
+msgstr "Log di accesso"
+
+msgid "Access logs: loaded {0} entries"
+msgstr "Log di accesso: caricate {0} voci"
+
+msgid "Access logs: loading..."
+msgstr "Log di accesso: caricamento..."
+
+msgid "Access logs: {0}"
+msgstr "Log di accesso: {0}"
+
+msgid "Account"
+msgstr "Account"
+
+msgid "Account ID"
+msgstr "ID account"
+
+msgid "Account name"
+msgstr "Nome account"
+
+msgid "Account request"
+msgstr "Richiesta di account"
+
+msgid "Account request from {0}"
+msgstr "Richiesta di account da {0}"
+
+msgid "Account {0}"
+msgstr "Account {0}"
+
+msgid "Action"
+msgstr "Azione"
+
+msgid "Actions"
+msgstr "Azioni"
+
+msgid "Active"
+msgstr "Attivo"
+
+msgid "Activity"
+msgstr "Attività"
+
+msgid "Activity · PhotoMigrator"
+msgstr "Attività · PhotoMigrator"
+
+msgid "Add the URL and credentials of each account in"
+msgstr "Aggiungi l'URL e le credenziali di ogni account in"
+
+msgid "Add them in Settings"
+msgstr "Aggiungili nelle Impostazioni"
+
+msgid "Admin"
+msgstr "Amministratore"
+
+msgid "Admin Authorization Failed"
+msgstr "Autorizzazione amministratore non riuscita"
+
+msgid "Admin Authorization Required"
+msgstr "Autorizzazione amministratore richiesta"
+
+msgid "Admin Panel"
+msgstr "Pannello admin"
+
+msgid "Admin password"
+msgstr "Password amministratore"
+
+msgid "Admin username"
+msgstr "Nome utente amministratore"
+
+msgid "Administration Panel"
+msgstr "Pannello di amministrazione"
+
+msgid "Administration sections"
+msgstr "Sezioni di amministrazione"
+
+msgid "Advanced options"
+msgstr "Opzioni avanzate"
+
+msgid "Advanced · push recovery"
+msgstr "Avanzate · ripristino push"
+
+msgid "Album creation date lower bound. Example: 2024-01-01"
+msgstr "Limite inferiore della data di creazione dell'album. Esempio: 2024-01-01"
+
+msgid "Album creation date upper bound. Example: 2024-12-31"
+msgstr "Limite superiore della data di creazione dell'album. Esempio: 2024-12-31"
+
+msgid "Album name pattern (text, wildcard, or regex)"
+msgstr "Schema del nome dell'album (testo, carattere jolly o regex)"
+
+msgid "Album name pattern (text, wildcard, or regex). Example: *Temp* or ^Temp|^Test"
+msgstr "Schema del nome dell'album (testo, carattere jolly o regex). Esempio: *Temp* o ^Temp|^Test"
+
+msgid "Albums Folder"
+msgstr "Cartella Album"
+
+msgid "Albums Folders"
+msgstr "Cartelle degli album"
+
+msgid "Albums Name Pattern"
+msgstr "Schema del nome degli album"
+
+msgid "Albums Name(s)"
+msgstr "Nome/i degli album"
+
+msgid "Albums and assets"
+msgstr "Album e contenuti"
+
+msgid "Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened)."
+msgstr "Gli album vengono scaricati in <OUTPUT_FOLDER>/Albums/<AlbumName> (struttura appiattita)."
+
+msgid "Albums folder"
+msgstr "Cartella degli album"
+
+msgid "Albums folder structure"
+msgstr "Struttura della cartella degli album"
+
+msgid "Albums matching a pattern"
+msgstr "Album che corrispondono a uno schema"
+
+msgid "Albums whose names match this text, wildcard or regex are renamed."
+msgstr "Gli album il cui nome corrisponde a questo testo, carattere jolly o regex vengono rinominati."
+
+msgid "Albums with no assets"
+msgstr "Album senza asset"
+
+msgid "Albums with the same name"
+msgstr "Album con lo stesso nome"
+
+msgid "All Users"
+msgstr "Tutti gli utenti"
+
+msgid "All photos folder name"
+msgstr "Nome della cartella di tutte le foto"
+
+msgid "All photos folder structure"
+msgstr "Struttura della cartella di tutte le foto"
+
+msgid "Allow login into Synology Photos using 2FA with an OTP token."
+msgstr "Consente l'accesso a Synology Photos con 2FA tramite token OTP."
+
+msgid "Allow login into Synology Photos using 2FA with an OTP token. Example: --download-all ./MyLibrary --one-time-password"
+msgstr "Consente l'accesso a Synology Photos con 2FA tramite token OTP. Esempio: --download-all ./MyLibrary --one-time-password"
+
+msgid "Also reconstruct iCloud 'Memories' CSV collections as folders."
+msgstr "Ricostruisce anche le raccolte CSV 'Memories' di iCloud come cartelle."
+
+msgid "Also requires module selector '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'."
+msgstr "Richiede anche il selettore di modulo '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'."
+
+msgid "An administrator reviews every request. You will get an email when your account is active."
+msgstr "Un amministratore esamina ogni richiesta. Riceverai un'email quando il tuo account sarà attivo."
+
+msgid "Any value saved here is kept in the database but ignored while that override remains set."
+msgstr "Qualsiasi valore salvato qui viene conservato nel database ma ignorato finché resta attivo quell'override."
+
+msgid "App settings"
+msgstr "Impostazioni dell'app"
+
+msgid "App settings status:"
+msgstr "Stato delle impostazioni dell'app:"
+
+msgid "App settings status: loaded (db://users/admin/Config.ini)"
+msgstr "Stato delle impostazioni dell'app: caricate (db://users/admin/Config.ini)"
+
+msgid "Apple Photos"
+msgstr "Apple Photos"
+
+msgid "Apple iCloud Photos export"
+msgstr "Esportazione di Apple iCloud Photos"
+
+msgid "Apply a reviewed duplicates CSV"
+msgstr "Applica un CSV di duplicati revisionato"
+
+msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
+msgstr "Approvala attivando l'account nel Pannello di amministrazione oppure rifiutala dalla stessa lista."
+
+msgid "Are you sure?"
+msgstr "Confermi?"
+
+msgid "Arguments must be passed as two values separated by comma."
+msgstr "Gli argomenti devono essere passati come due valori separati da virgola."
+
+msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
+msgstr "Gli asset vengono rimossi dall'origine dopo la migrazione. Disattiva “Sposta asset” per copiarli invece."
+
+msgid "Authorize"
+msgstr "Autorizza"
+
+msgid "Auto Rename Folders Content Based"
+msgstr "Rinomina automatica cartelle in base al contenuto"
+
+msgid "Auto Scroll"
+msgstr "Scorrimento automatico"
+
+msgid "Automatic Migration"
+msgstr "Migrazione automatica"
+
+msgid "Automatic Migration Live Dashboard"
+msgstr "Dashboard live della migrazione automatica"
+
+msgid "Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run, with a live dashboard."
+msgstr "La migrazione automatica copia (o sposta) ogni foto, video e album da un'origine a una destinazione in un'unica esecuzione, con una dashboard live."
+
+msgid "Automatic Migration · PhotoMigrator"
+msgstr "Migrazione automatica · PhotoMigrator"
+
+msgid "Avoid special folder names: {0}."
+msgstr "Evita i nomi di cartella speciali: {0}."
+
+msgid "Back to Web UI"
+msgstr "Torna all'interfaccia web"
+
+msgid "Back to sign in"
+msgstr "Torna all'accesso"
+
+msgid "Backup Error"
+msgstr "Errore di backup"
+
+msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
+msgstr "Stato del backup: inattivo | Modalità: daily_2am | Ultima esecuzione: - | Prossima: -"
+
+msgid "Backup status: schedule saved | Next: {0}"
+msgstr "Stato del backup: pianificazione salvata | Prossima: {0}"
+
+msgid "Backup status: {0}"
+msgstr "Stato del backup: {0}"
+
+msgid "Backup status: {0} | File: {1}"
+msgstr "Stato del backup: {0} | File: {1}"
+
+msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
+msgstr "Stato del backup: {0} | Modalità: {1} | Ultima esecuzione: {2} | Prossima: {3}"
+
+msgid "Backups Scheduler"
+msgstr "Pianificazione dei backup"
+
+msgid "Blue palette"
+msgstr "Tavolozza blu"
+
+msgid "Browse"
+msgstr "Sfoglia"
+
+msgid "By default migration runs in parallel with live dashboard enabled."
+msgstr "Per impostazione predefinita la migrazione viene eseguita in parallelo con la dashboard live attiva."
+
+msgid "By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided."
+msgstr "Per impostazione predefinita l'output usa la struttura 'year/month' e viene salvato in '<INPUT_FOLDER>_processed_<TIMESTAMP>', a meno che non venga indicato '-o/--output-folder'."
+
+msgid "CSV endpoint not available in backend. Restart/update the web backend."
+msgstr "Endpoint CSV non disponibile nel backend. Riavvia/aggiorna il backend web."
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Change Email"
+msgstr "Cambia email"
+
+msgid "Change Email: {0}"
+msgstr "Cambia email: {0}"
+
+msgid "Changes your library"
+msgstr "Modifica la tua libreria"
+
+msgid "Check the command preview, press Run and watch it live in"
+msgstr "Controlla l'anteprima del comando, premi Esegui e seguilo in tempo reale in"
+
+msgid "Check the command, press Run and watch it live in"
+msgstr "Controlla il comando, premi Run e seguilo in diretta in"
+
+msgid "Choose a subfolder inside one of your assigned roots."
+msgstr "Scegli una sottocartella all'interno di una delle tue radici assegnate."
+
+msgid "Choose a task"
+msgstr "Scegli un'attività"
+
+msgid "Choose a tool"
+msgstr "Scegli uno strumento"
+
+msgid "Choose an action"
+msgstr "Scegli un'azione"
+
+msgid "Choose the retained asset for '--remove-duplicates-assets'."
+msgstr "Scegli l'asset da conservare per '--remove-duplicates-assets'."
+
+msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
+msgstr "Scegli l'asset da conservare per '--remove-duplicates-assets'. Le strategie more-people/tags conservano l'asset con più persone distinte, poi con più tag, quindi applicano il criterio di spareggio indicato. 'better-quality' usa il suggerimento nativo di Immich; 'oldest' e 'newest' usano la data di caricamento (predefinito: more-people/tags-then-better-quality per l'algoritmo nativo di Immich o more-people/tags-then-oldest per l'algoritmo di PhotoMigrator)."
+
+msgid "Clean up"
+msgstr "Pulisci"
+
+msgid "Client ID"
+msgstr "ID client"
+
+msgid "Client secret"
+msgstr "Segreto client"
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "Close menu"
+msgstr "Chiudi menu"
+
+msgid "Collapse panel"
+msgstr "Comprimi pannello"
+
+msgid "Comma-separated folder paths to scan for duplicates."
+msgstr "Percorsi delle cartelle da analizzare alla ricerca di duplicati, separati da virgola."
+
+msgid "Comma-separated folders"
+msgstr "Cartelle separate da virgola"
+
+msgid "Command"
+msgstr "Comando"
+
+msgid "Command copied"
+msgstr "Comando copiato"
+
+msgid "Config status: auto-save failed ({0})"
+msgstr "Stato della configurazione: salvataggio automatico non riuscito ({0})"
+
+msgid "Config status: auto-saved ({0}) at {1}"
+msgstr "Stato della configurazione: salvata automaticamente ({0}) alle {1}"
+
+msgid "Config status: auto-saving app settings..."
+msgstr "Stato della configurazione: salvataggio automatico delle impostazioni dell'app..."
+
+msgid "Config status: export canceled"
+msgstr "Stato della configurazione: esportazione annullata"
+
+msgid "Config status: export failed ({0})"
+msgstr "Stato della configurazione: esportazione non riuscita ({0})"
+
+msgid "Config status: exported ({0})"
+msgstr "Stato della configurazione: esportata ({0})"
+
+msgid "Config status: import canceled"
+msgstr "Stato della configurazione: importazione annullata"
+
+msgid "Config status: import failed ({0})"
+msgstr "Stato della configurazione: importazione non riuscita ({0})"
+
+msgid "Config status: imported ({0})"
+msgstr "Stato della configurazione: importata ({0})"
+
+msgid "Config status: loaded (db://users/admin/Config.ini)"
+msgstr "Stato della configurazione: caricata (db://users/admin/Config.ini)"
+
+msgid "Config status: loaded ({0})"
+msgstr "Stato della configurazione: caricata ({0})"
+
+msgid "Config status: save canceled by user"
+msgstr "Stato della configurazione: salvataggio annullato dall'utente"
+
+msgid "Config status: save failed ({0})"
+msgstr "Stato della configurazione: salvataggio non riuscito ({0})"
+
+msgid "Config status: saved ({0})"
+msgstr "Stato della configurazione: salvata ({0})"
+
+msgid "Config status: saving with demo restrictions (only TimeZone/Theme changes are allowed)"
+msgstr "Stato della configurazione: salvataggio con restrizioni demo (sono consentite solo modifiche a TimeZone/Theme)"
+
+msgid "Config.ini has been overwritten successfully in the user database."
+msgstr "Config.ini è stato sovrascritto correttamente nel database dell'utente."
+
+msgid "Configuration File"
+msgstr "File di configurazione"
+
+msgid "Configuration Saved"
+msgstr "Configurazione salvata"
+
+msgid "Configuration file"
+msgstr "File di configurazione"
+
+msgid "Configuration for Google Photos"
+msgstr "Configurazione per Google Photos"
+
+msgid "Configured"
+msgstr "Configurato"
+
+msgid "Confirm"
+msgstr "Conferma"
+
+msgid "Confirm Action"
+msgstr "Conferma azione"
+
+msgid "Confirm new password"
+msgstr "Conferma la nuova password"
+
+msgid "Confirm password"
+msgstr "Conferma password"
+
+msgid "Connect your services"
+msgstr "Collega i tuoi servizi"
+
+msgid "Connection security"
+msgstr "Sicurezza della connessione"
+
+msgid "Consolidate Albums Names"
+msgstr "Consolida nomi degli album"
+
+msgid "Consolidate Similar Albums"
+msgstr "Consolida album simili"
+
+msgid "Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets."
+msgstr "Consolida direttamente nel servizio di destinazione le famiglie di nomi di album cloud equivalenti già esistenti, senza caricare nuovi asset."
+
+msgid "Copy album files instead of symlinks"
+msgstr "Copia i file degli album invece di creare collegamenti simbolici"
+
+msgid "Copy command"
+msgstr "Copia comando"
+
+msgid "Copy failed"
+msgstr "Copia non riuscita"
+
+msgid "Copy log"
+msgstr "Copia log"
+
+msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
+msgstr "Copia o sposta ogni foto, video e album da un'origine a una destinazione in un'unica esecuzione. Gli album vengono ricreati sulla destinazione."
+
+msgid "Create"
+msgstr "Crea"
+
+msgid "Create Folder"
+msgstr "Crea cartella"
+
+msgid "Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an Automatic Migration with an Immich destination."
+msgstr "Crea stack di Immich per le foto simili a scatti in sequenza dopo Carica tutto, Carica album o una migrazione automatica con destinazione Immich."
+
+msgid "Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an Automatic Migration with an Immich destination. (default: True)."
+msgstr "Crea stack di Immich per le foto simili a scatti in sequenza dopo Carica tutto, Carica album o una migrazione automatica con destinazione Immich. (predefinito: True)."
+
+msgid "Create User"
+msgstr "Crea utente"
+
+msgid "Create User Error"
+msgstr "Errore nella creazione dell'utente"
+
+msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date."
+msgstr "Crea una copia elaborata (o un clone spostato) di <INPUT_FOLDER> e organizza i suoi file per data."
+
+msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date. By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided. Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy. Example: --organize-local-folder-by-date ./UnsortedLibrary"
+msgstr "Crea una copia elaborata (o un clone spostato) di <INPUT_FOLDER> e organizza i suoi file per data. Per impostazione predefinita l'output usa la struttura 'year/month' e viene salvato in '<INPUT_FOLDER>_processed_<TIMESTAMP>', a meno che non venga indicato '-o/--output-folder'. Usa '--organize-folder-structure' per cambiare la struttura, '--organize-output-folder-suffix' per cambiare il suffisso generato quando non è indicata una cartella di output esplicita e '--move-original-files' per spostare invece di copiare. Esempio: --organize-local-folder-by-date ./UnsortedLibrary"
+
+msgid "Create failed: {0}"
+msgstr "Creazione non riuscita: {0}"
+
+msgid "Create stacks"
+msgstr "Crea stack"
+
+msgid "Created From"
+msgstr "Creato dal"
+
+msgid "Created To"
+msgstr "Creato fino al"
+
+msgid "Created: {0}"
+msgstr "Creato: {0}"
+
+msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
+msgstr "Le credenziali e le impostazioni dei servizi vengono salvate per utente nel database web. I valori sensibili restano cifrati a riposo e sono riutilizzati da ogni funzione."
+
+msgid "Credentials for account {0} found in Settings"
+msgstr "Credenziali per l'account {0} trovate nelle Impostazioni"
+
+msgid "Current run"
+msgstr "Esecuzione corrente"
+
+msgid "Current: {0}"
+msgstr "Attuale: {0}"
+
+msgid "Current: {0} | Error: {1}"
+msgstr "Attuale: {0} | Errore: {1}"
+
+msgid "Current: {0} | Selected: {1}"
+msgstr "Attuale: {0} | Selezionato: {1}"
+
+msgid "Current: {0} | {1}"
+msgstr "Attuale: {0} | {1}"
+
+msgid "DB Delete Error"
+msgstr "Errore di eliminazione dal DB"
+
+msgid "DB Insert Error"
+msgstr "Errore di inserimento nel DB"
+
+msgid "DB Update Error"
+msgstr "Errore di aggiornamento del DB"
+
+msgid "Dangerous Module"
+msgstr "Modulo pericoloso"
+
+msgid "Dark UI palette"
+msgstr "Tavolozza scura dell'interfaccia"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Database Manager"
+msgstr "Gestione database"
+
+msgid "Date and range separators"
+msgstr "Separatori di data e intervallo"
+
+msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
+msgstr "I separatori di data e intervallo possono essere personalizzati con '--date-separator' e '--range-separator'."
+
+msgid "Date separator"
+msgstr "Separatore di data"
+
+msgid "Default account available:"
+msgstr "Account predefinito disponibile:"
+
+msgid "Delete"
+msgstr "Elimina"
+
+msgid "Delete DB Row"
+msgstr "Elimina riga del DB"
+
+msgid "Delete Failed"
+msgstr "Eliminazione non riuscita"
+
+msgid "Delete Row"
+msgstr "Elimina riga"
+
+msgid "Delete Selected Folders?"
+msgstr "Eliminare le cartelle selezionate?"
+
+msgid "Delete User"
+msgstr "Elimina utente"
+
+msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
+msgstr "Endpoint di eliminazione non disponibile. Riavvia il backend dell'interfaccia web e riprova."
+
+msgid "Delete row"
+msgstr "Elimina riga"
+
+msgid "Delete row {0} from '{1}'?"
+msgstr "Eliminare la riga {0} da '{1}'?"
+
+msgid "Demo"
+msgstr "Demo"
+
+msgid "Demo Role Restricted"
+msgstr "Ruolo demo limitato"
+
+msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
+msgstr "Il ruolo demo non può eseguire direttamente questa azione di configurazione. Inserisci nome utente e password di un amministratore attivo."
+
+msgid "Destination Required"
+msgstr "Destinazione obbligatoria"
+
+msgid "Destination folder"
+msgstr "Cartella di destinazione"
+
+msgid "Do not save the GPTH log"
+msgstr "Non salvare il log di GPTH"
+
+msgid "Document"
+msgstr "Documento"
+
+msgid "Documentation"
+msgstr "Documentazione"
+
+msgid "Download Albums"
+msgstr "Scarica album"
+
+msgid "Download All"
+msgstr "Scarica tutto"
+
+msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>."
+msgstr "Scarica tutti gli album e tutti gli asset non appartenenti ad album in <OUTPUT_FOLDER>."
+
+msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened). - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure. Example: --download-all ./MyLibrary"
+msgstr "Scarica tutti gli album e tutti gli asset non appartenenti ad album in <OUTPUT_FOLDER>. - Gli album vengono scaricati in <OUTPUT_FOLDER>/Albums/<AlbumName> (struttura appiattita). - Gli asset non appartenenti ad album vanno in <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ con struttura year/month. Esempio: --download-all ./MyLibrary"
+
+msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
+msgstr "Scarica album specifici in <OUTPUT_FOLDER> (obbligatorio: -o/--output-folder)."
+
+msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder). - Use 'ALL' to download ALL albums. - Use patterns: e.g. --download-albums 'dron*' - Multiple albums can be separated by comma or space and quoted. Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+msgstr "Scarica album specifici in <OUTPUT_FOLDER> (obbligatorio: -o/--output-folder). - Usa 'ALL' per scaricare TUTTI gli album. - Usa degli schemi: ad es. --download-albums 'dron*' - Più album possono essere separati da virgola o spazio e racchiusi tra virgolette. Esempio: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+
+msgid "Drag from bottom edge or bottom corners to resize the log panel"
+msgstr "Trascina dal bordo inferiore o dagli angoli inferiori per ridimensionare il pannello dei log"
+
+msgid "Dup asset keeper"
+msgstr "Asset duplicato da conservare"
+
+msgid "Dup immich native algorithm"
+msgstr "Algoritmo nativo di Immich per i duplicati"
+
+msgid "Dup immich native deletion"
+msgstr "Eliminazione nativa di Immich per i duplicati"
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>."
+msgstr "Duplica gli asset degli album invece di creare collegamenti simbolici all'asset originale in <ALL_PHOTOS_FOLDER>."
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>. (Makes your output portable but requires more HDD space). IMPORTANT: This can considerably increase output size, especially if you have many albums."
+msgstr "Duplica gli asset degli album invece di creare collegamenti simbolici all'asset originale in <ALL_PHOTOS_FOLDER>. (Rende l'output portabile ma richiede più spazio su disco). IMPORTANTE: può aumentare notevolmente le dimensioni dell'output, soprattutto con molti album."
+
+msgid "Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>. (Makes your output portable but requires more HDD space). IMPORTANT: This can considerably increase output size, especially if you have many albums. Example: if one asset belongs to 3 albums, you will end up with 4 copies (original + 3)."
+msgstr "Duplica gli asset degli album invece di creare collegamenti simbolici all'asset originale in <ALL_PHOTOS_FOLDER>. (Rende l'output portabile ma richiede più spazio su disco). IMPORTANTE: può aumentare notevolmente le dimensioni dell'output, soprattutto con molti album. Esempio: se un asset appartiene a 3 album, otterrai 4 copie (originale + 3)."
+
+msgid "Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>."
+msgstr "Duplica gli asset degli album iCloud ricostruiti invece di creare collegamenti simbolici all'asset originale in <ALL_PHOTOS_FOLDER>."
+
+msgid "Duplicates"
+msgstr "Duplicati"
+
+msgid "Duplicates CSV"
+msgstr "CSV dei duplicati"
+
+msgid "Duplicates, folders"
+msgstr "Duplicati, cartelle"
+
+msgid "Duration: <b>{0}</b>. Last lines of the log:"
+msgstr "Durata: <b>{0}</b>. Ultime righe del log:"
+
+msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper."
+msgstr "Durante il caricamento, considera i nomi di album esistenti equivalenti come un'unica famiglia e unisci i loro asset nell'album canonico da conservare."
+
+msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
+msgstr "Durante il caricamento, considera i nomi di album esistenti equivalenti come un'unica famiglia e unisci i loro asset nell'album canonico da conservare. Gli album ridondanti vengono rimossi solo se il servizio supporta l'eliminazione degli album."
+
+msgid "Elapsed Time"
+msgstr "Tempo trascorso"
+
+msgid "Elapsed Time: 00:00:00"
+msgstr "Tempo trascorso: 00:00:00"
+
+msgid "Elapsed Time: {0}"
+msgstr "Tempo trascorso: {0}"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Email (SMTP)"
+msgstr "Email (SMTP)"
+
+msgid "Email check"
+msgstr "Verifica email"
+
+msgid "Email is not configured on this server yet."
+msgstr "L'email non è ancora configurata su questo server."
+
+msgid "Email me when it finishes"
+msgstr "Inviami un'email al termine"
+
+msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
+msgstr "Stato email: non configurata, non viene inviata alcuna email; le richieste di account dalla pagina di accesso sono abilitate."
+
+msgid "Email status: saving..."
+msgstr "Stato email: salvataggio..."
+
+msgid "Email status: sending test email..."
+msgstr "Stato email: invio dell'email di prova..."
+
+msgid "Email status: test email sent to {0}."
+msgstr "Stato email: email di prova inviata a {0}."
+
+msgid "Email status: {0}"
+msgstr "Stato email: {0}"
+
+msgid "Enable or disable Error messages during GPTH Processing."
+msgstr "Abilita o disabilita i messaggi di errore durante l'elaborazione con GPTH."
+
+msgid "Enable or disable Error messages during GPTH Processing. (default: True)."
+msgstr "Abilita o disabilita i messaggi di errore durante l'elaborazione con GPTH. (predefinito: True)."
+
+msgid "Enable or disable Info messages during GPTH Processing."
+msgstr "Abilita o disabilita i messaggi informativi durante l'elaborazione con GPTH."
+
+msgid "Enable or disable Info messages during GPTH Processing. (default: True)."
+msgstr "Abilita o disabilita i messaggi informativi durante l'elaborazione con GPTH. (predefinito: True)."
+
+msgid "Enable or disable Live Dashboard feature during Automated Migration job."
+msgstr "Abilita o disabilita la dashboard live durante un'attività di migrazione automatica."
+
+msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
+msgstr "Abilita o disabilita la dashboard live durante un'attività di migrazione automatica. Questo argomento si applica solo se sono presenti sia '--source' sia '--target'. (predefinito: True)."
+
+msgid "Enabled"
+msgstr "Abilitato"
+
+msgid "Enter a folder name, or an absolute path inside"
+msgstr "Inserisci un nome di cartella oppure un percorso assoluto all'interno di"
+
+msgid "Env override"
+msgstr "Override da variabile d'ambiente"
+
+msgid "Error: {0}"
+msgstr "Errore: {0}"
+
+msgid "Estimated End"
+msgstr "Fine stimata"
+
+msgid "Every album and asset"
+msgstr "Ogni album e asset"
+
+msgid "Every album, optionally its assets"
+msgstr "Ogni album, facoltativamente con i suoi asset"
+
+msgid "Every asset and album"
+msgstr "Ogni asset e album"
+
+msgid "Every day (2:00 AM)"
+msgstr "Ogni giorno (02:00)"
+
+msgid "Every hour"
+msgstr "Ogni ora"
+
+msgid "Every week (Monday 2:00 AM)"
+msgstr "Ogni settimana (lunedì alle 02:00)"
+
+msgid "Example: --consolidate-albums-names --preview-album-actions"
+msgstr "Esempio: --consolidate-albums-names --preview-album-actions"
+
+msgid "Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+msgstr "Esempio: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
+
+msgid "Example: --download-all ./MyLibrary"
+msgstr "Esempio: --download-all ./MyLibrary"
+
+msgid "Example: --find-duplicates move ./Albums ./ALL_PHOTOS"
+msgstr "Esempio: --find-duplicates move ./Albums ./ALL_PHOTOS"
+
+msgid "Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
+msgstr "Esempio: --fix-symlinks-broken ./OUTPUT_FOLDER"
+
+msgid "Example: --merge-duplicates-albums"
+msgstr "Esempio: --merge-duplicates-albums"
+
+msgid "Example: --organize-local-folder-by-date ./UnsortedLibrary"
+msgstr "Esempio: --organize-local-folder-by-date ./UnsortedLibrary"
+
+msgid "Example: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+msgstr "Esempio: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+
+msgid "Example: --remove-albums \"^Temp\" --remove-albums-assets"
+msgstr "Esempio: --remove-albums \"^Temp\" --remove-albums-assets"
+
+msgid "Example: --remove-all-albums --remove-albums-assets"
+msgstr "Esempio: --remove-all-albums --remove-albums-assets"
+
+msgid "Example: --remove-all-assets"
+msgstr "Esempio: --remove-all-assets"
+
+msgid "Example: --remove-duplicates-albums"
+msgstr "Esempio: --remove-duplicates-albums"
+
+msgid "Example: --remove-duplicates-assets --dup-asset-keeper newest"
+msgstr "Esempio: --remove-duplicates-assets --dup-asset-keeper newest"
+
+msgid "Example: --remove-empty-albums"
+msgstr "Esempio: --remove-empty-albums"
+
+msgid "Example: --rename-albums \"*-*, --\" (single comma-separated value, useful when replacement starts with '--')"
+msgstr "Esempio: --rename-albums \"*-*, --\" (un unico valore separato da virgola, utile quando la sostituzione inizia con '--')"
+
+msgid "Example: --rename-albums \"*--*\", \"-\""
+msgstr "Esempio: --rename-albums \"*--*\", \"-\""
+
+msgid "Example: --rename-albums \"--\", \"-\""
+msgstr "Esempio: --rename-albums \"--\", \"-\""
+
+msgid "Example: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\""
+msgstr "Esempio: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\""
+
+msgid "Example: --rename-folders-content-based ./MyLocalPhotoLibrary"
+msgstr "Esempio: --rename-folders-content-based ./MyLocalPhotoLibrary"
+
+msgid "Example: --source=/homes/MyTakeout --target=synology-1"
+msgstr "Esempio: --source=/homes/MyTakeout --target=synology-1"
+
+msgid "Example: --source=synology-2 --target=google-photos-1"
+msgstr "Esempio: --source=synology-2 --target=google-photos-1"
+
+msgid "Example: --upload-albums ./My_Albums_Folder"
+msgstr "Esempio: --upload-albums ./My_Albums_Folder"
+
+msgid "Example: --upload-all ./MyLibrary"
+msgstr "Esempio: --upload-all ./MyLibrary"
+
+msgid "Example: 2024-01-31, 31/01/2024, 2024"
+msgstr "Esempio: 2024-01-31, 31/01/2024, 2024"
+
+msgid "Example: 2025-12-31, 31/12/2025, 2025"
+msgstr "Esempio: 2025-12-31, 31/12/2025, 2025"
+
+msgid "Example: @eaDir, .@__thumb, @Recycle"
+msgstr "Esempio: @eaDir, .@__thumb, @Recycle"
+
+msgid "Example: Madrid"
+msgstr "Esempio: Madrid"
+
+msgid "Example: Peter"
+msgstr "Esempio: Peter"
+
+msgid "Example: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store"
+msgstr "Esempio: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store"
+
+msgid "Example: Spain"
+msgstr "Esempio: Spain"
+
+msgid "Exclude Files"
+msgstr "Escludi file"
+
+msgid "Exclude Folders"
+msgstr "Escludi cartelle"
+
+msgid "Exclude files"
+msgstr "Escludi file"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration."
+msgstr "Esclude i file che corrispondono a uno o più schemi glob durante l'elaborazione o la migrazione di una cartella di foto locale."
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration. --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+msgstr "Esclude i file che corrispondono a uno o più schemi glob durante l'elaborazione o la migrazione di una cartella di foto locale. --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+
+msgid "Exclude files matching one or more glob patterns during Local Photos Folder processing or migration. Examples: --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+msgstr "Esclude i file che corrispondono a uno o più schemi glob durante l'elaborazione o la migrazione di una cartella di foto locale. Esempi: --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'"
+
+msgid "Exclude folders"
+msgstr "Escludi cartelle"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration."
+msgstr "Esclude le cartelle che corrispondono a uno o più schemi glob durante l'elaborazione o la migrazione di una cartella di foto locale."
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration. --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+msgstr "Esclude le cartelle che corrispondono a uno o più schemi glob durante l'elaborazione o la migrazione di una cartella di foto locale. --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+
+msgid "Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration. Examples: --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+msgstr "Esclude le cartelle che corrispondono a uno o più schemi glob durante l'elaborazione o la migrazione di una cartella di foto locale. Esempi: --exclude-folders @eaDir .@__thumb @Recycle --exclude-folders='@eaDir,.@__thumb,@Recycle'"
+
+msgid "Exec EXIF tool"
+msgstr "Esegui strumento EXIF"
+
+msgid "Exec GPTH tool"
+msgstr "Esegui strumento GPTH"
+
+msgid "Execution"
+msgstr "Esecuzione"
+
+msgid "Expand panel"
+msgstr "Espandi pannello"
+
+msgid "Expand/collapse section"
+msgstr "Espandi/comprimi sezione"
+
+msgid "Export Config"
+msgstr "Esporta configurazione"
+
+msgid "Extract ZIPs on upload"
+msgstr "Estrai i file ZIP durante il caricamento"
+
+msgid "Extracted ZIPs: {0} ({1} files) |"
+msgstr "ZIP estratti: {0} ({1} file) |"
+
+msgid "Extracted ZIPs: {0}\\n"
+msgstr "ZIP estratti: {0}\\n"
+
+msgid "Failed: {0}"
+msgstr "Non riuscito: {0}"
+
+msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
+msgstr "Compila i campi obbligatori. Le opzioni avanzate mantengono i valori predefiniti a meno che tu non le apra."
+
+msgid "Filter by city"
+msgstr "Filtra per città"
+
+msgid "Filter by country"
+msgstr "Filtra per paese"
+
+msgid "Filter by person"
+msgstr "Filtra per persona"
+
+msgid "Filter by type"
+msgstr "Filtra per tipo"
+
+msgid "Filter from date"
+msgstr "Filtra dalla data"
+
+msgid "Filter to date"
+msgstr "Filtra fino alla data"
+
+msgid "Filters"
+msgstr "Filtri"
+
+msgid "Find Duplicates"
+msgstr "Trova duplicati"
+
+msgid "Find Duplicates Input"
+msgstr "Input per Trova duplicati"
+
+msgid "Find duplicates"
+msgstr "Trova duplicati"
+
+msgid "Find duplicates in one or more folders using file size and content checks."
+msgstr "Trova duplicati in una o più cartelle confrontando dimensione e contenuto dei file."
+
+msgid "Fix Broken Symlinks"
+msgstr "Ripara collegamenti simbolici interrotti"
+
+msgid "Fix a Google Takeout"
+msgstr "Correggere un Google Takeout"
+
+msgid "Fix a Google export"
+msgstr "Correggi un'esportazione Google"
+
+msgid "Fix an Apple export"
+msgstr "Correggi un'esportazione Apple"
+
+msgid "Fix an export from Google or Apple"
+msgstr "Correggi un'esportazione di Google o Apple"
+
+msgid "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."
+msgstr "Correggi date e metadati di un'esportazione Takeout di Google Photos e ricostruisci i suoi album in una libreria pulita."
+
+msgid "Fix symlinks · Rename folders · Organize by date · Duplicates"
+msgstr "Ripara collegamenti simbolici · Rinomina cartelle · Organizza per data · Duplicati"
+
+msgid "Folder"
+msgstr "Cartella"
+
+msgid "Folder Structure"
+msgstr "Struttura delle cartelle"
+
+msgid "Folder path"
+msgstr "Percorso della cartella"
+
+msgid "Folder structure"
+msgstr "Struttura delle cartelle"
+
+msgid "Folder to fix"
+msgstr "Cartella da riparare"
+
+msgid "Folder(s)"
+msgstr "Cartella/e"
+
+msgid "Foldername albums"
+msgstr "Nome cartella degli album"
+
+msgid "Foldername duplicates output"
+msgstr "Nome cartella di output dei duplicati"
+
+msgid "Foldername extracted dates"
+msgstr "Nome cartella delle date estratte"
+
+msgid "Foldername logs"
+msgstr "Nome cartella dei log"
+
+msgid "Foldername no albums"
+msgstr "Nome cartella senza album"
+
+msgid "Folders"
+msgstr "Cartelle"
+
+msgid "Folders to scan"
+msgstr "Cartelle da analizzare"
+
+msgid "Follow its live progress and log in Activity."
+msgstr "Segui avanzamento e log in diretta in Attività."
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0})."
+msgstr "Per Consolida nomi degli album, imposta il numero massimo di asset affinché un album sia considerato piccolo (predefinito: {0})."
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0}). Only used when '--try-small-albums-grouping' is enabled."
+msgstr "Per Consolida nomi degli album, imposta il numero massimo di asset affinché un album sia considerato piccolo (predefinito: {0}). Usato solo quando '--try-small-albums-grouping' è abilitato."
+
+msgid "For Consolidate Albums Names, try canonical/equivalent album-name grouping (default: True)."
+msgstr "Per Consolida nomi degli album, prova il raggruppamento per nomi di album canonici/equivalenti (predefinito: True)."
+
+msgid "For Consolidate Albums Names, try compatible YYYY/YYYY-MM/YYYY-MM-DD date-prefix grouping (default: True)."
+msgstr "Per Consolida nomi degli album, prova il raggruppamento per prefissi di data compatibili YYYY/YYYY-MM/YYYY-MM-DD (predefinito: True)."
+
+msgid "For Consolidate Albums Names, try grouping small albums into larger similarly named albums with matching capture dates (default: True)."
+msgstr "Per Consolida nomi degli album, prova a raggruppare gli album piccoli in album più grandi con nome simile e date di scatto corrispondenti (predefinito: True)."
+
+msgid "For Consolidate Albums Names, try guarded truncated album-name grouping (default: True)."
+msgstr "Per Consolida nomi degli album, prova il raggruppamento protetto per nomi di album troncati (predefinito: True)."
+
+msgid "For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper location from duplicates."
+msgstr "Solo per la risoluzione manuale di Rimuovi asset duplicati in Immich, consente di copiare dai duplicati una posizione mancante nell'asset da conservare."
+
+msgid "For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper location from duplicates. Disabled by default to avoid propagating an incorrect GPS location. When enabled, at least two redundant assets must have the same complete coordinate pair; this option does not apply to Immich native duplicate deletion."
+msgstr "Solo per la risoluzione manuale di Rimuovi asset duplicati in Immich, consente di copiare dai duplicati una posizione mancante nell'asset da conservare. Disabilitato per impostazione predefinita per evitare di propagare una posizione GPS errata. Se abilitato, almeno due asset ridondanti devono avere la stessa coppia completa di coordinate; questa opzione non si applica all'eliminazione nativa dei duplicati di Immich."
+
+msgid "For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, merge albums, favorites, highest rating, combined descriptions, most restrictive visibility, matching locations, and tags, then trash redundant assets. This uses Immich's Alpha duplicate-resolution API and is available only with native detection and '--dup-asset-keeper=better-quality'. All other keeper strategies use PhotoMigrator's guarded merge and are sent to trash only after the selected keeper is verified. When enabled, the keeper must be 'better-quality'. It is enabled by default only for that supported combination and disabled otherwise."
+msgstr "Per Rimuovi asset duplicati in Immich, lascia che sia Immich a risolvere ogni gruppo di duplicati nativo, unendo album, preferiti, valutazione più alta, descrizioni combinate, visibilità più restrittiva, posizioni corrispondenti e tag, quindi sposta nel cestino gli asset ridondanti. Usa l'API Alpha di Immich per la risoluzione dei duplicati ed è disponibile solo con il rilevamento nativo e '--dup-asset-keeper=better-quality'. Tutte le altre strategie di conservazione usano l'unione protetta di PhotoMigrator e inviano al cestino solo dopo aver verificato l'asset da conservare selezionato. Se abilitato, l'asset da conservare deve essere 'better-quality'. È abilitato per impostazione predefinita solo per quella combinazione supportata e disabilitato negli altri casi."
+
+msgid "For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, merge albums, favorites, highest rating, combined descriptions, most restrictive visibility, m…"
+msgstr "Per Rimuovi asset duplicati in Immich, lascia che sia Immich a risolvere ogni gruppo di duplicati nativo, unendo album, preferiti, valutazione più alta, descrizioni combinate, visibilità più restrittiva, …"
+
+msgid "For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of same-filename-and-size grouping."
+msgstr "Per Rimuovi asset duplicati in Immich, usa i gruppi di duplicati visivi nativi di Immich invece del raggruppamento per stesso nome file e stessa dimensione."
+
+msgid "For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of same-filename-and-size grouping. Native detection is based on asset similarity rather than file size. When disabled, PhotoMigrator groups exact filename-and-size matches; this is useful for repeated uploads of the same processed Takeout on different dates when an EXIF tag value prevented Immich from rejecting the later upload (default: True)."
+msgstr "Per Rimuovi asset duplicati in Immich, usa i gruppi di duplicati visivi nativi di Immich invece del raggruppamento per stesso nome file e stessa dimensione. Il rilevamento nativo si basa sulla somiglianza degli asset anziché sulla dimensione del file. Se disabilitato, PhotoMigrator raggruppa le corrispondenze esatte di nome file e dimensione; è utile per caricamenti ripetuti dello stesso Takeout elaborato in date diverse, quando il valore di un tag EXIF ha impedito a Immich di rifiutare il caricamento successivo (predefinito: True)."
+
+msgid "For Immich, native duplicate detection is enabled by default and the selector defaults to 'more-people/tags-then-better-quality'. Google Photos cannot delete library media through its public API."
+msgstr "Per Immich, il rilevamento nativo dei duplicati è abilitato per impostazione predefinita e il selettore è impostato su 'more-people/tags-then-better-quality'. Google Photos non può eliminare i contenuti della libreria tramite la sua API pubblica."
+
+msgid "For Remove Albums, only match albums created on or after <DATE>."
+msgstr "Per Rimuovi album, considera solo gli album creati a partire da <DATE>."
+
+msgid "For Remove Albums, only match albums created on or after <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "Per Rimuovi album, considera solo gli album creati a partire da <DATE>. Da usare con '--remove-albums'; i formati accettati includono YYYY, YYYY-MM e YYYY-MM-DD."
+
+msgid "For Remove Albums, only match albums created on or before <DATE>."
+msgstr "Per Rimuovi album, considera solo gli album creati fino a <DATE>."
+
+msgid "For Remove Albums, only match albums created on or before <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "Per Rimuovi album, considera solo gli album creati fino a <DATE>. Da usare con '--remove-albums'; i formati accettati includono YYYY, YYYY-MM e YYYY-MM-DD."
+
+msgid "Force Password Change"
+msgstr "Forza cambio password"
+
+msgid "Force password change on first login"
+msgstr "Forza il cambio password al primo accesso"
+
+msgid "GPTH messages"
+msgstr "Messaggi di GPTH"
+
+msgid "General arguments"
+msgstr "Argomenti generali"
+
+msgid "Get started in three steps"
+msgstr "Inizia in tre passaggi"
+
+msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
+msgstr "Argomenti globali condivisi da ogni funzione: log, esecuzione, nomi delle cartelle e filtri."
+
+msgid "Global arguments shared by every feature: logging, execution, folder names and filters. They are the baseline for each run; a feature can override some of them, for example the migration filters."
+msgstr "Argomenti globali condivisi da ogni funzione: log, esecuzione, nomi delle cartelle e filtri. Costituiscono la base di ogni esecuzione; una funzione può sovrascriverne alcuni, ad esempio i filtri di migrazione."
+
+msgid "Go to first line"
+msgstr "Vai alla prima riga"
+
+msgid "Go to last line"
+msgstr "Vai all'ultima riga"
+
+msgid "Go to parent folder"
+msgstr "Vai alla cartella superiore"
+
+msgid "Good afternoon"
+msgstr "Buon pomeriggio"
+
+msgid "Good evening"
+msgstr "Buonasera"
+
+msgid "Good morning"
+msgstr "Buongiorno"
+
+msgid "Google"
+msgstr "Google"
+
+msgid "Google Photos"
+msgstr "Google Photos"
+
+msgid "Google Photos accounts"
+msgstr "Account Google Photos"
+
+msgid "Google Photos export"
+msgstr "Esportazione di Google Photos"
+
+msgid "Google Photos · PhotoMigrator"
+msgstr "Google Photos · PhotoMigrator"
+
+msgid "Google Photos, Synology, Immich, NextCloud, local folders and Takeout exports, in one place."
+msgstr "Google Photos, Synology, Immich, NextCloud, cartelle locali ed esportazioni Takeout, in un unico posto."
+
+msgid "Google Takeout"
+msgstr "Google Takeout"
+
+msgid "Google Takeout · PhotoMigrator"
+msgstr "Google Takeout · PhotoMigrator"
+
+msgid "Green palette"
+msgstr "Tavolozza verde"
+
+msgid "Help"
+msgstr "Guida"
+
+msgid "Help index empty"
+msgstr "Indice della guida vuoto"
+
+msgid "Help index unavailable"
+msgstr "Indice della guida non disponibile"
+
+msgid "Hi {0},"
+msgstr "Ciao {0},"
+
+msgid "Hide password"
+msgstr "Nascondi password"
+
+msgid "Home"
+msgstr "Home"
+
+msgid "Home (data)"
+msgstr "Home (dati)"
+
+msgid "Home (volumes)"
+msgstr "Home (volumi)"
+
+msgid "How to migrate"
+msgstr "Come migrare"
+
+msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
+msgstr "IMPORTANTE: 'move' e 'remove' modificano i file; inizia con 'list' se vuoi prima rivedere i risultati."
+
+msgid "IMPORTANT: Configure Config.ini credentials/API keys before running cloud migrations."
+msgstr "IMPORTANTE: configura le credenziali/chiavi API di Config.ini prima di eseguire migrazioni cloud."
+
+msgid "IMPORTANT: Links are only fixed when a valid target can be inferred from current files."
+msgstr "IMPORTANTE: i collegamenti vengono riparati solo quando è possibile dedurre una destinazione valida dai file attuali."
+
+msgid "IMPORTANT: This modifies original folder names in place; create a backup if needed."
+msgstr "IMPORTANTE: questa operazione modifica sul posto i nomi originali delle cartelle; crea un backup se necessario."
+
+msgid "IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "IMPORTANTE: questo modulo è una pipeline locale di pre-elaborazione. Non invia nulla a una destinazione cloud da solo."
+
+msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
+msgstr "IMPORTANTE: remove_duplicate e replace_duplicate sono operazioni irreversibili."
+
+msgid "IP Address"
+msgstr "Indirizzo IP"
+
+msgid "Idle"
+msgstr "Inattivo"
+
+msgid "If"
+msgstr "Se"
+
+msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
+msgstr "Se viene passato anche '-AlbFolder, --albums-folders <ALBUMS_FOLDER>', verranno creati album anche per quelle cartelle."
+
+msgid "If empty, the value from Settings › General arguments is used."
+msgstr "Se vuoto, viene usato il valore di Impostazioni › Argomenti generali."
+
+msgid "If set to No, .zip files are kept as uploaded."
+msgstr "Se impostato su No, i file .zip vengono mantenuti così come caricati."
+
+msgid "If the target supports album deletion (Immich, Synology, NextCloud), the redundant variants are then removed. Google Photos keeps them because the public API cannot delete albums."
+msgstr "Se la destinazione supporta l'eliminazione degli album (Immich, Synology, NextCloud), le varianti ridondanti vengono poi rimosse. Google Photos le mantiene perché l'API pubblica non può eliminare gli album."
+
+msgid "If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied."
+msgstr "Se questo argomento è presente, gli asset verranno spostati da <SOURCE> a <TARGET> invece di essere copiati."
+
+msgid "If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied. (default: False)."
+msgstr "Se questo argomento è presente, gli asset verranno spostati da <SOURCE> a <TARGET> invece di essere copiati. (predefinito: False)."
+
+msgid "If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album."
+msgstr "Se usato insieme a '-rAllAlb, --remove-all-albums' o '-rAlb, --remove-albums', rimuoverà anche gli asset (foto/video) contenuti in ogni album."
+
+msgid "If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>."
+msgstr "Se usato insieme a '-uAll, --upload-all', creerà un album per ogni sottocartella trovata in <ALBUMS_FOLDER>."
+
+msgid "Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc.), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamps."
+msgstr "Ignora il controllo della struttura di Google Takeout (file '.json', sottocartelle 'Photos from ', ecc.) e correggi tutti i file trovati in <TAKEOUT_FOLDER> cercando di dedurre i timestamp."
+
+msgid "Ignore the Takeout structure check"
+msgstr "Ignora il controllo della struttura di Takeout"
+
+msgid "Immich"
+msgstr "Immich"
+
+msgid "Immich Photos"
+msgstr "Immich Photos"
+
+msgid "Immich Photos · PhotoMigrator"
+msgstr "Immich Photos · PhotoMigrator"
+
+msgid "Immich Upload Timeout (seconds)"
+msgstr "Timeout di caricamento Immich (secondi)"
+
+msgid "Immich upload read timeout in seconds for Upload All, Upload Albums, and Automatic Migration when Immich is the target (default: {0})."
+msgstr "Timeout di lettura del caricamento Immich, in secondi, per Carica tutto, Carica album e Migrazione automatica quando Immich è la destinazione (predefinito: {0})."
+
+msgid "Import Config"
+msgstr "Importa configurazione"
+
+msgid "Import Google Takeout person labels into Immich when a Takeout people map is available."
+msgstr "Importa in Immich le etichette delle persone di Google Takeout quando è disponibile una mappa delle persone di Takeout."
+
+msgid "Import Google Takeout person labels into Immich when a Takeout people map is available. Only applies to an Immich destination or Immich Upload All/Upload Albums. (default: True)."
+msgstr "Importa in Immich le etichette delle persone di Google Takeout quando è disponibile una mappa delle persone di Takeout. Si applica solo a una destinazione Immich o a Carica tutto/Carica album su Immich. (predefinito: True)."
+
+msgid "Import people"
+msgstr "Importa persone"
+
+msgid "Include Memories as albums"
+msgstr "Includi i Ricordi come album"
+
+msgid "Input Folder"
+msgstr "Cartella di input"
+
+msgid "Insert Row"
+msgstr "Inserisci riga"
+
+msgid "Invalid --google-takeout path: contains '{0}'."
+msgstr "Percorso --google-takeout non valido: contiene '{0}'."
+
+msgid "Invalid --source path: contains '{0}'."
+msgstr "Percorso --source non valido: contiene '{0}'."
+
+msgid "Invalid --{0} path: the user root folder cannot be used directly ({1})."
+msgstr "Percorso --{0} non valido: la cartella radice dell'utente non può essere usata direttamente ({1})."
+
+msgid "Invalid Folder Selection"
+msgstr "Selezione cartella non valida"
+
+msgid "Invalid JSON format."
+msgstr "Formato JSON non valido."
+
+msgid "Invalid admin credentials or insufficient permissions."
+msgstr "Credenziali amministratore non valide o permessi insufficienti."
+
+msgid "Invalid credentials"
+msgstr "Credenziali non valide"
+
+msgid "Job linked to your session"
+msgstr "Attività collegata alla tua sessione"
+
+msgid "Keep an untouched Takeout copy"
+msgstr "Conserva una copia intatta di Takeout"
+
+msgid "Keep an untouched copy of original Takeout (requires double space)."
+msgstr "Conserva una copia intatta del Takeout originale (richiede il doppio dello spazio)."
+
+msgid "Keep an untouched copy of original Takeout (requires double space). TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
+msgstr "Conserva una copia intatta del Takeout originale (richiede il doppio dello spazio). SUGGERIMENTO: se <TAKEOUT_FOLDER> contiene i file zip originali, verranno comunque preservati."
+
+msgid "Keep last N backups"
+msgstr "Conserva gli ultimi N backup"
+
+msgid "Keep the best copy of each"
+msgstr "Conserva la copia migliore di ciascuno"
+
+msgid "Language"
+msgstr "Lingua"
+
+msgid "Last Updated"
+msgstr "Ultimo aggiornamento"
+
+msgid "Last Updated: -"
+msgstr "Ultimo aggiornamento: -"
+
+msgid "Last Updated: {0}"
+msgstr "Ultimo aggiornamento: {0}"
+
+msgid "Letters, numbers, dots, hyphens or underscores"
+msgstr "Lettere, numeri, punti, trattini o trattini bassi"
+
+msgid "Libraries & tools"
+msgstr "Librerie e strumenti"
+
+msgid "List only, move the duplicates to a folder, or delete them."
+msgstr "Elenca soltanto, sposta i duplicati in una cartella oppure eliminali."
+
+msgid "List, move or remove duplicates"
+msgstr "Elenca, sposta o rimuovi i duplicati"
+
+msgid "Load Table"
+msgstr "Carica tabella"
+
+msgid "Local Photos Folder"
+msgstr "Cartella di foto locale"
+
+msgid "Local Photos Folder · PhotoMigrator"
+msgstr "Cartella di foto locale · PhotoMigrator"
+
+msgid "Local folder"
+msgstr "Cartella locale"
+
+msgid "Local helpers"
+msgstr "Strumenti locali"
+
+msgid "Local helpers: repair symlinks, rename or organize folders, and find or process duplicates."
+msgstr "Strumenti locali: ripara collegamenti simbolici, rinomina o organizza cartelle, trova o elabora duplicati."
+
+msgid "Log"
+msgstr "Log"
+
+msgid "Log format"
+msgstr "Formato del log"
+
+msgid "Log level"
+msgstr "Livello di log"
+
+msgid "Logout"
+msgstr "Esci"
+
+msgid "Logs"
+msgstr "Log"
+
+msgid "Main navigation"
+msgstr "Navigazione principale"
+
+msgid "Manage a library"
+msgstr "Gestisci una libreria"
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB."
+msgstr "Dimensione massima, in MB, degli asset idonei ai nuovi tentativi di invio della migrazione automatica."
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB. Use {0} for no size limit (default: {1}). Retry count and delay settings still apply."
+msgstr "Dimensione massima, in MB, degli asset idonei ai nuovi tentativi di invio della migrazione automatica. Usa {0} per nessun limite di dimensione (predefinito: {1}). Le impostazioni di numero di tentativi e ritardo restano valide."
+
+msgid "Merge Duplicate Locations"
+msgstr "Unisci posizioni duplicate"
+
+msgid "Merge Duplicates Albums"
+msgstr "Unisci album duplicati"
+
+msgid "Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates."
+msgstr "Unisce gli album duplicati (con lo stesso nome): sposta gli asset nell'album più pertinente e rimuove i duplicati."
+
+msgid "Merge equivalent album families"
+msgstr "Unisci le famiglie di album equivalenti"
+
+msgid "Message"
+msgstr "Messaggio"
+
+msgid "Message for the administrator (optional)"
+msgstr "Messaggio per l'amministratore (facoltativo)"
+
+msgid "Message: {0}"
+msgstr "Messaggio: {0}"
+
+msgid "Migrate"
+msgstr "Migra"
+
+msgid "Missing Required Arguments"
+msgstr "Argomenti obbligatori mancanti"
+
+msgid "Missing required argument: --{0}"
+msgstr "Argomento obbligatorio mancante: --{0}"
+
+msgid "Missing tab."
+msgstr "Scheda mancante."
+
+msgid "Move Assets"
+msgstr "Sposta asset"
+
+msgid "Move Original Files"
+msgstr "Sposta i file originali"
+
+msgid "Move a whole library in one run"
+msgstr "Sposta un'intera libreria in un'unica esecuzione"
+
+msgid "Move mode is on"
+msgstr "La modalità di spostamento è attiva"
+
+msgid "Move the original folder into the processed output instead of copying it first."
+msgstr "Sposta la cartella originale nell'output elaborato invece di copiarla prima."
+
+msgid "Move the original folder into the processed output instead of copying it first. Useful to avoid duplicating disk usage for large local libraries."
+msgstr "Sposta la cartella originale nell'output elaborato invece di copiarla prima. Utile per evitare di duplicare l'uso del disco con librerie locali di grandi dimensioni."
+
+msgid "Move your photo library. Keep every memory."
+msgstr "Sposta la tua libreria di foto. Conserva ogni ricordo."
+
+msgid "Move your whole library to another service"
+msgstr "Sposta l'intera libreria su un altro servizio"
+
+msgid "Multiple albums can be separated by comma or space and quoted."
+msgstr "Più album possono essere separati da virgola o spazio e racchiusi tra virgolette."
+
+msgid "Naming & Folders"
+msgstr "Nomi e cartelle"
+
+msgid "New account request"
+msgstr "Nuova richiesta di account"
+
+msgid "New here?"
+msgstr "Sei nuovo?"
+
+msgid "New name for each matching album."
+msgstr "Nuovo nome per ogni album corrispondente."
+
+msgid "New password"
+msgstr "Nuova password"
+
+msgid "NextCloud"
+msgstr "NextCloud"
+
+msgid "NextCloud Photos"
+msgstr "NextCloud Photos"
+
+msgid "NextCloud Photos · PhotoMigrator"
+msgstr "NextCloud Photos · PhotoMigrator"
+
+msgid "No"
+msgstr "No"
+
+msgid "No additional help for this field."
+msgstr "Nessun aiuto aggiuntivo per questo campo."
+
+msgid "No credentials for account {0} yet."
+msgstr "Nessuna credenziale per l'account {0} per il momento."
+
+msgid "No extra arguments required"
+msgstr "Nessun argomento aggiuntivo richiesto"
+
+msgid "No files found in selected local folder."
+msgstr "Nessun file trovato nella cartella locale selezionata."
+
+msgid "No job is running. When you run a feature, its live progress and log appear in Activity."
+msgstr "Nessuna attività in esecuzione. Quando esegui una funzione, l'avanzamento in tempo reale e il log compaiono in Attività."
+
+msgid "No job running"
+msgstr "Nessuna attività in esecuzione"
+
+msgid "No log file"
+msgstr "Nessun file di log"
+
+msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
+msgstr "Gli asset non appartenenti ad album vanno in <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ con struttura year/month."
+
+msgid "None"
+msgstr "Nessuno"
+
+msgid "Not Found"
+msgstr "Non trovato"
+
+msgid "Not configured"
+msgstr "Non configurato"
+
+msgid "Not set"
+msgstr "Non impostato"
+
+msgid "Notice"
+msgstr "Avviso"
+
+msgid "OAuth Client ID for Google Photos account {0}"
+msgstr "ID client OAuth per l'account Google Photos {0}"
+
+msgid "OAuth Client Secret for Google Photos account {0}"
+msgstr "Segreto client OAuth per l'account Google Photos {0}"
+
+msgid "OAuth Refresh Token for Google Photos account {0}"
+msgstr "Token di aggiornamento OAuth per l'account Google Photos {0}"
+
+msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
+msgstr "Nelle destinazioni cloud supportate, le varianti ridondanti vengono unite nell'album preferito da conservare. Quando l'API supporta l'eliminazione degli album (Immich, Synology, NextCloud), gli album ridondanti vengono poi rimossi. Google Photos mantiene le varianti ridondanti perché l'API pubblica non può eliminare gli album."
+
+msgid "On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it."
+msgstr "Nelle destinazioni cloud supportate, viene usato il nome pulito preferito da conservare e gli asset delle varianti ridondanti vengono uniti in esso."
+
+msgid "One album per subfolder"
+msgstr "Un album per sottocartella"
+
+msgid "One file pattern per line or comma-separated"
+msgstr "Uno schema di file per riga o separati da virgola"
+
+msgid "One folder pattern per line or comma-separated"
+msgstr "Uno schema di cartella per riga o separati da virgola"
+
+msgid "One time password"
+msgstr "Password monouso"
+
+msgid "One value per line or comma-separated"
+msgstr "Un valore per riga o separati da virgola"
+
+msgid "Only an active admin can authorize this action. Enter admin username and password."
+msgstr "Solo un amministratore attivo può autorizzare questa azione. Inserisci nome utente e password dell'amministratore."
+
+msgid "Open Activity"
+msgstr "Apri Attività"
+
+msgid "Open Activity{0}"
+msgstr "Apri Attività{0}"
+
+msgid "Open CSV selector"
+msgstr "Apri selettore CSV"
+
+msgid "Open Help"
+msgstr "Apri la Guida"
+
+msgid "Open PhotoMigrator"
+msgstr "Apri PhotoMigrator"
+
+msgid "Open Readme"
+msgstr "Apri il Readme"
+
+msgid "Open Release Notes"
+msgstr "Apri le note di rilascio"
+
+msgid "Open Roadmap"
+msgstr "Apri la roadmap"
+
+msgid "Open folder selector"
+msgstr "Apri selettore cartelle"
+
+msgid "Open menu"
+msgstr "Apri menu"
+
+msgid "Optional"
+msgstr "Facoltativo"
+
+msgid "Optional arguments:"
+msgstr "Argomenti facoltativi:"
+
+msgid "Optional display label for account {0} (used in dashboards/logs)"
+msgstr "Etichetta visualizzata facoltativa per l'account {0} (usata in dashboard/log)"
+
+msgid "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'."
+msgstr "Facoltativamente, rimuovi anche gli asset all'interno degli album usando '-rAlbAsset, --remove-albums-assets'."
+
+msgid "Options for Auto Rename Folders Content Based"
+msgstr "Opzioni per Rinomina automatica cartelle in base al contenuto"
+
+msgid "Options for Consolidate Albums Names"
+msgstr "Opzioni per Consolida nomi degli album"
+
+msgid "Options for Download Albums"
+msgstr "Opzioni per Scarica album"
+
+msgid "Options for Download All"
+msgstr "Opzioni per Scarica tutto"
+
+msgid "Options for Find Duplicates"
+msgstr "Opzioni per Trova duplicati"
+
+msgid "Options for Fix Broken Symlinks"
+msgstr "Opzioni per Ripara collegamenti simbolici interrotti"
+
+msgid "Options for Merge Duplicates Albums"
+msgstr "Opzioni per Unisci album duplicati"
+
+msgid "Options for Organize Local Folder By Date"
+msgstr "Opzioni per Organizza cartella locale per data"
+
+msgid "Options for Process Duplicates"
+msgstr "Opzioni per Elabora duplicati"
+
+msgid "Options for Remove Albums"
+msgstr "Opzioni per Rimuovi album"
+
+msgid "Options for Remove All Albums"
+msgstr "Opzioni per Rimuovi tutti gli album"
+
+msgid "Options for Remove All Assets"
+msgstr "Opzioni per Rimuovi tutti gli asset"
+
+msgid "Options for Remove Duplicates Albums"
+msgstr "Opzioni per Rimuovi album duplicati"
+
+msgid "Options for Remove Duplicates Assets"
+msgstr "Opzioni per Rimuovi asset duplicati"
+
+msgid "Options for Remove Empty Albums"
+msgstr "Opzioni per Rimuovi album vuoti"
+
+msgid "Options for Rename Albums"
+msgstr "Opzioni per Rinomina album"
+
+msgid "Options for Upload Albums"
+msgstr "Opzioni per Carica album"
+
+msgid "Options for Upload All"
+msgstr "Opzioni per Carica tutto"
+
+msgid "Options for {0}"
+msgstr "Opzioni per {0}"
+
+msgid "Organize"
+msgstr "Organizza"
+
+msgid "Organize Local Folder By Date"
+msgstr "Organizza cartella locale per data"
+
+msgid "Other Features"
+msgstr "Altre funzioni"
+
+msgid "Other Features · PhotoMigrator"
+msgstr "Altre funzioni · PhotoMigrator"
+
+msgid "Output Folder"
+msgstr "Cartella di output"
+
+msgid "Output Folder Suffix"
+msgstr "Suffisso della cartella di output"
+
+msgid "Output Status: idle"
+msgstr "Stato dell'output: inattivo"
+
+msgid "Output folder suffix"
+msgstr "Suffisso della cartella di output"
+
+msgid "Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected."
+msgstr "Il formato di output è: 'yyyy - Album Name' oppure 'yyyy--yyyy - Album Name' quando viene rilevato un intervallo."
+
+msgid "Overridden at runtime by environment variable '{0}'."
+msgstr "Sovrascritto in fase di esecuzione dalla variabile d'ambiente '{0}'."
+
+msgid "Overwrite Configuration?"
+msgstr "Sovrascrivere la configurazione?"
+
+msgid "Parallel Migration"
+msgstr "Migrazione parallela"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Password (at least {0} characters)"
+msgstr "Password (almeno {0} caratteri)"
+
+msgid "Pattern and replacement"
+msgstr "Schema e sostituzione"
+
+msgid "Photo libraries"
+msgstr "Librerie di foto"
+
+msgid "PhotoMigrator"
+msgstr "PhotoMigrator"
+
+msgid "PhotoMigrator Admin"
+msgstr "Amministrazione PhotoMigrator"
+
+msgid "PhotoMigrator Login"
+msgstr "Accesso a PhotoMigrator"
+
+msgid "PhotoMigrator website"
+msgstr "Sito web di PhotoMigrator"
+
+msgid "Photos, videos and albums from a source to a target, with a live dashboard."
+msgstr "Foto, video e album da un'origine a una destinazione, con una dashboard in diretta."
+
+msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
+msgstr "Scegli un'attività. PhotoMigrator mostra solo le opzioni necessarie per quell'attività e il comando esatto prima di eseguire qualsiasi cosa."
+
+msgid "Please choose a path that does not contain: {0}."
+msgstr "Scegli un percorso che non contenga: {0}."
+
+msgid "Please confirm this action."
+msgstr "Conferma questa azione."
+
+msgid "Please select a destination folder inside container first."
+msgstr "Seleziona prima una cartella di destinazione all'interno del container."
+
+msgid "Please select a feature/module to run."
+msgstr "Seleziona una funzione/modulo da eseguire."
+
+msgid "Please verify username/password and try again."
+msgstr "Verifica nome utente e password e riprova."
+
+msgid "Port ({0}, {1} or {2})"
+msgstr "Porta ({0}, {1} o {2})"
+
+msgid "Prefer Canonical Album Names"
+msgstr "Preferisci i nomi di album canonici"
+
+msgid "Prefer the native EXIF writer"
+msgstr "Preferisci lo scrittore EXIF nativo"
+
+msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool."
+msgstr "Preferisci lo scrittore EXIF nativo per i file foto iCloud supportati prima di ricorrere a ExifTool."
+
+msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool. Disabled by default in CLI."
+msgstr "Preferisci lo scrittore EXIF nativo per i file foto iCloud supportati prima di ricorrere a ExifTool. Disabilitato per impostazione predefinita nella CLI."
+
+msgid "Preferences for how the Web Interface looks and behaves for your user. Theme and time zone changes are applied immediately."
+msgstr "Preferenze su aspetto e comportamento dell'interfaccia web per il tuo utente. Le modifiche a tema e fuso orario vengono applicate subito."
+
+msgid "Prefix album folders with their dates"
+msgstr "Anteponi le date alle cartelle degli album"
+
+msgid "Preview Album Actions"
+msgstr "Anteprima delle azioni sugli album"
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes."
+msgstr "Mostra l'anteprima delle corrispondenze di Rinomina album / Rimuovi album / Consolida nomi degli album prima di applicare le modifiche."
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes. Enabled by default; use '--no-preview-album-actions' to disable it."
+msgstr "Mostra l'anteprima delle corrispondenze di Rinomina album / Rimuovi album / Consolida nomi degli album prima di applicare le modifiche. Abilitato per impostazione predefinita; usa '--no-preview-album-actions' per disabilitarlo."
+
+msgid "Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes. Enabled by default; use '--no-preview-album-actions' to disable it. Example: --rename-albums \"--\" \"-\""
+msgstr "Mostra l'anteprima delle corrispondenze di Rinomina album / Rimuovi album / Consolida nomi degli album prima di applicare le modifiche. Abilitato per impostazione predefinita; usa '--no-preview-album-actions' per disabilitarlo. Esempio: --rename-albums \"--\" \"-\""
+
+msgid "Preview unavailable"
+msgstr "Anteprima non disponibile"
+
+msgid "Preview unavailable: {0}"
+msgstr "Anteprima non disponibile: {0}"
+
+msgid "Process Duplicates"
+msgstr "Elabora duplicati"
+
+msgid "Process Input: idle"
+msgstr "Input del processo: inattivo"
+
+msgid "Process Input: ready"
+msgstr "Input del processo: pronto"
+
+msgid "Process Input: waiting for input"
+msgstr "Input del processo: in attesa di input"
+
+msgid "Process Takeout"
+msgstr "Elabora Takeout"
+
+msgid "Process a raw Apple iCloud Photos export before importing it into another photo service."
+msgstr "Elabora un'esportazione grezza di Apple iCloud Photos prima di importarla in un altro servizio di foto."
+
+msgid "Process a raw Apple iCloud Photos export before importing it into another photo service. This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections, and writes a portable output library with ALL_PHOTOS and Albums. When enabled, Memories CSV collections are also reconstructed as album-like folders. IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "Elabora un'esportazione grezza di Apple iCloud Photos prima di importarla in un altro servizio di foto. Questa funzione legge i metadati di Photo Details.csv, ripristina le date in foto e video, ricostruisce gli album dalle raccolte CSV di Apple e scrive una libreria di output portabile con ALL_PHOTOS e Albums. Se abilitata, anche le raccolte CSV Memories vengono ricostruite come cartelle simili ad album. IMPORTANTE: questo modulo è una pipeline locale di pre-elaborazione. Non invia nulla a una destinazione cloud da solo."
+
+msgid "Process a raw Google Photos Takeout export before importing it into another photo service."
+msgstr "Elabora un'esportazione Takeout grezza di Google Photos prima di importarla in un altro servizio di foto."
+
+msgid "Process a raw Google Photos Takeout export before importing it into another photo service. This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files, organizes the output into ALL_PHOTOS and Albums, and can optionally create symbolic album entries instead of duplicating files. When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow. IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+msgstr "Elabora un'esportazione Takeout grezza di Google Photos prima di importarla in un altro servizio di foto. Questa funzione ripara date e metadati, ricostruisce l'appartenenza agli album dai file JSON sidecar, organizza l'output in ALL_PHOTOS e Albums e può facoltativamente creare voci simboliche degli album invece di duplicare i file. Quando l'input è un Takeout con soli album e senza cartelle per anno, PhotoMigrator lo rileva automaticamente e passa GPTH al flusso di recupero appropriato. IMPORTANTE: questo modulo è una pipeline locale di pre-elaborazione. Non invia nulla a una destinazione cloud da solo."
+
+msgid "Process a revised duplicates CSV and execute actions from the 'Action' column."
+msgstr "Elabora un CSV di duplicati revisionato ed esegui le azioni indicate nella colonna 'Action'."
+
+msgid "Process a revised duplicates CSV and execute actions from the 'Action' column. Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV. Valid actions: restore_duplicate / remove_duplicate / replace_duplicate. IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations. Example: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+msgstr "Elabora un CSV di duplicati revisionato ed esegui le azioni indicate nella colonna 'Action'. Usalo dopo '--find-duplicates' per applicare le decisioni manuali del tuo CSV revisionato. Azioni valide: restore_duplicate / remove_duplicate / replace_duplicate. IMPORTANTE: remove_duplicate e replace_duplicate sono operazioni irreversibili. Esempio: --process-duplicates ./Duplicates/Duplicates_revised.csv"
+
+msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets."
+msgstr "Elabora una cartella di esportazione di Apple iCloud Photos <ICLOUD_EXPORT_FOLDER> per recuperare le date dai file 'Photo Details.csv', assegnarle ai file multimediali e organizzare gli asset."
+
+msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets. If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
+msgstr "Elabora una cartella di esportazione di Apple iCloud Photos <ICLOUD_EXPORT_FOLDER> per recuperare le date dai file 'Photo Details.csv', assegnarle ai file multimediali e organizzare gli asset. Se al suo interno viene trovato un file ZIP, gli ZIP verranno prima estratti in '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>' e quella cartella verrà usata come input. L'esportazione elaborata verrà salvata nella cartella '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
+
+msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it."
+msgstr "Elabora la cartella Takeout <TAKEOUT_FOLDER> per correggere tutti i metadati e organizzare gli asset al suo interno."
+
+msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'. This argument is mandatory to run the Google Takeout Processor feature."
+msgstr "Elabora la cartella Takeout <TAKEOUT_FOLDER> per correggere tutti i metadati e organizzare gli asset al suo interno. Se al suo interno viene trovato un file Zip, lo Zip verrà estratto nella cartella '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>' e quella cartella verrà usata come input. Il Takeout elaborato verrà salvato nella cartella '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'. Questo argomento è obbligatorio per eseguire la funzione Google Takeout Processor."
+
+msgid "Processing"
+msgstr "Elaborazione"
+
+msgid "Provide JSON values to insert."
+msgstr "Fornisci i valori JSON da inserire."
+
+msgid "Push Asset Max Size (MB)"
+msgstr "Dimensione massima asset per l'invio (MB)"
+
+msgid "Quick tools"
+msgstr "Strumenti rapidi"
+
+msgid "Range separator"
+msgstr "Separatore di intervallo"
+
+msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output."
+msgstr "Legge le etichette delle persone di Google Takeout dai file JSON sidecar e salva la mappa delle persone nell'output elaborato."
+
+msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
+msgstr "Legge le etichette delle persone di Google Takeout dai file JSON sidecar e salva la mappa delle persone nell'output elaborato. (predefinito: True)."
+
+msgid "Readme"
+msgstr "Readme"
+
+msgid "Ready to run"
+msgstr "Pronto per l'esecuzione"
+
+msgid "Reason: {0}"
+msgstr "Motivo: {0}"
+
+msgid "Refresh Logs"
+msgstr "Aggiorna log"
+
+msgid "Refresh Tables"
+msgstr "Aggiorna tabelle"
+
+msgid "Refresh token"
+msgstr "Token di aggiornamento"
+
+msgid "Reject Account Request"
+msgstr "Rifiuta richiesta di account"
+
+msgid "Reject Request"
+msgstr "Rifiuta richiesta"
+
+msgid "Release Notes"
+msgstr "Note di rilascio"
+
+msgid "Remaining Time"
+msgstr "Tempo rimanente"
+
+msgid "Remove ALL albums."
+msgstr "Rimuove TUTTI gli album."
+
+msgid "Remove ALL assets (photos/videos) and ALL albums."
+msgstr "Rimuove TUTTI gli asset (foto/video) e TUTTI gli album."
+
+msgid "Remove Albums"
+msgstr "Rimuovi album"
+
+msgid "Remove All Albums"
+msgstr "Rimuovi tutti gli album"
+
+msgid "Remove All Assets"
+msgstr "Rimuovi tutti gli asset"
+
+msgid "Remove Duplicates Albums"
+msgstr "Rimuovi album duplicati"
+
+msgid "Remove Duplicates Assets"
+msgstr "Rimuovi asset duplicati"
+
+msgid "Remove Empty Albums"
+msgstr "Rimuovi album vuoti"
+
+msgid "Remove Orphan Assets"
+msgstr "Rimuovi asset orfani"
+
+msgid "Remove Selected"
+msgstr "Rimuovi selezionati"
+
+msgid "Remove Selected ({0})"
+msgstr "Rimuovi selezionati ({0})"
+
+msgid "Remove album assets"
+msgstr "Rimuovi gli asset degli album"
+
+msgid "Remove albums matching a text, wildcard, or regex pattern."
+msgstr "Rimuove gli album che corrispondono a un testo, un carattere jolly o uno schema regex."
+
+msgid "Remove albums matching a text, wildcard, or regex pattern. Use '--preview-album-actions' to preview matches and request confirmation before applying changes. Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'. Example: --remove-albums \"^Temp\" --remove-albums-assets"
+msgstr "Rimuove gli album che corrispondono a un testo, un carattere jolly o uno schema regex. Usa '--preview-album-actions' per vedere l'anteprima delle corrispondenze e chiedere conferma prima di applicare le modifiche. Facoltativamente, rimuovi anche gli asset all'interno degli album con '-rAlbAsset, --remove-albums-assets'. Esempio: --remove-albums \"^Temp\" --remove-albums-assets"
+
+msgid "Remove duplicate assets while preserving available metadata and people on the selected keeper asset."
+msgstr "Rimuove gli asset duplicati preservando i metadati e le persone disponibili nell'asset da conservare selezionato."
+
+msgid "Remove duplicate files"
+msgstr "Rimuovi i file duplicati"
+
+msgid "Remove duplicate files in <OUTPUT_TAKEOUT_FOLDER> after fixing them."
+msgstr "Rimuove i file duplicati in <OUTPUT_TAKEOUT_FOLDER> dopo averli corretti."
+
+msgid "Remove duplicated albums (same name and size)."
+msgstr "Rimuove gli album duplicati (stesso nome e stessa dimensione)."
+
+msgid "Remove empty albums."
+msgstr "Rimuove gli album vuoti."
+
+msgid "Removed: {0} | Failed: {1}"
+msgstr "Rimossi: {0} | Non riusciti: {1}"
+
+msgid "Rename Albums"
+msgstr "Rinomina album"
+
+msgid "Rename Pattern"
+msgstr "Schema di ridenominazione"
+
+msgid "Rename album folders by date"
+msgstr "Rinomina le cartelle degli album in base alla data"
+
+msgid "Rename album folders in <OUTPUT_TAKEOUT_FOLDER> based on content dates after fixing them."
+msgstr "Rinomina le cartelle degli album in <OUTPUT_TAKEOUT_FOLDER> in base alle date dei contenuti dopo averle corrette."
+
+msgid "Rename albums using a text, wildcard, or regex pattern with a replacement value."
+msgstr "Rinomina gli album usando un testo, un carattere jolly o uno schema regex con un valore di sostituzione."
+
+msgid "Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates."
+msgstr "Rinomina e uniforma i nomi delle cartelle degli album in <ALBUMS_FOLDER> usando le date dei contenuti."
+
+msgid "Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates. Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected. Date and range separators can be customized with '--date-separator' and '--range-separator'. IMPORTANT: This modifies original folder names in place; create a backup if needed. Example: --rename-folders-content-based ./MyLocalPhotoLibrary"
+msgstr "Rinomina e uniforma i nomi delle cartelle degli album in <ALBUMS_FOLDER> usando le date dei contenuti. Il formato di output è: 'yyyy - Album Name' oppure 'yyyy--yyyy - Album Name' quando viene rilevato un intervallo. I separatori di data e intervallo possono essere personalizzati con '--date-separator' e '--range-separator'. IMPORTANTE: questa operazione modifica sul posto i nomi originali delle cartelle; crea un backup se necessario. Esempio: --rename-folders-content-based ./MyLocalPhotoLibrary"
+
+msgid "Rename pattern"
+msgstr "Schema di ridenominazione"
+
+msgid "Repair broken album links"
+msgstr "Ripara i collegamenti interrotti degli album"
+
+msgid "Repair, rename, organize and deduplicate folders, or upload files to this server."
+msgstr "Ripara, rinomina, organizza e deduplica le cartelle oppure carica file su questo server."
+
+msgid "Replacement Pattern"
+msgstr "Schema di sostituzione"
+
+msgid "Replacement pattern"
+msgstr "Schema di sostituzione"
+
+msgid "Replacement text"
+msgstr "Testo di sostituzione"
+
+msgid "Request User Confirmation"
+msgstr "Richiedi conferma all'utente"
+
+msgid "Request an account"
+msgstr "Richiedi un account"
+
+msgid "Request failed"
+msgstr "Richiesta non riuscita"
+
+msgid "Request user confirmation before executing a feature (default: True)."
+msgstr "Richiede la conferma dell'utente prima di eseguire una funzione (predefinito: True)."
+
+msgid "Requested from the login page"
+msgstr "Richiesto dalla pagina di accesso"
+
+msgid "Required"
+msgstr "Obbligatorio"
+
+msgid "Required arguments:"
+msgstr "Argomenti obbligatori:"
+
+msgid "Reset Password"
+msgstr "Reimposta password"
+
+msgid "Reset Password: {0}"
+msgstr "Reimposta password: {0}"
+
+msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
+msgstr "Ripristina date e album di un'esportazione di Apple iCloud Photos in una libreria portabile."
+
+msgid "Restore dates and metadata and rebuild albums into a clean library."
+msgstr "Ripristina date e metadati e ricostruisci gli album in una libreria pulita."
+
+msgid "Restore defaults"
+msgstr "Ripristina predefiniti"
+
+msgid "Restore the default values of the fields shown for this feature"
+msgstr "Ripristina i valori predefiniti dei campi mostrati per questa funzione"
+
+msgid "Result is exported to a CSV to review duplicates and selected action per item."
+msgstr "Il risultato viene esportato in un CSV per rivedere i duplicati e l'azione selezionata per ogni elemento."
+
+msgid "Review the request"
+msgstr "Esamina la richiesta"
+
+msgid "Roadmap"
+msgstr "Roadmap"
+
+msgid "Role"
+msgstr "Ruolo"
+
+msgid "Run"
+msgstr "Esegui"
+
+msgid "Run Backup Now"
+msgstr "Esegui backup ora"
+
+msgid "Run Error"
+msgstr "Errore di esecuzione"
+
+msgid "Run an end-to-end migration from <SOURCE> to <TARGET> including albums and non-album assets."
+msgstr "Esegue una migrazione completa da <SOURCE> a <TARGET>, inclusi album e asset non appartenenti ad album."
+
+msgid "Run and follow the progress"
+msgstr "Esegui e segui l'avanzamento"
+
+msgid "Run this feature"
+msgstr "Esegui questa funzione"
+
+msgid "Running"
+msgstr "In esecuzione"
+
+msgid "Runtime override active from environment variable {0}"
+msgstr "Override in fase di esecuzione attivo dalla variabile d'ambiente {0}"
+
+msgid "SMTP password"
+msgstr "Password SMTP"
+
+msgid "SMTP password (saved, leave empty to keep it)"
+msgstr "Password SMTP (salvata, lascia vuoto per mantenerla)"
+
+msgid "SMTP server (for example mail.example.com)"
+msgstr "Server SMTP (ad esempio mail.example.com)"
+
+msgid "SMTP username"
+msgstr "Nome utente SMTP"
+
+msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
+msgstr "SOURCE e TARGET possono essere endpoint cloud (synology/immich/nextcloud/google con account) o cartelle locali."
+
+msgid "Same name and size"
+msgstr "Stesso nome e stessa dimensione"
+
+msgid "Save Email"
+msgstr "Salva email"
+
+msgid "Save Email Settings"
+msgstr "Salva impostazioni email"
+
+msgid "Save Failed"
+msgstr "Salvataggio non riuscito"
+
+msgid "Save Password"
+msgstr "Salva password"
+
+msgid "Save Schedule"
+msgstr "Salva pianificazione"
+
+msgid "Save app settings"
+msgstr "Salva impostazioni dell'app"
+
+msgid "Save config"
+msgstr "Salva configurazione"
+
+msgid "Save people labels"
+msgstr "Salva le etichette delle persone"
+
+msgid "Save row"
+msgstr "Salva riga"
+
+msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
+msgstr "Analizza <FOLDER_TO_FIX> in modo ricorsivo e prova a riparare i collegamenti simbolici interrotti."
+
+msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
+msgstr "Analizza <FOLDER_TO_FIX> in modo ricorsivo e prova a riparare i collegamenti simbolici interrotti. Utile dopo aver spostato/rinominato cartelle in OUTPUT_TAKEOUT_FOLDER quando alcuni album risultano vuoti. Lo strumento cerca file di destinazione validi nella stessa struttura di cartelle e ricollega quando possibile. IMPORTANTE: i collegamenti vengono riparati solo quando è possibile dedurre una destinazione valida dai file attuali. Esempio: --fix-symlinks-broken ./OUTPUT_FOLDER"
+
+msgid "Scroll log to the first line"
+msgstr "Scorri il log fino alla prima riga"
+
+msgid "Scroll log to the last line"
+msgstr "Scorri il log fino all'ultima riga"
+
+msgid "Segoe UI"
+msgstr "Segoe UI"
+
+msgid "Select CSV File"
+msgstr "Seleziona file CSV"
+
+msgid "Select File"
+msgstr "Seleziona file"
+
+msgid "Select Parallel/Sequential migration during Automatic Migration job."
+msgstr "Seleziona la migrazione parallela/sequenziale durante un'attività di migrazione automatica."
+
+msgid "Select Parallel/Sequential migration during Automatic Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
+msgstr "Seleziona la migrazione parallela/sequenziale durante un'attività di migrazione automatica. Questo argomento si applica solo se sono presenti sia '--source' sia '--target'. (predefinito: True)."
+
+msgid "Select a table first."
+msgstr "Seleziona prima una tabella."
+
+msgid "Select at least one folder first."
+msgstr "Seleziona prima almeno una cartella."
+
+msgid "Select destination folder"
+msgstr "Seleziona la cartella di destinazione"
+
+msgid "Select folder"
+msgstr "Seleziona cartella"
+
+msgid "Select the time zone used by PhotoMigrator to display timestamps and process date/time-based operations."
+msgstr "Seleziona il fuso orario usato da PhotoMigrator per mostrare i timestamp ed elaborare le operazioni basate su data/ora."
+
+msgid "Select the visual theme used by your web interface."
+msgstr "Seleziona il tema visivo usato dalla tua interfaccia web."
+
+msgid "Select user role"
+msgstr "Seleziona il ruolo utente"
+
+msgid "Select {0}"
+msgstr "Seleziona {0}"
+
+msgid "Selected albums to a folder"
+msgstr "Album selezionati in una cartella"
+
+msgid "Selected folders (comma-separated)"
+msgstr "Cartelle selezionate (separate da virgola)"
+
+msgid "Selected option"
+msgstr "Opzione selezionata"
+
+msgid "Selected root: {0}\\n\\n"
+msgstr "Radice selezionata: {0}\\n\\n"
+
+msgid "Selected: {0}"
+msgstr "Selezionato: {0}"
+
+msgid "Send"
+msgstr "Invia"
+
+msgid "Send Test Email"
+msgstr "Invia email di prova"
+
+msgid "Send a local folder or ZIP file to the server"
+msgstr "Invia una cartella locale o un file ZIP al server"
+
+msgid "Send files here"
+msgstr "Invia file qui"
+
+msgid "Send request"
+msgstr "Invia richiesta"
+
+msgid "Send the test email to (default: your email)"
+msgstr "Invia l'email di prova a (predefinito: la tua email)"
+
+msgid "Sender email"
+msgstr "Email del mittente"
+
+msgid "Sender name (PhotoMigrator)"
+msgstr "Nome del mittente (PhotoMigrator)"
+
+msgid "Service credentials"
+msgstr "Credenziali dei servizi"
+
+msgid "Set a new password and confirm it."
+msgstr "Imposta una nuova password e confermala."
+
+msgid "Settings"
+msgstr "Impostazioni"
+
+msgid "Settings · PhotoMigrator"
+msgstr "Impostazioni · PhotoMigrator"
+
+msgid "Settings › Service credentials"
+msgstr "Impostazioni › Credenziali dei servizi"
+
+msgid "Shared arguments, service credentials and preferences used by every feature."
+msgstr "Argomenti condivisi, credenziali dei servizi e preferenze usati da ogni funzione."
+
+msgid "Show"
+msgstr "Mostra"
+
+msgid "Show Client secret"
+msgstr "Mostra segreto client"
+
+msgid "Show GPTH error messages"
+msgstr "Mostra i messaggi di errore di GPTH"
+
+msgid "Show GPTH info messages"
+msgstr "Mostra i messaggi informativi di GPTH"
+
+msgid "Show Refresh token"
+msgstr "Mostra token di aggiornamento"
+
+msgid "Show password"
+msgstr "Mostra password"
+
+msgid "Show {0}"
+msgstr "Mostra {0}"
+
+msgid "Sign in"
+msgstr "Accedi"
+
+msgid "Sign in to PhotoMigrator"
+msgstr "Accedi a PhotoMigrator"
+
+msgid "Skip GPTH tool (not recommended)"
+msgstr "Salta lo strumento GPTH (sconsigliato)"
+
+msgid "Skip extra files (-edited, -effects)"
+msgstr "Salta i file extra (-edited, -effects)"
+
+msgid "Skip moving albums"
+msgstr "Salta lo spostamento degli album"
+
+msgid "Skip moving albums to '<ALBUMS_FOLDER>'."
+msgstr "Salta lo spostamento degli album in '<ALBUMS_FOLDER>'."
+
+msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums folders vs original assets {3}) Organize assets by year/month {4}) Auto rename album folders based on content dates {5}) Detect and remove duplicates {6}) Count albums {7}) Remove empty folders {8}) Clean final media library {9}) Show files without dates Not recommended to skip."
+msgstr "Salta la post-elaborazione di Google Takeout, che comprende: {0}) Sincronizzare i file MP4 associati alle Live Photo con i relativi HEIC/JPG {1}) Riparare le date XMP dei video in conflitto {2}) Separare le cartelle degli album dagli asset originali {3}) Organizzare gli asset per anno/mese {4}) Rinominare automaticamente le cartelle degli album in base alle date dei contenuti {5}) Rilevare e rimuovere i duplicati {6}) Contare gli album {7}) Rimuovere le cartelle vuote {8}) Pulire la libreria multimediale finale {9}) Mostrare i file senza date. Si sconsiglia di saltarla."
+
+msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums fo…"
+msgstr "Salta la post-elaborazione di Google Takeout, che comprende: {0}) Sincronizzare i file MP4 associati alle Live Photo con i relativi HEIC/JPG {1}) Riparare le date XMP dei video in conflitto {2}) Separare le cartelle degli album d…"
+
+msgid "Skip post-processing"
+msgstr "Salta la post-elaborazione"
+
+msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accuracy. If you already pre-processed the same Takeout using '-gKeepTakeout,--google-keep-takeout-folder', you can skip it."
+msgstr "Salta la pre-elaborazione di Google Takeout, che comprende: {0}) Pulire la cartella Takeout {1}) Correggere le associazioni MP4/Live Photo {2}) Correggere nomi di file/estensioni troncati. È importante per ottenere un'elevata precisione. Se hai già pre-elaborato lo stesso Takeout con '-gKeepTakeout,--google-keep-takeout-folder', puoi saltarla."
+
+msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accur…"
+msgstr "Salta la pre-elaborazione di Google Takeout, che comprende: {0}) Pulire la cartella Takeout {1}) Correggere le associazioni MP4/Live Photo {2}) Correggere nomi di file/estensioni troncati. È importante per ottenere un'elevata precis…"
+
+msgid "Skip pre-processing"
+msgstr "Salta la pre-elaborazione"
+
+msgid "Skip processing extra photos such as -edited, -effects photos."
+msgstr "Salta l'elaborazione delle foto extra, come quelle -edited e -effects."
+
+msgid "Skip processing files with GPTH Tool."
+msgstr "Salta l'elaborazione dei file con lo strumento GPTH."
+
+msgid "Skip processing files with GPTH Tool. CAUTION: NOT RECOMMENDED (core of the Google Takeout process). Use only for testing."
+msgstr "Salta l'elaborazione dei file con lo strumento GPTH. ATTENZIONE: SCONSIGLIATO (è il cuore del processo di Google Takeout). Usalo solo per test."
+
+msgid "Skip saving GPTH log messages into output folder."
+msgstr "Salta il salvataggio dei messaggi di log di GPTH nella cartella di output."
+
+msgid "Skip saving output messages to execution log file."
+msgstr "Salta il salvataggio dei messaggi di output nel file di log di esecuzione."
+
+msgid "Small Album Max Assets"
+msgstr "Numero massimo di asset per un album piccolo"
+
+msgid "Sort a folder into date subfolders"
+msgstr "Ordina una cartella in sottocartelle per data"
+
+msgid "Source"
+msgstr "Origine"
+
+msgid "Source Client"
+msgstr "Client di origine"
+
+msgid "Source endpoint or local folder to migrate from."
+msgstr "Endpoint di origine o cartella locale da cui migrare."
+
+msgid "Source service"
+msgstr "Servizio di origine"
+
+msgid "Source to target"
+msgstr "Dall'origine alla destinazione"
+
+msgid "Specify Date Separator used by feature `Auto-Rename Albums Content Based`."
+msgstr "Specifica il separatore di data usato dalla funzione `Auto-Rename Albums Content Based`."
+
+msgid "Specify Range of Dates Separator used by feature `Auto-Rename Albums Content Based`."
+msgstr "Specifica il separatore di intervallo di date usato dalla funzione `Auto-Rename Albums Content Based`."
+
+msgid "Specify an external version of EXIF Tool binary."
+msgstr "Specifica una versione esterna del binario di EXIF Tool."
+
+msgid "Specify an external version of EXIF Tool binary. PhotoMigrator contains an embedded version of EXIF Tool, but if you want to use a different version, you can use this argument."
+msgstr "Specifica una versione esterna del binario di EXIF Tool. PhotoMigrator include una versione integrata di EXIF Tool, ma se vuoi usarne una diversa puoi usare questo argomento."
+
+msgid "Specify an external version of GPTH Tool binary."
+msgstr "Specifica una versione esterna del binario di GPTH Tool."
+
+msgid "Specify an external version of GPTH Tool binary. PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
+msgstr "Specifica una versione esterna del binario di GPTH Tool. PhotoMigrator include una versione integrata di GPTH Tool, ma se vuoi usarne una diversa puoi usare questo argomento."
+
+msgid "Specify the Asset Type to filter assets in the different Photo Clients."
+msgstr "Specifica il tipo di asset con cui filtrare gli asset nei diversi client di foto."
+
+msgid "Specify the Asset Type to filter assets in the different Photo Clients. (default: all)"
+msgstr "Specifica il tipo di asset con cui filtrare gli asset nei diversi client di foto. (predefinito: all)"
+
+msgid "Specify the City Name to filter assets in the different Photo Clients."
+msgstr "Specifica il nome della città con cui filtrare gli asset nei diversi client di foto."
+
+msgid "Specify the Country Name to filter assets in the different Photo Clients."
+msgstr "Specifica il nome del paese con cui filtrare gli asset nei diversi client di foto."
+
+msgid "Specify the Person Name to filter assets in the different Photo Clients."
+msgstr "Specifica il nome della persona con cui filtrare gli asset nei diversi client di foto."
+
+msgid "Specify the Takeout master-library folder name containing all assets."
+msgstr "Specifica il nome della cartella della libreria principale di Takeout che contiene tutti gli asset."
+
+msgid "Specify the Takeout master-library folder name containing all assets. Default: 'ALL_PHOTOS'."
+msgstr "Specifica il nome della cartella della libreria principale di Takeout che contiene tutti gli asset. Predefinito: 'ALL_PHOTOS'."
+
+msgid "Specify the final date to filter assets in the different Photo Clients."
+msgstr "Specifica la data finale con cui filtrare gli asset nei diversi client di foto."
+
+msgid "Specify the folder name to save the Metadata outputs of 'Extracted Dates'."
+msgstr "Specifica il nome della cartella in cui salvare gli output dei metadati di 'Extracted Dates'."
+
+msgid "Specify the folder name to save the execution Logs."
+msgstr "Specifica il nome della cartella in cui salvare i log di esecuzione."
+
+msgid "Specify the folder name to save the outputs of 'Find Duplicates' Feature."
+msgstr "Specifica il nome della cartella in cui salvare gli output della funzione 'Find Duplicates'."
+
+msgid "Specify the folder name to store all your processed photos associated to any Album."
+msgstr "Specifica il nome della cartella in cui archiviare tutte le foto elaborate associate a un album."
+
+msgid "Specify the folder name used by cloud and local-library workflows for assets not associated to an album."
+msgstr "Specifica il nome della cartella usata dai flussi di lavoro cloud e di librerie locali per gli asset non associati a un album."
+
+msgid "Specify the folder structure type for each Album folder (Default: 'flatten')."
+msgstr "Specifica il tipo di struttura delle cartelle per ogni cartella di album (predefinito: 'flatten')."
+
+msgid "Specify the folder structure type for each reconstructed iCloud Album folder (Default: 'flatten')."
+msgstr "Specifica il tipo di struttura delle cartelle per ogni cartella di album iCloud ricostruita (predefinito: 'flatten')."
+
+msgid "Specify the folder structure type for the Google Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month')."
+msgstr "Specifica il tipo di struttura delle cartelle per la libreria principale '<ALL_PHOTOS_FOLDER>' di Google Takeout (predefinito: 'year/month')."
+
+msgid "Specify the folder structure type for the iCloud Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month')."
+msgstr "Specifica il tipo di struttura delle cartelle per la libreria principale '<ALL_PHOTOS_FOLDER>' di iCloud Takeout (predefinito: 'year/month')."
+
+msgid "Specify the folder structure type for the organized local-folder output (Default: 'year/month')."
+msgstr "Specifica il tipo di struttura delle cartelle per l'output organizzato della cartella locale (predefinito: 'year/month')."
+
+msgid "Specify the initial date to filter assets in the different Photo Clients."
+msgstr "Specifica la data iniziale con cui filtrare gli asset nei diversi client di foto."
+
+msgid "Specify the log file format."
+msgstr "Specifica il formato del file di log."
+
+msgid "Specify the log level for logging and screen messages."
+msgstr "Specifica il livello di log per i messaggi di log e a schermo."
+
+msgid "Specify the managed Local Photos Folder root when '--client=local-photos-folder'."
+msgstr "Specifica la radice gestita della cartella di foto locale quando si usa '--client=local-photos-folder'."
+
+msgid "Specify the managed Local Photos Folder root when '--client=local-photos-folder'. It contains the Albums and No_Albums folders used by Local Photos Folder modules."
+msgstr "Specifica la radice gestita della cartella di foto locale quando si usa '--client=local-photos-folder'. Contiene le cartelle Albums e No_Albums usate dai moduli della cartella di foto locale."
+
+msgid "Specify the output folder to save the result of the processing action."
+msgstr "Specifica la cartella di output in cui salvare il risultato dell'azione di elaborazione."
+
+msgid "Specify the suffix for the iCloud processed output folder."
+msgstr "Specifica il suffisso della cartella di output elaborata di iCloud."
+
+msgid "Specify the suffix for the iCloud processed output folder. Default: 'processed'."
+msgstr "Specifica il suffisso della cartella di output elaborata di iCloud. Predefinito: 'processed'."
+
+msgid "Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided."
+msgstr "Specifica il suffisso dell'output organizzato della cartella locale quando non viene indicato '-o/--output-folder'."
+
+msgid "Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided. Default: 'processed'."
+msgstr "Specifica il suffisso dell'output organizzato della cartella locale quando non viene indicato '-o/--output-folder'. Predefinito: 'processed'."
+
+msgid "Specify the suffix for the output folder."
+msgstr "Specifica il suffisso della cartella di output."
+
+msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
+msgstr "Specifica il suffisso della cartella di output. Predefinito: 'processed'. La cartella di output avrà lo stesso nome della cartella di input seguito da questo suffisso e dal timestamp di esecuzione."
+
+msgid "Start Time: -"
+msgstr "Ora di inizio: -"
+
+msgid "Start Time: {0}"
+msgstr "Ora di inizio: {0}"
+
+msgid "Start a migration"
+msgstr "Avvia una migrazione"
+
+msgid "Start a migration{0}"
+msgstr "Avvia una migrazione{0}"
+
+msgid "Start here"
+msgstr "Inizia qui"
+
+msgid "Status: authenticating..."
+msgstr "Stato: autenticazione..."
+
+msgid "Status: creating user..."
+msgstr "Stato: creazione dell'utente..."
+
+msgid "Status: enter admin username and password"
+msgstr "Stato: inserisci nome utente e password dell'amministratore"
+
+msgid "Status: idle"
+msgstr "Stato: inattivo"
+
+msgid "Status: loaded {0} users · email is not configured, no notices are sent"
+msgstr "Stato: caricati {0} utenti · l'email non è configurata, non viene inviato alcun avviso"
+
+msgid "Status: loaded {0} users${notes.length ?"
+msgstr "Status: loaded {0} users${notes.length ?"
+
+msgid "Status: loading users..."
+msgstr "Stato: caricamento degli utenti..."
+
+msgid "Status: login successful"
+msgstr "Stato: accesso riuscito"
+
+msgid "Status: passwords do not match"
+msgstr "Stato: le password non corrispondono"
+
+msgid "Status: ready"
+msgstr "Stato: pronto"
+
+msgid "Status: reconnecting"
+msgstr "Stato: riconnessione"
+
+msgid "Status: request sent. You will get an email when an administrator activates your account."
+msgstr "Stato: richiesta inviata. Riceverai un'email quando un amministratore attiverà il tuo account."
+
+msgid "Status: running"
+msgstr "Stato: in esecuzione"
+
+msgid "Status: saving..."
+msgstr "Stato: salvataggio..."
+
+msgid "Status: sending request..."
+msgstr "Stato: invio della richiesta..."
+
+msgid "Status: stop error (network failure)"
+msgstr "Stato: errore di arresto (errore di rete)"
+
+msgid "Status: stop error ({0})"
+msgstr "Stato: errore di arresto ({0})"
+
+msgid "Status: stopping"
+msgstr "Stato: arresto in corso"
+
+msgid "Status: the passwords do not match"
+msgstr "Stato: le password non corrispondono"
+
+msgid "Status: validating admin credentials..."
+msgstr "Stato: convalida delle credenziali dell'amministratore..."
+
+msgid "Status: validation error ({0})"
+msgstr "Stato: errore di convalida ({0})"
+
+msgid "Status: waiting for credentials"
+msgstr "Stato: in attesa delle credenziali"
+
+msgid "Status: {0}"
+msgstr "Stato: {0}"
+
+msgid "Stop"
+msgstr "Interrompi"
+
+msgid "Stop Running Module?"
+msgstr "Interrompere il modulo in esecuzione?"
+
+msgid "Synology"
+msgstr "Synology"
+
+msgid "Synology Photos"
+msgstr "Synology Photos"
+
+msgid "Synology Photos · PhotoMigrator"
+msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table status: 'access_logs' loaded (2/2 rows)"
+msgstr "Stato della tabella: 'access_logs' caricata (2/2 righe)"
+
+msgid "Table status: 'access_logs' loaded (9/9 rows)"
+msgstr "Stato della tabella: 'access_logs' caricata (9/9 righe)"
+
+msgid "Table status: '{0}' loaded (0 rows)"
+msgstr "Stato della tabella: '{0}' caricata (0 righe)"
+
+msgid "Table status: '{0}' loaded ({1}/{2} rows)"
+msgstr "Stato della tabella: '{0}' caricata ({1}/{2} righe)"
+
+msgid "Table status: loaded {0} tables"
+msgstr "Stato della tabella: caricate {0} tabelle"
+
+msgid "Table status: loading '{0}'..."
+msgstr "Stato della tabella: caricamento di '{0}'..."
+
+msgid "Table status: loading table list..."
+msgstr "Stato della tabella: caricamento dell'elenco delle tabelle..."
+
+msgid "Table status: no table selected"
+msgstr "Stato della tabella: nessuna tabella selezionata"
+
+msgid "Table status: row {0} updated"
+msgstr "Stato della tabella: riga {0} aggiornata"
+
+msgid "Table status: {0}"
+msgstr "Stato della tabella: {0}"
+
+msgid "Takeout"
+msgstr "Takeout"
+
+msgid "Takeout folder"
+msgstr "Cartella Takeout"
+
+msgid "Takeout input and output"
+msgstr "Input e output di Takeout"
+
+msgid "Target"
+msgstr "Destinazione"
+
+msgid "Target Client"
+msgstr "Client di destinazione"
+
+msgid "Target endpoint or local folder to migrate into."
+msgstr "Endpoint di destinazione o cartella locale in cui migrare."
+
+msgid "Target service"
+msgstr "Servizio di destinazione"
+
+msgid "The account is not active yet. We will email you when it is."
+msgstr "L'account non è ancora attivo. Ti invieremo un'email quando lo sarà."
+
+msgid "The demo role cannot save configuration changes except TimeZone and Theme."
+msgstr "Il ruolo demo non può salvare modifiche alla configurazione, tranne TimeZone e Theme."
+
+msgid "The demo role cannot {0} configuration directly."
+msgstr "Il ruolo demo non può eseguire direttamente l'azione \"{0}\" sulla configurazione."
+
+msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
+msgstr "Il percorso selezionato contiene '{0}', che è riservato come nome di cartella speciale di Google.\\n\\n"
+
+msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
+msgstr "Lo strumento cerca file di destinazione validi nella stessa struttura di cartelle e ricollega quando possibile."
+
+msgid "The user can sign in with this email and receives account and task notices there."
+msgstr "L'utente può accedere con questa email e vi riceve gli avvisi relativi all'account e alle attività."
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Theme used by the PhotoMigrator web interface."
+msgstr "Tema usato dall'interfaccia web di PhotoMigrator."
+
+msgid "This argument only accepts one folder. Select exactly one."
+msgstr "Questo argomento accetta una sola cartella. Selezionane esattamente una."
+
+msgid "This converts dates from YYYY.MM.DD format to YYYY-MM-DD."
+msgstr "Converte le date dal formato YYYY.MM.DD a YYYY-MM-DD."
+
+msgid "This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections,"
+msgstr "Questa funzione legge i metadati di Photo Details.csv, ripristina le date in foto e video, ricostruisce gli album dalle raccolte CSV di Apple,"
+
+msgid "This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files,"
+msgstr "Questa funzione ripara date e metadati, ricostruisce l'appartenenza agli album dai file JSON sidecar,"
+
+msgid "This module will consolidate equivalent album-name families already existing in Google Photos without uploading new assets."
+msgstr "Questo modulo consoliderà le famiglie di nomi di album equivalenti già esistenti in Google Photos senza caricare nuovi asset."
+
+msgid "This module will consolidate equivalent album-name families already existing in Immich Photos without uploading new assets."
+msgstr "Questo modulo consoliderà le famiglie di nomi di album equivalenti già esistenti in Immich Photos senza caricare nuovi asset."
+
+msgid "This module will consolidate equivalent album-name families already existing in Local Photos Folder without uploading new assets."
+msgstr "Questo modulo consoliderà le famiglie di nomi di album equivalenti già esistenti nella cartella di foto locale senza caricare nuovi asset."
+
+msgid "This module will consolidate equivalent album-name families already existing in NextCloud Photos without uploading new assets."
+msgstr "Questo modulo consoliderà le famiglie di nomi di album equivalenti già esistenti in NextCloud Photos senza caricare nuovi asset."
+
+msgid "This module will consolidate equivalent album-name families already existing in Synology Photos without uploading new assets."
+msgstr "Questo modulo consoliderà le famiglie di nomi di album equivalenti già esistenti in Synology Photos senza caricare nuovi asset."
+
+msgid "This module will consolidate equivalent album-name families already existing in {0} without uploading new assets."
+msgstr "Questo modulo consoliderà le famiglie di nomi di album equivalenti già esistenti in {0} senza caricare nuovi asset."
+
+msgid "This module will delete ALL albums in Immich Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà TUTTI gli album in Immich Photos. Gli asset associati verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete ALL albums in Local Photos Folder. Associated assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà TUTTI gli album nella cartella di foto locale. Gli asset associati verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete ALL albums in NextCloud Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà TUTTI gli album in NextCloud Photos. Gli asset associati verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete ALL albums in Synology Photos. Associated assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà TUTTI gli album in Synology Photos. Gli asset associati verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete ALL albums in {0} and also delete all assets associated with those albums."
+msgstr "Questo modulo eliminerà TUTTI gli album in {0} ed eliminerà anche tutti gli asset associati a quegli album."
+
+msgid "This module will delete ALL albums in {0}. Associated assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà TUTTI gli album in {0}. Gli asset associati verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Immich Photos."
+msgstr "Questo modulo eliminerà TUTTI gli asset (foto/video) e TUTTI gli album in Immich Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Local Photos Folder."
+msgstr "Questo modulo eliminerà TUTTI gli asset (foto/video) e TUTTI gli album nella cartella di foto locale."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in NextCloud Photos."
+msgstr "Questo modulo eliminerà TUTTI gli asset (foto/video) e TUTTI gli album in NextCloud Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in Synology Photos."
+msgstr "Questo modulo eliminerà TUTTI gli asset (foto/video) e TUTTI gli album in Synology Photos."
+
+msgid "This module will delete ALL assets (photos/videos) and ALL albums in {0}."
+msgstr "Questo modulo eliminerà TUTTI gli asset (foto/video) e TUTTI gli album in {0}."
+
+msgid "This module will delete albums in Immich Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà gli album di Immich Photos il cui nome corrisponde al tuo schema. Gli asset verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete albums in Local Photos Folder whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà gli album della cartella di foto locale il cui nome corrisponde al tuo schema. Gli asset verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete albums in NextCloud Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà gli album di NextCloud Photos il cui nome corrisponde al tuo schema. Gli asset verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete albums in Synology Photos whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà gli album di Synology Photos il cui nome corrisponde al tuo schema. Gli asset verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete albums in {0} whose names match your pattern, and it will also delete all assets inside those albums."
+msgstr "Questo modulo eliminerà gli album di {0} il cui nome corrisponde al tuo schema ed eliminerà anche tutti gli asset al loro interno."
+
+msgid "This module will delete albums in {0} whose names match your pattern. Assets will be kept unless they are removed by other operations."
+msgstr "Questo modulo eliminerà gli album di {0} il cui nome corrisponde al tuo schema. Gli asset verranno conservati, a meno che non vengano rimossi da altre operazioni."
+
+msgid "This module will delete all empty albums in Immich Photos."
+msgstr "Questo modulo eliminerà tutti gli album vuoti in Immich Photos."
+
+msgid "This module will delete all empty albums in Local Photos Folder."
+msgstr "Questo modulo eliminerà tutti gli album vuoti nella cartella di foto locale."
+
+msgid "This module will delete all empty albums in NextCloud Photos."
+msgstr "Questo modulo eliminerà tutti gli album vuoti in NextCloud Photos."
+
+msgid "This module will delete all empty albums in Synology Photos."
+msgstr "Questo modulo eliminerà tutti gli album vuoti in Synology Photos."
+
+msgid "This module will delete all empty albums in {0}."
+msgstr "Questo modulo eliminerà tutti gli album vuoti in {0}."
+
+msgid "This module will delete duplicated albums in Immich Photos (same name and size)."
+msgstr "Questo modulo eliminerà gli album duplicati in Immich Photos (stesso nome e stessa dimensione)."
+
+msgid "This module will delete duplicated albums in Local Photos Folder (same name and size)."
+msgstr "Questo modulo eliminerà gli album duplicati nella cartella di foto locale (stesso nome e stessa dimensione)."
+
+msgid "This module will delete duplicated albums in NextCloud Photos (same name and size)."
+msgstr "Questo modulo eliminerà gli album duplicati in NextCloud Photos (stesso nome e stessa dimensione)."
+
+msgid "This module will delete duplicated albums in Synology Photos (same name and size)."
+msgstr "Questo modulo eliminerà gli album duplicati in Synology Photos (stesso nome e stessa dimensione)."
+
+msgid "This module will delete duplicated albums in {0} (same name and size)."
+msgstr "Questo modulo eliminerà gli album duplicati in {0} (stesso nome e stessa dimensione)."
+
+msgid "This module will delete orphan assets from the Immich database (assets referenced in DB but missing on disk)."
+msgstr "Questo modulo eliminerà gli asset orfani dal database di Immich (asset presenti nel DB ma mancanti su disco)."
+
+msgid "This module will keep the selected oldest/newest asset for every same-name/same-size group and permanently delete redundant assets when the selected cloud API supports deletion."
+msgstr "Questo modulo conserverà l'asset più vecchio/più recente selezionato per ogni gruppo con stesso nome e stessa dimensione ed eliminerà definitivamente gli asset ridondanti quando l'API cloud selezionata supporta l'eliminazione."
+
+msgid "This module will merge duplicated albums in Immich Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Questo modulo unirà gli album duplicati in Immich Photos spostando gli asset nell'album più pertinente e rimuovendo i duplicati."
+
+msgid "This module will merge duplicated albums in Local Photos Folder by moving assets into the most relevant album and removing duplicates."
+msgstr "Questo modulo unirà gli album duplicati nella cartella di foto locale spostando gli asset nell'album più pertinente e rimuovendo i duplicati."
+
+msgid "This module will merge duplicated albums in NextCloud Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Questo modulo unirà gli album duplicati in NextCloud Photos spostando gli asset nell'album più pertinente e rimuovendo i duplicati."
+
+msgid "This module will merge duplicated albums in Synology Photos by moving assets into the most relevant album and removing duplicates."
+msgstr "Questo modulo unirà gli album duplicati in Synology Photos spostando gli asset nell'album più pertinente e rimuovendo i duplicati."
+
+msgid "This module will merge duplicated albums in {0} by moving assets into the most relevant album and removing duplicates."
+msgstr "Questo modulo unirà gli album duplicati in {0} spostando gli asset nell'album più pertinente e rimuovendo i duplicati."
+
+msgid "This module will move the original local folder into the processed output before reorganizing it by date. The source folder path will no longer exist after the move. Do you want to continue?"
+msgstr "Questo modulo sposterà la cartella locale originale nell'output elaborato prima di riorganizzarla per data. Dopo lo spostamento il percorso della cartella di origine non esisterà più. Vuoi continuare?"
+
+msgid "This module will rename albums in Immich Photos whose names match your pattern, using the replacement pattern."
+msgstr "Questo modulo rinominerà gli album di Immich Photos il cui nome corrisponde al tuo schema, usando lo schema di sostituzione."
+
+msgid "This module will rename albums in Local Photos Folder whose names match your pattern, using the replacement pattern."
+msgstr "Questo modulo rinominerà gli album della cartella di foto locale il cui nome corrisponde al tuo schema, usando lo schema di sostituzione."
+
+msgid "This module will rename albums in NextCloud Photos whose names match your pattern, using the replacement pattern."
+msgstr "Questo modulo rinominerà gli album di NextCloud Photos il cui nome corrisponde al tuo schema, usando lo schema di sostituzione."
+
+msgid "This module will rename albums in Synology Photos whose names match your pattern, using the replacement pattern."
+msgstr "Questo modulo rinominerà gli album di Synology Photos il cui nome corrisponde al tuo schema, usando lo schema di sostituzione."
+
+msgid "This module will rename albums in {0} whose names match your pattern, using the replacement pattern."
+msgstr "Questo modulo rinominerà gli album di {0} il cui nome corrisponde al tuo schema, usando lo schema di sostituzione."
+
+msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk."
+msgstr "Questo modulo rinominerà sul posto le cartelle locali degli album usando le date dei contenuti. I nomi originali delle cartelle verranno modificati su disco."
+
+msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
+msgstr "Questo modulo rinominerà sul posto le cartelle locali degli album usando le date dei contenuti. I nomi originali delle cartelle verranno modificati su disco. Vuoi continuare?"
+
+msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
+msgstr "Questa operazione eliminerà la richiesta di account di '{0}' e gli invierà un'email per comunicare che non è stata approvata. Vuoi continuare?"
+
+msgid "This will interrupt the current execution. Do you want to stop the running module?"
+msgstr "Questa operazione interromperà l'esecuzione corrente. Vuoi interrompere il modulo in esecuzione?"
+
+msgid "This will overwrite your user Config.ini stored in database."
+msgstr "Questa operazione sovrascriverà il Config.ini del tuo utente memorizzato nel database."
+
+msgid "This will permanently delete user '{0}'. Do you want to continue?"
+msgstr "Questa operazione eliminerà definitivamente l'utente '{0}'. Vuoi continuare?"
+
+msgid "This will permanently delete {0} selected folder(s) and all their contents."
+msgstr "Questa operazione eliminerà definitivamente {0} cartella/e selezionata/e e tutto il loro contenuto."
+
+msgid "Time zone"
+msgstr "Fuso orario"
+
+msgid "Time zone used by PhotoMigrator to interpret and display date/time values in logs and date-based operations."
+msgstr "Fuso orario usato da PhotoMigrator per interpretare e mostrare i valori di data/ora nei log e nelle operazioni basate sulla data."
+
+msgid "TimeZone"
+msgstr "TimeZone"
+
+msgid "Timestamp ▼"
+msgstr "Timestamp ▼"
+
+msgid "To save any other configuration field, enter active admin credentials."
+msgstr "Per salvare qualsiasi altro campo della configurazione, inserisci le credenziali di un amministratore attivo."
+
+msgid "Toggle {0}"
+msgstr "Attiva/disattiva {0}"
+
+msgid "Tools"
+msgstr "Strumenti"
+
+msgid "Transfer"
+msgstr "Trasferimento"
+
+msgid "Treat a local folder as a photo library and run the same album and asset actions used for cloud services."
+msgstr "Tratta una cartella locale come una libreria di foto ed esegui le stesse azioni su album e asset usate per i servizi cloud."
+
+msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album."
+msgstr "Considera i nomi di album di destinazione equivalenti come un'unica famiglia, quindi unisci i loro asset nell'album canonico da conservare."
+
+msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album. Redundant albums are removed only when the target service supports album deletion."
+msgstr "Considera i nomi di album di destinazione equivalenti come un'unica famiglia, quindi unisci i loro asset nell'album canonico da conservare. Gli album ridondanti vengono rimossi solo se il servizio di destinazione supporta l'eliminazione degli album."
+
+msgid "Try Date Prefix Albums Grouping"
+msgstr "Prova il raggruppamento degli album per prefisso di data"
+
+msgid "Try Equivalent Albums Grouping"
+msgstr "Prova il raggruppamento degli album equivalenti"
+
+msgid "Try Small Albums Grouping"
+msgstr "Prova il raggruppamento degli album piccoli"
+
+msgid "Try Truncated Albums Grouping"
+msgstr "Prova il raggruppamento degli album troncati"
+
+msgid "Type an answer when the running job asks for input"
+msgstr "Digita una risposta quando l'attività in esecuzione richiede un input"
+
+msgid "Unable to create folder"
+msgstr "Impossibile creare la cartella"
+
+msgid "Unable to create user."
+msgstr "Impossibile creare l'utente."
+
+msgid "Unable to load document."
+msgstr "Impossibile caricare il documento."
+
+msgid "Unable to remove selected folder(s)."
+msgstr "Impossibile rimuovere le cartelle selezionate."
+
+msgid "Unable to remove selected folder(s): {0}"
+msgstr "Impossibile rimuovere le cartelle selezionate: {0}"
+
+msgid "Unable to run command"
+msgstr "Impossibile eseguire il comando"
+
+msgid "Unable to send the request"
+msgstr "Impossibile inviare la richiesta"
+
+msgid "Unable to stop job"
+msgstr "Impossibile interrompere l'attività"
+
+msgid "Upload Albums"
+msgstr "Carica album"
+
+msgid "Upload All"
+msgstr "Carica tutto"
+
+msgid "Upload Completed with Warnings"
+msgstr "Caricamento completato con avvisi"
+
+msgid "Upload Failed"
+msgstr "Caricamento non riuscito"
+
+msgid "Upload Here"
+msgstr "Carica qui"
+
+msgid "Upload Local Folder"
+msgstr "Carica cartella locale"
+
+msgid "Upload Local Zip"
+msgstr "Carica ZIP locale"
+
+msgid "Upload a folder"
+msgstr "Carica una cartella"
+
+msgid "Upload a local folder or ZIP file to the server so the features can use it."
+msgstr "Carica una cartella locale o un file ZIP sul server in modo che le funzioni possano usarlo."
+
+msgid "Upload albums from <ALBUMS_FOLDER>."
+msgstr "Carica gli album da <ALBUMS_FOLDER>."
+
+msgid "Upload albums from <ALBUMS_FOLDER>. One album per subfolder."
+msgstr "Carica gli album da <ALBUMS_FOLDER>. Un album per sottocartella."
+
+msgid "Upload albums from <ALBUMS_FOLDER>. One album per subfolder. Example: --upload-albums ./My_Albums_Folder"
+msgstr "Carica gli album da <ALBUMS_FOLDER>. Un album per sottocartella. Esempio: --upload-albums ./My_Albums_Folder"
+
+msgid "Upload all assets from <INPUT_FOLDER> to the selected client."
+msgstr "Carica tutti gli asset da <INPUT_FOLDER> sul client selezionato."
+
+msgid "Upload all assets from <INPUT_FOLDER> to the selected client. - A new Album will be created per subfolder found in 'Albums' subfolder. - If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too. Example: --upload-all ./MyLibrary"
+msgstr "Carica tutti gli asset da <INPUT_FOLDER> sul client selezionato. - Verrà creato un nuovo album per ogni sottocartella trovata nella sottocartella 'Albums'. - Se viene passato anche '-AlbFolder, --albums-folders <ALBUMS_FOLDER>', verranno creati album anche per quelle cartelle. Esempio: --upload-all ./MyLibrary"
+
+msgid "Upload behavior: ZIP extraction follows the \"Extract ZIPs on upload\" option (Yes/No) in Upload to Server."
+msgstr "Comportamento del caricamento: l'estrazione degli ZIP segue l'opzione \"Estrai i file ZIP durante il caricamento\" (Sì/No) in Carica sul server."
+
+msgid "Upload from this computer"
+msgstr "Carica da questo computer"
+
+msgid "Upload local content (a folder or a ZIP file) into the selected destination folder on the server, so the other features can use it."
+msgstr "Carica contenuti locali (una cartella o un file ZIP) nella cartella di destinazione selezionata sul server, in modo che le altre funzioni possano usarli."
+
+msgid "Upload mode active: this feature runs direct upload (no CLI command preview)."
+msgstr "Modalità di caricamento attiva: questa funzione esegue un caricamento diretto (nessuna anteprima del comando CLI)."
+
+msgid "Upload status: done | Uploaded: {0} |"
+msgstr "Stato del caricamento: completato | Caricati: {0} |"
+
+msgid "Upload status: failed ({0})"
+msgstr "Stato del caricamento: non riuscito ({0})"
+
+msgid "Upload status: idle"
+msgstr "Stato del caricamento: inattivo"
+
+msgid "Upload status: uploading..."
+msgstr "Stato del caricamento: caricamento in corso..."
+
+msgid "Upload to Server"
+msgstr "Carica sul server"
+
+msgid "Upload to Server · PhotoMigrator"
+msgstr "Carica sul server · PhotoMigrator"
+
+msgid "Upload, download, organize and clean up albums and assets in your Google Photos library."
+msgstr "Carica, scarica, organizza e pulisci album e asset nella tua libreria Google Photos."
+
+msgid "Upload, download, organize and clean up albums and assets in your Immich library."
+msgstr "Carica, scarica, organizza e pulisci album e asset nella tua libreria Immich."
+
+msgid "Upload, download, organize and clean up albums and assets in your NextCloud Photos library."
+msgstr "Carica, scarica, organizza e pulisci album e asset nella tua libreria NextCloud Photos."
+
+msgid "Upload, download, organize and clean up albums and assets in your Synology Photos library."
+msgstr "Carica, scarica, organizza e pulisci album e asset nella tua libreria Synology Photos."
+
+msgid "Upload, download, rename, clean up and deduplicate albums and assets."
+msgstr "Carica, scarica, rinomina, pulisci e deduplica album e asset."
+
+msgid "Uploaded: {0}\\n"
+msgstr "Caricati: {0}\\n"
+
+msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
+msgstr "Usa '--organize-folder-structure' per cambiare la struttura, '--organize-output-folder-suffix' per cambiare il suffisso generato quando non è indicata una cartella di output esplicita e '--move-original-files' per spostare invece di copiare."
+
+msgid "Use '--preview-album-actions' to preview and confirm the detected album families before applying changes."
+msgstr "Usa '--preview-album-actions' per vedere l'anteprima e confermare le famiglie di album rilevate prima di applicare le modifiche."
+
+msgid "Use '--preview-album-actions' to preview matches and request confirmation before applying changes."
+msgstr "Usa '--preview-album-actions' per vedere l'anteprima delle corrispondenze e chiedere conferma prima di applicare le modifiche."
+
+msgid "Use 'ALL' to download ALL albums."
+msgstr "Usa 'ALL' per scaricare TUTTI gli album."
+
+msgid "Use --consolidate-similar-albums if you want cloud targets to reuse and consolidate equivalent album families such as 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album', or 'New_Album {1}' instead of only exact matches."
+msgstr "Usa --consolidate-similar-albums se vuoi che le destinazioni cloud riutilizzino e consolidino le famiglie di album equivalenti, come 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album' o 'New_Album {1}', invece di considerare solo le corrispondenze esatte."
+
+msgid "Use --prefer-canonical-album-names if you want new destination albums to be created with the preferred clean keeper form even when the target does not already contain any similar variant, for example 'Album_1' -> 'Album' or 'New_Album {0}' -> 'New Album'."
+msgstr "Usa --prefer-canonical-album-names se vuoi che i nuovi album di destinazione vengano creati con la forma pulita preferita da conservare anche quando la destinazione non contiene già alcuna variante simile, ad esempio 'Album_1' -> 'Album' o 'New_Album {0}' -> 'New Album'."
+
+msgid "Use Current"
+msgstr "Usa corrente"
+
+msgid "Use Selected"
+msgstr "Usa selezionato"
+
+msgid "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
+msgstr "Usa Carica cartella locale o Carica ZIP locale nel pannello Carica sul server."
+
+msgid "Use patterns: e.g. --download-albums 'dron*'"
+msgstr "Usa degli schemi: ad es. --download-albums 'dron*'"
+
+msgid "Use the password your administrator gave you."
+msgstr "Usa la password che ti ha fornito l'amministratore."
+
+msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
+msgstr "Usalo dopo '--find-duplicates' per applicare le decisioni manuali del tuo CSV revisionato."
+
+msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
+msgstr "Usato per gli avvisi sull'account (richieste, attivazioni, cambi di password) e per le email delle attività completate. I campi vuoti usano le"
+
+msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
+msgstr "Utile dopo aver spostato/rinominato cartelle in OUTPUT_TAKEOUT_FOLDER quando alcuni album risultano vuoti."
+
+msgid "User"
+msgstr "Utente"
+
+msgid "Username"
+msgstr "Nome utente"
+
+msgid "Username or email"
+msgstr "Nome utente o email"
+
+msgid "Users"
+msgstr "Utenti"
+
+msgid "Uses the configured cloud account ID."
+msgstr "Usa l'ID dell'account cloud configurato."
+
+msgid "Uses the configured cloud account ID. If omitted, account ID {0} is used."
+msgstr "Usa l'ID dell'account cloud configurato. Se omesso, viene usato l'ID account {0}."
+
+msgid "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album')."
+msgstr "Usa la stessa logica di famiglie di album di '--consolidate-similar-albums' (ad esempio 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album')."
+
+msgid "Using Settings defaults"
+msgstr "Uso dei valori predefiniti delle Impostazioni"
+
+msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
+msgstr "Azioni valide: restore_duplicate / remove_duplicate / replace_duplicate."
+
+msgid "Version v5.0.0 · Sign in to continue"
+msgstr "Versione v5.0.0 · Accedi per continuare"
+
+msgid "Warm palette"
+msgstr "Tavolozza calda"
+
+msgid "We received your account request"
+msgstr "Abbiamo ricevuto la tua richiesta di account"
+
+msgid "Web Interface"
+msgstr "Interfaccia web"
+
+msgid "Website"
+msgstr "Sito web"
+
+msgid "Welcome back, admin"
+msgstr "Bentornato, admin"
+
+msgid "Welcome back, {0}"
+msgstr "Bentornato, {0}"
+
+msgid "What do you want to move today?"
+msgstr "Cosa vuoi spostare oggi?"
+
+msgid "What to do with detected duplicates: list, move, or delete."
+msgstr "Cosa fare con i duplicati rilevati: elencarli, spostarli o eliminarli."
+
+msgid "What to do with duplicates"
+msgstr "Cosa fare con i duplicati"
+
+msgid "What would you like to do today?"
+msgstr "Cosa vuoi fare oggi?"
+
+msgid "When a destination album must be created, use the canonical form of its source name."
+msgstr "Quando occorre creare un album di destinazione, usa la forma canonica del nome di origine."
+
+msgid "When a destination album must be created, use the canonical form of its source name. It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+msgstr "Quando occorre creare un album di destinazione, usa la forma canonica del nome di origine. Normalizza le varianti innocue con trattino basso/spazio e i suffissi in stile duplicato, ma non unisce gli album esistenti."
+
+msgid "When an uploaded album must be created, use the canonical form of its source name."
+msgstr "Quando occorre creare un album caricato, usa la forma canonica del nome di origine."
+
+msgid "When an uploaded album must be created, use the canonical form of its source name. It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+msgstr "Quando occorre creare un album caricato, usa la forma canonica del nome di origine. Normalizza le varianti innocue con trattino basso/spazio e i suffissi in stile duplicato, ma non unisce gli album esistenti."
+
+msgid "When enabled, Memories CSV collections are also reconstructed as album-like folders."
+msgstr "Se abilitato, anche le raccolte CSV Memories vengono ricostruite come cartelle simili ad album."
+
+msgid "When enabled, uploaded .zip files are extracted on the server and the .zip file is removed."
+msgstr "Se abilitato, i file .zip caricati vengono estratti sul server e il file .zip viene rimosso."
+
+msgid "When multiple folders are provided, order matters: files in the first folder have priority to be kept."
+msgstr "Quando vengono indicate più cartelle, l'ordine è importante: i file della prima cartella hanno la priorità per essere conservati."
+
+msgid "When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow."
+msgstr "Quando l'input è un Takeout con soli album e senza cartelle per anno, PhotoMigrator lo rileva automaticamente e passa GPTH al flusso di recupero appropriato."
+
+msgid "When the task finishes, PhotoMigrator emails {0} with the result and the last lines of the log."
+msgstr "Al termine dell'attività, PhotoMigrator invia un'email a {0} con il risultato e le ultime righe del log."
+
+msgid "When you run a feature, its progress and log appear here."
+msgstr "Quando esegui una funzione, qui compaiono avanzamento e log."
+
+msgid "Where from and where to"
+msgstr "Da dove e verso dove"
+
+msgid "Where to put the files on the server"
+msgstr "Dove salvare i file sul server"
+
+msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
+msgstr "Funziona con Google Photos, Synology Photos, Immich Photos, NextCloud Photos e cartelle locali, in qualsiasi direzione."
+
+msgid "Workspace"
+msgstr "Area di lavoro"
+
+msgid "Yes"
+msgstr "Sì"
+
+msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
+msgstr "Puoi modificare le celle e fare clic su Salva riga, oppure su Elimina riga. Gli inserimenti usano la sintassi degli oggetti JSON."
+
+msgid "You will be asked to confirm before it runs."
+msgstr "Ti verrà chiesto di confermare prima dell'esecuzione."
+
+msgid "Your PhotoMigrator account"
+msgstr "Il tuo account PhotoMigrator"
+
+msgid "Your account has been disabled"
+msgstr "Il tuo account è stato disabilitato"
+
+msgid "Your account has no email. Ask your administrator to add one to get task emails."
+msgstr "Il tuo account non ha un'email. Chiedi all'amministratore di aggiungerne una per ricevere le email delle attività."
+
+msgid "Your account is active"
+msgstr "Il tuo account è attivo"
+
+msgid "Your account request"
+msgstr "La tua richiesta di account"
+
+msgid "Your own library"
+msgstr "La tua libreria"
+
+msgid "Your password was changed"
+msgstr "La tua password è stata modificata"
+
+msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
+msgstr "La tua password temporanea è <b>{0}</b>. Sceglierai la tua password al primo accesso."
+
+msgid "access_logs ({0})"
+msgstr "access_logs ({0})"
+
+msgid "an administrator changed the password of your PhotoMigrator account <b>{0}</b>. Ask them for the new password if you did not get it. If you did not expect this change, contact them."
+msgstr "un amministratore ha cambiato la password del tuo account PhotoMigrator <b>{0}</b>. Chiedi a lui la nuova password se non l'hai ricevuta. Se non ti aspettavi questa modifica, contattalo."
+
+msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
+msgstr "un amministratore ha disabilitato il tuo account PhotoMigrator <b>{0}</b>. Se ritieni che sia un errore, rispondi a questa email."
+
+msgid "backup_schedules ({0})"
+msgstr "backup_schedules ({0})"
+
+msgid "data subpath (default username)"
+msgstr "Sottopercorso di data (predefinito: nome utente)"
+
+msgid "e.g. photos-2026 or /app/data/photos-2026"
+msgstr "ad es. photos-2026 o /app/data/photos-2026"
+
+msgid "environment variables."
+msgstr "variabili d'ambiente."
+
+msgid "iCloud Takeout"
+msgstr "iCloud Takeout"
+
+msgid "iCloud Takeout · PhotoMigrator"
+msgstr "iCloud Takeout · PhotoMigrator"
+
+msgid "immich-photos-1 -> immich-photos-1"
+msgstr "immich-photos-1 -> immich-photos-1"
+
+msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
+msgstr "è impostato su Sì, i file .zip caricati vengono estratti sul server e il file .zip viene rimosso. Se è impostato su No, i file .zip vengono mantenuti così come caricati."
+
+msgid "max size {0} MB"
+msgstr "dimensione massima {0} MB"
+
+msgid "max size {0} MB · timeout {1} s"
+msgstr "dimensione massima {0} MB · timeout {1} s"
+
+msgid "nextcloud-photos-1 -> nextcloud-photos-1"
+msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
+
+msgid "sessions ({0})"
+msgstr "sessions ({0})"
+
+msgid "synology-photos-1 -> immich-photos-1"
+msgstr "synology-photos-1 -> immich-photos-1"
+
+msgid "synology-photos-1 -> synology-photos-1"
+msgstr "synology-photos-1 -> synology-photos-1"
+
+msgid "the password of your PhotoMigrator account <b>{0}</b> was changed. If it was not you, contact your administrator right away."
+msgstr "la password del tuo account PhotoMigrator <b>{0}</b> è stata modificata. Se non sei stato tu, contatta subito l'amministratore."
+
+msgid "the password you chose"
+msgstr "la password che hai scelto"
+
+msgid "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can send account notices (requests, activations and password changes) and the emails of finished tasks."
+msgstr "questa è l'email di prova che hai richiesto dal Pannello di amministrazione. Se l'hai ricevuta, PhotoMigrator può inviare gli avvisi sull'account (richieste, attivazioni e cambi di password) e le email delle attività completate."
+
+msgid "user_configs ({0})"
+msgstr "user_configs ({0})"
+
+msgid "user_states ({0})"
+msgstr "user_states ({0})"
+
+msgid "users ({0})"
+msgstr "users ({0})"
+
+msgid "v5.0.0 · 2026-12-01"
+msgstr "v5.0.0 · 2026-12-01"
+
+msgid "volumes subpath (default username)"
+msgstr "Sottopercorso di volumes (predefinito: nome utente)"
+
+msgid "web_settings ({0})"
+msgstr "web_settings ({0})"
+
+msgid "your PhotoMigrator account is now active. Sign in with the username <b>{0}</b> or your email address and {1}."
+msgstr "il tuo account PhotoMigrator è ora attivo. Accedi con il nome utente <b>{0}</b> o con il tuo indirizzo email e {1}."
+
+msgid "your password"
+msgstr "la tua password"
+
+msgid "your request for a PhotoMigrator account was not approved. If you think this is a mistake, reply to this email."
+msgstr "la tua richiesta di un account PhotoMigrator non è stata approvata. Se ritieni che sia un errore, rispondi a questa email."
+
+msgid "your request for a PhotoMigrator account with the username <b>{0}</b> is waiting for approval. We will email you as soon as it is active."
+msgstr "la tua richiesta di un account PhotoMigrator con il nome utente <b>{0}</b> è in attesa di approvazione. Ti invieremo un'email non appena sarà attivo."
+
+msgid "your task <b>{0}</b> ended with errors (exit code {1})."
+msgstr "la tua attività <b>{0}</b> si è conclusa con errori (codice di uscita {1})."
+
+msgid "your task <b>{0}</b> finished successfully."
+msgstr "la tua attività <b>{0}</b> si è conclusa con successo."
+
+msgid "your task <b>{0}</b> was stopped before it finished."
+msgstr "la tua attività <b>{0}</b> è stata interrotta prima del termine."
+
+msgid "{0} accounts"
+msgstr "Account {0}"
+
+msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
+msgstr "{0} ha creato per te un account PhotoMigrator. Accedi con il nome utente <b>{1}</b> o con questo indirizzo email."
+
+msgid "{0} failed"
+msgstr "{0} non riuscito"
+
+msgid "{0} features"
+msgstr "{0} funzioni"
+
+msgid "{0} finished"
+msgstr "{0} completato"
+
+msgid "{0} options"
+msgstr "Opzioni {0}"
+
+msgid "{0} stopped"
+msgstr "{0} interrotto"
+
+msgid "⏱️ Delayed Recovered"
+msgstr "⏱️ Recuperati in ritardo"
+
+msgid "⏱️ Delayed Retries"
+msgstr "⏱️ Tentativi differiti"
+
+msgid "⏱️ Delayed Retries Queue"
+msgstr "⏱️ Coda dei tentativi differiti"
+
+msgid "⏳ Remaining Time"
+msgstr "⏳ Tempo rimanente"
+
+msgid "❔ Unknown Files"
+msgstr "❔ File sconosciuti"
+
+msgid "⬆️ Push Panel"
+msgstr "⬆️ Pannello di invio"
+
+msgid "⬆️ Push Panel - -"
+msgstr "⬆️ Pannello di invio - -"
+
+msgid "⬆️ Push Panel - immich-photos-1"
+msgstr "⬆️ Pannello di invio - immich-photos-1"
+
+msgid "⬆️ Push Panel - nextcloud-photos-1"
+msgstr "⬆️ Pannello di invio - nextcloud-photos-1"
+
+msgid "⬆️ Push Panel - synology-photos-1"
+msgstr "⬆️ Pannello di invio - synology-photos-1"
+
+msgid "⬇️ Pull Panel"
+msgstr "⬇️ Pannello di prelievo"
+
+msgid "⬇️ Pull Panel - -"
+msgstr "⬇️ Pannello di prelievo - -"
+
+msgid "⬇️ Pull Panel - immich-photos-1"
+msgstr "⬇️ Pannello di prelievo - immich-photos-1"
+
+msgid "⬇️ Pull Panel - nextcloud-photos-1"
+msgstr "⬇️ Pannello di prelievo - nextcloud-photos-1"
+
+msgid "⬇️ Pull Panel - synology-photos-1"
+msgstr "⬇️ Pannello di prelievo - synology-photos-1"
+
+msgid "🎬 Pulled Videos"
+msgstr "🎬 Video prelevati"
+
+msgid "🎬 Pushed Videos"
+msgstr "🎬 Video inviati"
+
+msgid "🎬 Total Videos"
+msgstr "🎬 Video totali"
+
+msgid "🎯 Pulled Assets"
+msgstr "🎯 Asset prelevati"
+
+msgid "🎯 Pushed Assets"
+msgstr "🎯 Asset inviati"
+
+msgid "🎯 Total Assets"
+msgstr "🎯 Asset totali"
+
+msgid "📂 Pulled Albums"
+msgstr "📂 Album prelevati"
+
+msgid "📂 Pushed Albums"
+msgstr "📂 Album inviati"
+
+msgid "📂 Total Albums"
+msgstr "📂 Album totali"
+
+msgid "📅 Estimated End"
+msgstr "📅 Fine stimata"
+
+msgid "📊 Assets in Queue"
+msgstr "📊 Asset in coda"
+
+msgid "📊 Info Panel"
+msgstr "📊 Pannello informazioni"
+
+msgid "📜 Total Metadata"
+msgstr "📜 Metadati totali"
+
+msgid "📷 Pulled Photos"
+msgstr "📷 Foto prelevate"
+
+msgid "📷 Pushed Photos"
+msgstr "📷 Foto inviate"
+
+msgid "📷 Total Photos"
+msgstr "📷 Foto totali"
+
+msgid "🔒 Blocked Albums"
+msgstr "🔒 Album bloccati"
+
+msgid "🔒 Blocked Assets"
+msgstr "🔒 Asset bloccati"
+
+msgid "🔗 Total Sidecar"
+msgstr "🔗 Sidecar totali"
+
+msgid "🔢 Total Albums (New / Duplicates / Failed)"
+msgstr "🔢 Album totali (nuovi / duplicati / non riusciti)"
+
+msgid "🔢 Total Assets (New / Duplicates / Failed)"
+msgstr "🔢 Asset totali (nuovi / duplicati / non riusciti)"
+
+msgid "🔢 Total Photos (New / Duplicates / Failed)"
+msgstr "🔢 Foto totali (nuove / duplicate / non riuscite)"
+
+msgid "🔢 Total Videos (New / Duplicates / Failed)"
+msgstr "🔢 Video totali (nuovi / duplicati / non riusciti)"
+
+msgid "🕒 Elapsed Time"
+msgstr "🕒 Tempo trascorso"
+
+msgid "🚩 Album Assoc Failed"
+msgstr "🚩 Associazioni agli album non riuscite"
+
+msgid "🚩 Failed Albums"
+msgstr "🚩 Album non riusciti"
+
+msgid "🚩 Failed Assets"
+msgstr "🚩 Asset non riusciti"
+
+msgid "🚩 Failed Photos"
+msgstr "🚩 Foto non riuscite"
+
+msgid "🚩 Failed Videos"
+msgstr "🚩 Video non riusciti"
+
+msgid "🧾 Album Assoc Queue"
+msgstr "🧾 Coda delle associazioni agli album"
