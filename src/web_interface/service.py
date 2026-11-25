@@ -1143,7 +1143,11 @@ def package_result(task_id: str) -> None:
             if path.name not in {SECRETS_DIR, DOWNLOADS_DIR, LOGS_DIR} and path != processed:
                 shutil.rmtree(path, ignore_errors=True) if path.is_dir() else path.unlink(missing_ok=True)
         downloads = _private_mkdir(folder / DOWNLOADS_DIR)
-        files = sorted(p for p in processed.rglob("*") if p.is_file())
+        # Album folders hold symbolic links to the photos of ALL_PHOTOS: store them first as real copies (a ZIP
+        # file has no portable links), before the files they point to are deleted. Broken links are skipped.
+        entries = sorted(processed.rglob("*"))
+        links = [p for p in entries if p.is_symlink() and p.is_file()]
+        files = links + [p for p in entries if not p.is_symlink() and p.is_file()]
         part_index, part_size, archive = 0, 0, None
         for file_path in files:
             size = file_path.stat().st_size

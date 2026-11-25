@@ -329,10 +329,17 @@ class TestCloudService(unittest.TestCase):
         processed = self.work / task["id"] / "input_processed_20261125"
         (processed / "2024").mkdir(parents=True)
         (processed / "2024" / "a.jpg").write_bytes(b"A" * 1000)
+        (processed / "Albums" / "Trip").mkdir(parents=True)
+        (processed / "Albums" / "Trip" / "a.jpg").symlink_to(Path("..") / ".." / "2024" / "a.jpg")
+        (processed / "Albums" / "Trip" / "gone.jpg").symlink_to(Path("..") / ".." / "2024" / "missing.jpg")
         (self.work / task["id"] / "input" / "takeout.zip").write_bytes(b"zip")
         self.svc.package_result(task["id"])
         ready = self.svc.get_task(task["id"])
         self.assertEqual(ready["status"], "awaiting_download_payment")
+        part_file = next((self.work / task["id"] / "downloads").glob("*.zip"))
+        with zipfile.ZipFile(part_file) as archive:
+            self.assertEqual(sorted(archive.namelist()), ["2024/a.jpg", "Albums/Trip/a.jpg"])
+            self.assertEqual(archive.read("Albums/Trip/a.jpg"), b"A" * 1000)
         self.assertFalse((self.work / task["id"] / "input").exists())
         self.assertFalse(processed.exists())
         details = self.client.get(f"/api/service/tasks/{task['id']}").json()["task"]
