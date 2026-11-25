@@ -185,7 +185,8 @@
                 throw new Error(String(data?.detail || "Invalid credentials"));
             }
             statusEl.textContent = "Status: login successful";
-            window.location.href = "/features?view=home";
+            const next = new URLSearchParams(window.location.search).get("next") || "";
+            window.location.href = /^\/(?![\/\\])/.test(next) ? next : "/features?view=home";
         } catch (error) {
             statusEl.textContent = `Status: ${String(error)}`;
         }

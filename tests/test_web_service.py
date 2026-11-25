@@ -210,6 +210,27 @@ class TestCloudService(unittest.TestCase):
         self.assertIn(f"tab=service&amp;task={task['id']}", body.replace("&amp;", "&").replace("&", "&amp;"))
         self.assertIn("alice", body)
 
+    def test_admin_link_signs_in_first_and_comes_back(self):
+        link = "/admin?tab=service&task=abc123"
+        response = self.client.get(link, follow_redirects=False)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["location"], "/login?next=%2Fadmin%3Ftab%3Dservice%26task%3Dabc123")
+        self.assertEqual(self.app._safe_next_path("https://evil.example.com"), "")
+        self.assertEqual(self.app._safe_next_path("//evil.example.com"), "")
+        self.assertEqual(self.app._safe_next_path(link), link)
+        self._login("alice", "alice-pass-123")
+        self.assertEqual(self.client.get("/admin", follow_redirects=False).status_code, 403)
+        self.assertEqual(self.client.get(f"/login?next=%2Fservice", follow_redirects=False).headers["location"], "/service")
+
+    def test_sign_in_keeps_the_language_of_accounts_without_one(self):
+        self.client.post("/api/auth/login", json={"username": "alice", "password": "alice-pass-123"},
+                         headers={"accept-language": "es-ES,es;q=0.9"})
+        self.assertEqual(self.app._fetch_user_by_username("alice")["lang"], "es")
+        self.client.cookies.clear()
+        self.client.post("/api/auth/login", json={"username": "alice", "password": "alice-pass-123"},
+                         headers={"accept-language": "fr-FR"})
+        self.assertEqual(self.app._fetch_user_by_username("alice")["lang"], "es")
+
     def test_quote_checks_the_uploaded_zip_files(self):
         self._enable()
         self._login("alice", "alice-pass-123")

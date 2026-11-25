@@ -22,6 +22,7 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Deque, Dict, List, TextIO
+from urllib.parse import quote
 from zoneinfo import available_timezones
 
 from fastapi import Cookie, Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile, status
@@ -4459,7 +4460,7 @@ def set_ui_language(payload: LanguageRequest, request: Request, response: Respon
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
     if _user_from_session_token(session_token):
-        return RedirectResponse(url=WEB_APP_HOME_PATH, status_code=302)
+        return RedirectResponse(url=_safe_next_path(request.query_params.get("next")) or WEB_APP_HOME_PATH, status_code=302)
     show_default_admin_hint = _is_login_hint_account_available(username="admin", password="admin123")
     show_demo_hint = _is_login_hint_account_available(username="demo", password="demo", required_role="demo")
     response = templates.TemplateResponse(
@@ -4494,6 +4495,14 @@ def api_login(payload: LoginRequest, response: Response, request: Request) -> Di
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = _create_session_for_user(int(user["id"]))
     _record_access_log(int(user["id"]), str(user.get("username") or username), _extract_client_ip(request))
+    if not ui_i18n.clean(user.get("lang")):
+        # Accounts that never chose a language keep the one they use (cookie or browser), so emails use it too.
+        conn = _db_connect()
+        try:
+            conn.execute("UPDATE users SET lang = ? WHERE id = ? AND COALESCE(lang, '') = ''", (_ui_lang(request), int(user["id"])))
+            conn.commit()
+        finally:
+            conn.close()
     response.set_cookie(
         key=WEB_SESSION_COOKIE,
         value=token,
@@ -4794,8 +4803,22 @@ def service_page(request: Request, session_token: str | None = Cookie(default=No
     return _render_main_page(request, current_user, "service.html")
 
 
+def _safe_next_path(value: str | None) -> str:
+    """A path of this site to open after signing in (never another site)."""
+    path = str(value or "").strip()
+    if not path.startswith("/") or path.startswith("//") or "\\" in path or any(ord(char) < 32 for char in path):
+        return ""
+    return path
+
+
 @app.get("/admin", response_class=HTMLResponse)
-def admin_panel(request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> HTMLResponse:
+def admin_panel(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
+    current_user = _user_from_session_token(session_token)
+    if not current_user:
+        # Links in emails open the panel: sign in first and come back to the same page.
+        target = request.url.path + (f"?{request.url.query}" if request.url.query else "")
+        return RedirectResponse(url=f"/login?next={quote(target, safe='')}", status_code=302)
+    current_user = _require_admin(current_user)
     response = templates.TemplateResponse(
         "admin.html",
         {
