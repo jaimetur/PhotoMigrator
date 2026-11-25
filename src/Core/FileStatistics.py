@@ -397,7 +397,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                 dirs[:] = [d for d in dirs if not matches_any_pattern(d, folder_patterns)]
                 for filename in files:
                     full_path = os.path.join(root, filename)
-                    if should_exclude_path(full_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                    if should_exclude_path(os.path.relpath(full_path, input_folder), exclusion_folders=folder_patterns, exclusion_files=file_patterns):
                         continue
                     if os.path.islink(full_path):
                         try:

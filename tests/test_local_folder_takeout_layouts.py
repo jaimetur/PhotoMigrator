@@ -94,6 +94,23 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         self.assertEqual(analyzer.file_list, [media_file.resolve().as_posix()])
         self.assertEqual(analyzer.filtered_file_list, [media_file.resolve().as_posix()])
 
+    def test_counters_and_local_folder_do_not_exclude_files_because_an_ancestor_is_hidden(self):
+        hidden_source = self.root / ".service-work" / "task" / "input_processed"
+        media_file = hidden_source / "ALL_PHOTOS" / "2025" / "10" / "photo.jpg"
+        media_file.parent.mkdir(parents=True)
+        media_file.write_text("data", encoding="utf-8")
+
+        analyzer = folder_analyzer_module.FolderAnalyzer(
+            folder_path=str(hidden_source),
+            force_date_extraction=False,
+            logger=self.logger,
+        )
+        self.assertEqual(analyzer.count_files()["total_files"], 1)
+
+        local_folder = ClassLocalPhotosFolder(base_folder=hidden_source)
+        self.assertFalse(local_folder._should_exclude(media_file))
+        self.assertTrue(local_folder._should_exclude(hidden_source / ".hidden" / "photo.jpg"))
+
     def test_managed_layout_treats_memories_root_as_album_collections(self):
         self._create_file("Memories/Summer Recap/memory-a.jpg")
 

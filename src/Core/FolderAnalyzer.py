@@ -1117,12 +1117,13 @@ class FolderAnalyzer:
                     dirs[:] = [d for d in dirs if not matches_any_pattern(d, folder_patterns)]
                     for filename in files:
                         full_path = os.path.join(root, filename)
-                        if should_exclude_path(full_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                        if should_exclude_path(self._get_relative_filter_path(full_path), exclusion_folders=folder_patterns, exclusion_files=file_patterns):
                             continue
                         paths.append(full_path)
 
             for full_path in paths:
-                if should_exclude_path(full_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                # Exclusions apply below the analyzed folder only: a hidden ancestor folder must not exclude everything.
+                if should_exclude_path(self._get_relative_filter_path(full_path), exclusion_folders=folder_patterns, exclusion_files=file_patterns):
                     continue
                 ext = Path(full_path).suffix.lower()
 

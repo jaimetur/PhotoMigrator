@@ -732,6 +732,11 @@ class ClassLocalPhotosFolder(BaseMediaClient):
         Returns:
             bool: True if the file or folder should be excluded, False otherwise.
         """
+        # Exclusions apply below the base folder only: a hidden ancestor folder must not exclude everything.
+        try:
+            file_path = Path(os.path.abspath(file_path)).relative_to(os.path.abspath(self.base_folder))
+        except (TypeError, ValueError):
+            pass
         return should_exclude_path(
             file_path,
             exclusion_folders=self.FOLDER_EXCLUSION_PATTERNS,
