@@ -253,7 +253,7 @@ jobs:
       # 🏷️ Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
       - name: 🏷️ Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ env.TOOL_VERSION }}
           name: v${{ env.TOOL_VERSION }}

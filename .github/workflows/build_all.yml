@@ -557,14 +557,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
       - name: 📥 Download Artifacts (RELEASE-NOTES.md, Binaries and Docker Zips)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: PhotoMigrator*.zip
           path: ./release_files
           merge-multiple: true
 
       - name: 📝 Download RELEASE-NOTES.md
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: RELEASE-NOTES.md
           path: .
@@ -578,7 +578,7 @@ jobs:
       # 🚀 Crear release estable (final_release == true)
       - name: 🚀 Create GitHub Release (stable)
         if: ${{ inputs.final_release == true }}
-        uses: softprops/action-gh-release@v2.2.2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ env.TOOL_VERSION }}
           name: v${{ env.TOOL_VERSION }}
@@ -597,7 +597,7 @@ jobs:
       # 🚀 Crear prerelease (final_release == false)
       - name: 🚀 Create GitHub Release (prerelease)
         if: ${{ inputs.final_release == false }}
-        uses: softprops/action-gh-release@v2.2.2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ env.TOOL_VERSION }}
           name: v${{ env.TOOL_VERSION }}
@@ -629,7 +629,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: 📥 Download RELEASE-NOTES.md
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: RELEASE-NOTES.md
           path: .
