@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 GLOBAL_VARS_PATH = ROOT / "src" / "Core" / "GlobalVariables.py"
 DOWNLOAD_SCRIPT = ROOT / "tools" / "UpdateDownloadLinks.py"
 CLI_DOC_PATH = ROOT / "help" / "01-command-line-interface.md"
+CHANGELOG_PATH = ROOT / "CHANGELOG.md"
+VERSION_DATE_PATHS = (GLOBAL_VARS_PATH, CLI_DOC_PATH, CHANGELOG_PATH)
 
 
 class DirtyTreeAction(Enum):
@@ -103,9 +105,7 @@ def create_release(version: str, release_date: str, dirty_action: DirtyTreeActio
 
     print(f"Creating release branch {version} from {source_branch}...")
     run_git("switch", "--create", version)
-    print(f"Updating TOOL_VERSION_WITHOUT_V and TOOL_DATE to: {version} - {release_date}...")
-    write_version_date(GLOBAL_VARS_PATH.read_text(encoding="utf-8"), version, release_date)
-    write_cli_doc_version_date(version, release_date)
+    apply_version_date(version, release_date)
     run_script(DOWNLOAD_SCRIPT)
 
     run_git("add", "--all")
@@ -154,6 +154,55 @@ def write_cli_doc_version_date(new_version: str, new_date: str) -> None:
             "Unable to update version/date in help/01-command-line-interface.md"
         )
     CLI_DOC_PATH.write_text(updated, encoding="utf-8")
+
+
+def write_changelog_release_date(new_version: str, new_date: str) -> None:
+    """Set the release date of the CHANGELOG section of the given version, when that section exists."""
+    content = CHANGELOG_PATH.read_text(encoding="utf-8")
+    updated, count = re.subn(
+        rf"^(## Release: v{re.escape(new_version)}[ \t]*\r?\n### Release Date:[ \t]*)\S.*$",
+        rf"\g<1>{new_date}",
+        content,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    if count != 1:
+        print(f"WARNING: CHANGELOG.md has no 'Release: v{new_version}' section; its release date was not updated.")
+        return
+    if updated != content:
+        CHANGELOG_PATH.write_text(updated, encoding="utf-8")
+
+
+def apply_version_date(new_version: str, new_date: str) -> None:
+    """Write the version/date everywhere it is shown: GlobalVariables.py, the CLI help and the CHANGELOG."""
+    print(f"Updating TOOL_VERSION_WITHOUT_V and TOOL_DATE to: {new_version} - {new_date}...")
+    write_version_date(GLOBAL_VARS_PATH.read_text(encoding="utf-8"), new_version, new_date)
+    write_cli_doc_version_date(new_version, new_date)
+    write_changelog_release_date(new_version, new_date)
+
+
+def download_link_paths() -> tuple[Path, ...]:
+    """Files rewritten by UpdateDownloadLinks.py."""
+    sys.path.insert(0, str(DOWNLOAD_SCRIPT.parent))
+    try:
+        import UpdateDownloadLinks  # noqa: E402 - tools/ is not a package
+    finally:
+        sys.path.pop(0)
+    return tuple(UpdateDownloadLinks.FILES_TO_UPDATE)
+
+
+def commit_and_push(paths: tuple[Path, ...], message: str) -> str:
+    """Commit only the given files (other pending work is left untouched) and push them to the current branch."""
+    branch = current_branch()
+    relative = [str(path.relative_to(ROOT)) for path in paths if path.exists()]
+    run_git("add", "--", *relative)
+    if run_git("diff", "--cached", "--quiet", "--", *relative, check=False).returncode == 0:
+        print("Nothing changed; nothing to commit.")
+        return "Nothing changed, so nothing was committed or pushed."
+    run_git("commit", "-m", message, "--", *relative)
+    print(f"Pushing to origin/{branch}...")
+    run_git("push", "origin", f"HEAD:refs/heads/{branch}")
+    return f"The changes were committed and pushed to origin/{branch}."
 
 
 def center_window(win: tk.Tk) -> None:
@@ -290,27 +339,36 @@ def main() -> None:
         if not validated:
             return None
         new_version, new_date = validated
-        print(f"Updating TOOL_VERSION_WITHOUT_V and TOOL_DATE to: {new_version} - {new_date}...")
-        fresh = GLOBAL_VARS_PATH.read_text(encoding="utf-8")
-        write_version_date(fresh, new_version, new_date)
-        write_cli_doc_version_date(new_version, new_date)
+        apply_version_date(new_version, new_date)
         return new_version, new_date
+
+    def publish(paths: tuple[Path, ...], message: str) -> bool:
+        try:
+            result = commit_and_push(paths, message)
+        except Exception as exc:
+            messagebox.showerror("Git commit/push failed", f"The files were updated but not pushed.\n\n{exc}", parent=root)
+            return False
+        messagebox.showinfo("Changes pushed", result, parent=root)
+        return True
 
     def on_update_version_date() -> None:
         clear_console()
         applied = apply_version_date_from_inputs()
         if not applied:
             return
-        root.destroy()
+        if publish(VERSION_DATE_PATHS, f"Update version/date to v{applied[0]} ({applied[1]})"):
+            root.destroy()
 
     def on_update_download_links() -> None:
         clear_console()
         try:
             run_script(DOWNLOAD_SCRIPT)
+            paths = download_link_paths()
         except Exception as exc:
             messagebox.showerror("Script execution error", str(exc), parent=root)
             return
-        root.destroy()
+        if publish(paths, "Update download links"):
+            root.destroy()
 
     def on_update_all() -> None:
         clear_console()
@@ -319,10 +377,12 @@ def main() -> None:
             return
         try:
             run_script(DOWNLOAD_SCRIPT)
+            paths = VERSION_DATE_PATHS + download_link_paths()
         except Exception as exc:
             messagebox.showerror("Script execution error", str(exc), parent=root)
             return
-        root.destroy()
+        if publish(paths, f"Update version/date to v{applied[0]} ({applied[1]}) and download links"):
+            root.destroy()
 
     def on_create_release() -> None:
         clear_console()

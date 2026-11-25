@@ -5,7 +5,7 @@
 ---
 
 ## Release: v5.0.0
-### Release Date: 2026-12-01
+### Release Date: 2026-11-25
   
 #### 🌟 New Features:
   - Added a marketing landing page in `landing/` (static HTML with screenshots of the new interfaces, ready for GitHub Pages or any static host) and `tools/CaptureLandingMedia.py` to regenerate its screenshots from a local test instance of the Web Interface. The Web Interface serves it at the site root `/` (included in the Docker image; `/landing` redirects there), the app opens at `/app/` (sign-in) and the login page links back to the website with a `Website` button and the logo.
@@ -22,6 +22,7 @@
 #### 🐛 Bug fixes:
   - Fixed confirmation prompts of jobs launched from the Desktop GUI: they were cancelled automatically because the child process did not accept answers through its input pipe, so the `Process input` answers never reached the job.
   - Fixed Google Photos uploads failing with an unexplained `403 Request had insufficient authentication scopes` ([#1241](https://github.com/jaimetur/PhotoMigrator/issues/1241)). PhotoMigrator now checks the scopes of the refresh token when it signs in and explains the error, `--google-photos-authorize` creates the refresh token with the right scopes and saves it in Config.ini (also from Docker or a NAS by pasting the address of the last page), and the Google Photos guide explains both ways to create the token (PhotoMigrator or OAuth 2.0 Playground with a Web application client) and how to check its scopes.
+  - Fixed `tools/UpdateAll.py` not updating the release date of the current version in `CHANGELOG.md`. `Update Version/Date`, `Update Download Links` and `Update All` now also commit only the files they change and push them to the current branch.
 
 #### 📚 Documentation:
   - Updated the Web Interface and Desktop GUI descriptions in the README and help guides to the new design (Home, grouped features, a colour per feature, the run panel, Activity, Settings and the Administration Panel tabs) and refreshed the Web Interface and Desktop GUI screenshots of the README and the landing page.
