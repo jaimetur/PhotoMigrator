@@ -5072,6 +5072,8 @@ def get_help_docs_index(current_user: Dict[str, Any] | None = Depends(_optional_
                 rel = file_path.resolve().relative_to(help_root).as_posix()
             except Exception:
                 continue
+            if any(part.startswith(".") for part in rel.split("/")):
+                continue  # Hidden files, such as the "._name.md" copies macOS adds to copied folders.
             docs.append(
                 {
                     "name": file_path.name,

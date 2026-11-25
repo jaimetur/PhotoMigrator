@@ -226,6 +226,9 @@ class TestCloudService(unittest.TestCase):
         for path in ("/docs/view/help", "/docs/view/readme", "/docs/view/changelog", "/docs/view/help/13-cloud-service.md"):
             with self.subTest(path=path):
                 self.assertEqual(self.client.get(path).status_code, 200)
+        page = self.client.get("/docs/view/help", headers={"accept-language": "es-ES"}).text
+        self.assertIn('<html lang="en">', page)  # the browser offers to translate it
+        self.assertNotIn("/lang/i18n.js", page)
         help_doc = self.client.get("/api/docs/help").json()
         self.assertIn("PhotoMigrator", help_doc["content"])
         self.assertEqual(help_doc["path"], "help.md")
