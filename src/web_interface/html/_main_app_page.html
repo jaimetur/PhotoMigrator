@@ -7,7 +7,7 @@
     <title>PhotoMigrator</title>
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
     <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
-    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-help2">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-settings">
 </head>
 {% set is_home_view = active_page == 'features' and request.query_params.get('view') == 'home' %}
 <body data-theme="{{ initial_theme }}" data-page="{{ active_page }}" class="app-body{% if is_home_view %} is-home-view{% endif %}">
@@ -99,13 +99,10 @@
                 <div id="general-app-settings" class="general-pane hidden">
                     <div class="callout callout--info general-doc-card">
                         <span class="ico" data-icon="palette"></span>
-                        <p>Preferences for how the Web Interface looks and behaves for your user. Theme and time zone changes are applied immediately.</p>
+                        <p>Preferences for how the Web Interface looks and behaves for your user.</p>
                     </div>
                     <div id="app-settings-sections" class="config-form-sections"></div>
-                    <div class="config-actions">
-                        <button type="button" id="save-app-settings-btn" class="run-btn"><span class="ico" data-icon="save"></span>Save app settings</button>
-                    </div>
-                    <div id="app-settings-status" class="status">App settings status: idle</div>
+                    <p class="app-settings-saved"><span class="ico" data-icon="check"></span><span id="app-settings-status">Changes are applied and saved automatically.</span></p>
                 </div>
             </section>
         </div>
@@ -1041,11 +1038,13 @@
     }
 
     const GENERAL_GROUPS = [
-        { key: "logs", title: "Logs", dests: ["no-log-file", "log-level", "log-format", "foldername-logs"] },
-        { key: "execution", title: "Execution", dests: ["request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file"] },
-        { key: "naming", title: "Naming & Folders", dests: ["date-separator", "range-separator", "foldername-albums", "foldername-no-albums", "foldername-duplicates-output", "foldername-extracted-dates"] },
-        { key: "filters", title: "Filters", dests: ["filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country", "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files"] }
+        { key: "filters", title: "Filters", icon: "search", hint: "Which photos and videos every feature processes.", dests: ["filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country", "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files"] },
+        { key: "logs", title: "Logs", icon: "file", hint: "What is written to the log file and where.", dests: ["no-log-file", "log-level", "log-format", "foldername-logs"] },
+        { key: "execution", title: "Execution", icon: "play", hint: "Confirmations and external tools used during a run.", dests: ["request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file"] },
+        { key: "naming", title: "Folders", icon: "folder", hint: "Names of the folders that PhotoMigrator creates.", dests: ["date-separator", "range-separator", "foldername-albums", "foldername-no-albums", "foldername-duplicates-output", "foldername-extracted-dates"] }
     ];
+    let activeGeneralSection = "filters";
+    let showGeneralCliFlags = false;
 
     const MODULE_DEPENDENCIES = {
         synology_photos: {
@@ -2889,55 +2888,361 @@
         return row;
     }
 
+    function generalValueIsDefault(field) {
+        const normalize = (value) => {
+            if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean).join(",");
+            if (value === undefined || value === null) return "";
+            return String(value).trim();
+        };
+        const current = stateValues[field.dest];
+        if (current === undefined) return true;
+        if (field.kind === "flag" || field.kind === "bool") {
+            return uiCheckboxValueForField(field, current) === uiCheckboxValueForField(field, field.default);
+        }
+        const value = normalize(current).replace(/\s*[\n,]\s*/g, ",");
+        const fallback = normalize(field.default).replace(/\s*[\n,]\s*/g, ",");
+        return value === "" || value === fallback;
+    }
+
+    function setControlValue(control, value) {
+        control.value = value;
+        control.dispatchEvent(new Event("input", {bubbles: true}));
+        control.dispatchEvent(new Event("change", {bubbles: true}));
+    }
+
+    function createSettingRow(field, labelText, controlNode, extraClass = "") {
+        const row = document.createElement("div");
+        row.className = `setting-row ${extraClass}`.trim();
+        const fullHelp = String(uiHelpText(field) || "").split("\n").map((line) => line.trim()).filter(Boolean)
+            .map((line) => translateHelpLine(line)).join(" ");
+        if (fullHelp) row.title = fullHelp;
+        const text = document.createElement("div");
+        text.className = "setting-row__text";
+        const label = document.createElement("span");
+        label.className = "setting-row__label";
+        label.textContent = labelText || humanizeLabel(ARG_LABELS[field.dest] || uiOptionName(field));
+        text.appendChild(label);
+        const help = helpSummary(field);
+        if (help) {
+            const helpEl = document.createElement("span");
+            helpEl.className = "setting-row__help";
+            helpEl.setAttribute("data-no-i18n", "");
+            helpEl.textContent = help;
+            text.appendChild(helpEl);
+        }
+        const flag = document.createElement("code");
+        flag.className = "arg-flag setting-row__flag";
+        flag.textContent = argumentCliFlag(field);
+        text.appendChild(flag);
+        row.appendChild(text);
+        const control = document.createElement("div");
+        control.className = "setting-row__control";
+        control.appendChild(controlNode);
+        row.appendChild(control);
+        return row;
+    }
+
+    function createGeneralFieldRow(field) {
+        if (field.kind === "flag" || field.kind === "bool") {
+            const row = createArgumentRow(field, false);
+            const check = row.querySelector("input[type=checkbox]");
+            const toggle = check ? check.closest(".toggle-wrap") : null;
+            if (toggle) {
+                check.setAttribute("aria-label", humanizeLabel(ARG_LABELS[field.dest] || uiOptionName(field)));
+                return createSettingRow(field, "", toggle, "setting-row--toggle");
+            }
+            return row;
+        }
+        const inputRow = createInput(field);
+        const control = inputRow.querySelector("[data-dest]");
+        if (control && control.tagName === "TEXTAREA") control.rows = 1;
+        return createSettingRow(field, "", inputRow);
+    }
+
+    function createTypeSegment(field) {
+        const inputRow = createInput(field);
+        const select = inputRow.querySelector("select[data-dest]");
+        inputRow.classList.add("visually-hidden");
+        const wrap = document.createElement("div");
+        wrap.className = "type-segment";
+        wrap.appendChild(inputRow);
+        const group = document.createElement("div");
+        group.className = "segmented type-segment__buttons";
+        group.setAttribute("role", "radiogroup");
+        const options = [["all", "All"], ["image", "Photos"], ["video", "Videos"]];
+        const sync = () => {
+            const current = (select?.value || "all").toLowerCase();
+            group.querySelectorAll("button").forEach((button) => {
+                const active = button.dataset.value === current;
+                button.classList.toggle("is-active", active);
+                button.setAttribute("aria-checked", active ? "true" : "false");
+            });
+        };
+        options.forEach(([value, text]) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.dataset.value = value;
+            button.setAttribute("role", "radio");
+            button.innerHTML = `${iconSvg(value === "video" ? "play" : value === "image" ? "image" : "layers")}<span>${text}</span>`;
+            button.addEventListener("click", () => {
+                if (!select) return;
+                setControlValue(select, value);
+                sync();
+            });
+            group.appendChild(button);
+        });
+        wrap.appendChild(group);
+        sync();
+        return wrap;
+    }
+
+    function createChipListControl(field) {
+        const inputRow = createInput(field);
+        const textarea = inputRow.querySelector("[data-dest]");
+        inputRow.classList.add("visually-hidden");
+        const wrap = document.createElement("div");
+        wrap.className = "chip-input";
+        wrap.appendChild(inputRow);
+        const list = document.createElement("div");
+        list.className = "chip-input__list";
+        const entry = document.createElement("input");
+        entry.type = "text";
+        entry.className = "chip-input__entry";
+        entry.placeholder = "+ Add";
+        entry.setAttribute("aria-label", `Add to ${humanizeLabel(ARG_LABELS[field.dest] || uiOptionName(field))}`);
+        const readItems = () => String(textarea?.value || "").split(/[\n,]/).map((item) => item.trim()).filter(Boolean);
+        const writeItems = (items) => {
+            if (!textarea) return;
+            setControlValue(textarea, items.join(", "));
+            render();
+        };
+        const render = () => {
+            list.innerHTML = "";
+            readItems().forEach((item, index) => {
+                const chip = document.createElement("span");
+                chip.className = "chip-input__chip";
+                const label = document.createElement("span");
+                label.textContent = item;
+                label.setAttribute("data-no-i18n", "");
+                chip.appendChild(label);
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.setAttribute("aria-label", `Remove ${item}`);
+                remove.innerHTML = iconSvg("close");
+                remove.addEventListener("click", () => {
+                    const items = readItems();
+                    items.splice(index, 1);
+                    writeItems(items);
+                });
+                chip.appendChild(remove);
+                list.appendChild(chip);
+            });
+            list.appendChild(entry);
+        };
+        const commitEntry = () => {
+            const added = entry.value.split(",").map((item) => item.trim()).filter(Boolean);
+            entry.value = "";
+            if (!added.length) return;
+            const items = readItems();
+            added.forEach((item) => { if (!items.includes(item)) items.push(item); });
+            writeItems(items);
+            entry.focus();
+        };
+        entry.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === ",") {
+                event.preventDefault();
+                commitEntry();
+            } else if (event.key === "Backspace" && !entry.value) {
+                const items = readItems();
+                if (items.length) {
+                    items.pop();
+                    writeItems(items);
+                    entry.focus();
+                }
+            }
+        });
+        entry.addEventListener("blur", commitEntry);
+        wrap.addEventListener("click", (event) => { if (event.target === wrap || event.target === list) entry.focus(); });
+        wrap.appendChild(list);
+        render();
+        return wrap;
+    }
+
+    function createFiltersSection(fieldsByDest, used) {
+        const rows = [];
+        const take = (dest) => {
+            const field = fieldsByDest.get(dest);
+            if (field) used.add(dest);
+            return field;
+        };
+        const fromField = take("filter-from-date");
+        const toField = take("filter-to-date");
+        if (fromField || toField) {
+            const range = document.createElement("div");
+            range.className = "date-range";
+            [fromField, toField].forEach((field, index) => {
+                if (!field) return;
+                if (index === 1) {
+                    const arrow = document.createElement("span");
+                    arrow.className = "date-range__arrow";
+                    arrow.innerHTML = iconSvg("arrowRight");
+                    range.appendChild(arrow);
+                }
+                const box = document.createElement("label");
+                box.className = "date-range__box";
+                const caption = document.createElement("span");
+                caption.className = "date-range__caption";
+                caption.textContent = index === 0 ? "Start" : "End";
+                box.appendChild(caption);
+                const inputRow = createInput(field);
+                const input = inputRow.querySelector("[data-dest]");
+                if (input) input.placeholder = index === 0 ? "2024-01-31" : "2025-12-31";
+                box.appendChild(inputRow);
+                range.appendChild(box);
+            });
+            const rangeRow = createSettingRow(fromField || toField, "Date range", range, "setting-row--wide");
+            const rangeHelp = rangeRow.querySelector(".setting-row__help");
+            if (rangeHelp) rangeHelp.textContent = pmT("Only assets taken between these dates. Leave a side empty for no limit.");
+            const rangeFlag = rangeRow.querySelector(".setting-row__flag");
+            if (rangeFlag && fromField && toField) rangeFlag.textContent = `${argumentCliFlag(fromField)} · ${argumentCliFlag(toField)}`;
+            rows.push(rangeRow);
+        }
+        const typeField = take("filter-by-type");
+        if (typeField) rows.push(createSettingRow(typeField, "Type", createTypeSegment(typeField)));
+        const placeFields = ["filter-by-country", "filter-by-city", "filter-by-person"].map(take).filter(Boolean);
+        if (placeFields.length) {
+            const grid = document.createElement("div");
+            grid.className = "place-grid";
+            placeFields.forEach((field) => {
+                const box = document.createElement("label");
+                box.className = "date-range__box";
+                const caption = document.createElement("span");
+                caption.className = "date-range__caption";
+                caption.textContent = {"filter-by-country": "Country", "filter-by-city": "City", "filter-by-person": "Person"}[field.dest]
+                    || humanizeLabel(ARG_LABELS[field.dest] || uiOptionName(field));
+                box.appendChild(caption);
+                box.appendChild(createInput(field));
+                grid.appendChild(box);
+            });
+            const row = createSettingRow(placeFields[0], "Place and people", grid, "setting-row--wide");
+            const help = row.querySelector(".setting-row__help");
+            if (help) help.textContent = pmT("Only assets taken in this country or city, or where this person appears.");
+            const flag = row.querySelector(".setting-row__flag");
+            if (flag) flag.textContent = placeFields.map((field) => argumentCliFlag(field)).join(" · ");
+            rows.push(row);
+        }
+        ["exclude-folders", "exclude-files"].map(take).filter(Boolean).forEach((field) => {
+            rows.push(createSettingRow(field, "", createChipListControl(field), "setting-row--wide"));
+        });
+        return rows;
+    }
+
     function renderBulkArgumentPanel(panelId, fields) {
         const panel = document.getElementById(panelId);
         panel.innerHTML = "";
         if (!fields || !fields.length) return;
 
         const fieldsByDest = new Map(fields.map((field) => [field.dest, field]));
+        const used = new Set();
+        const sections = GENERAL_GROUPS.map((group) => ({...group}));
+        sections.forEach((section) => {
+            section.fields = section.dests.map((dest) => fieldsByDest.get(dest)).filter(Boolean);
+            section.fields.forEach((field) => used.add(field.dest));
+        });
+        const remaining = fields.filter((field) => !used.has(field.dest));
+        if (remaining.length) {
+            sections.push({key: "other", title: "Other", icon: "sliders", hint: "Other arguments shared by every feature.", fields: remaining});
+        }
+        const visibleSections = sections.filter((section) => section.fields.length);
+        if (!visibleSections.some((section) => section.key === activeGeneralSection)) {
+            activeGeneralSection = visibleSections[0]?.key || "filters";
+        }
 
-        const overviewCard = document.createElement("div");
-        overviewCard.className = "callout callout--info general-doc-card";
-        overviewCard.appendChild(iconElement("sliders"));
-        const overviewBody = document.createElement("p");
-        overviewBody.textContent = "Global arguments shared by every feature: logging, execution, folder names and filters. "
-            + "They are the baseline for each run; a feature can override some of them, for example the migration filters.";
-        overviewCard.appendChild(overviewBody);
-        panel.appendChild(overviewCard);
+        const layout = document.createElement("div");
+        layout.className = `general-settings${showGeneralCliFlags ? " show-cli-flags" : ""}`;
 
-        const groupsGrid = document.createElement("div");
-        groupsGrid.className = "general-groups";
-        const alreadyUsed = new Set();
+        const nav = document.createElement("nav");
+        nav.className = "general-settings__nav";
+        nav.setAttribute("aria-label", "General argument sections");
+        const navList = document.createElement("div");
+        navList.className = "general-settings__nav-list";
+        nav.appendChild(navList);
 
-        const appendGroup = (title, groupFields) => {
-            if (!groupFields.length) return;
-            const step = createStepCard(0, title, "general-group");
-            const list = document.createElement("div");
-            list.className = "general-group__list";
-            groupFields.forEach((field) => {
-                alreadyUsed.add(field.dest);
-                const block = document.createElement("div");
-                block.className = "arg-block";
-                block.appendChild(createArgumentRow(field, false));
-                list.appendChild(block);
+        const body = document.createElement("div");
+        body.className = "general-settings__body";
+
+        const navButtons = new Map();
+        const panes = new Map();
+        const refreshChangedDots = () => {
+            visibleSections.forEach((section) => {
+                const button = navButtons.get(section.key);
+                if (!button) return;
+                const changed = section.fields.some((field) => !generalValueIsDefault(field));
+                button.classList.toggle("has-changes", changed);
             });
-            step.body.appendChild(list);
-            groupsGrid.appendChild(step.card);
+        };
+        const selectSection = (key) => {
+            activeGeneralSection = key;
+            navButtons.forEach((button, buttonKey) => {
+                const active = buttonKey === key;
+                button.classList.toggle("is-active", active);
+                button.setAttribute("aria-current", active ? "true" : "false");
+            });
+            panes.forEach((pane, paneKey) => pane.classList.toggle("hidden", paneKey !== key));
         };
 
-        GENERAL_GROUPS.forEach((group) => {
-            const groupFields = group.dests
-                .map((dest) => fieldsByDest.get(dest))
-                .filter(Boolean);
-            appendGroup(group.title, groupFields);
+        visibleSections.forEach((section) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "general-settings__nav-item";
+            button.innerHTML = `${iconSvg(section.icon || "sliders")}<span class="general-settings__nav-text"></span><span class="general-settings__dot" title="Changed from the default"></span>`;
+            button.querySelector(".general-settings__nav-text").textContent = section.title;
+            button.addEventListener("click", () => selectSection(section.key));
+            navButtons.set(section.key, button);
+            navList.appendChild(button);
+
+            const pane = document.createElement("section");
+            pane.className = "general-settings__pane";
+            const head = document.createElement("div");
+            head.className = "general-settings__pane-head";
+            const title = document.createElement("h3");
+            title.textContent = section.title;
+            const hint = document.createElement("p");
+            hint.textContent = section.hint || "";
+            head.appendChild(title);
+            head.appendChild(hint);
+            pane.appendChild(head);
+            const list = document.createElement("div");
+            list.className = "setting-list";
+            if (section.key === "filters") {
+                const filterUsed = new Set();
+                createFiltersSection(fieldsByDest, filterUsed).forEach((row) => list.appendChild(row));
+                section.fields.filter((field) => !filterUsed.has(field.dest))
+                    .forEach((field) => list.appendChild(createGeneralFieldRow(field)));
+            } else {
+                section.fields.forEach((field) => list.appendChild(createGeneralFieldRow(field)));
+            }
+            pane.appendChild(list);
+            panes.set(section.key, pane);
+            body.appendChild(pane);
         });
 
-        const remaining = fields.filter((field) => !alreadyUsed.has(field.dest));
-        appendGroup("Other", remaining);
-        panel.appendChild(groupsGrid);
-
-        const actions = document.createElement("div");
-        actions.className = "config-actions general-actions";
+        const footer = document.createElement("div");
+        footer.className = "general-settings__footer";
+        const flagsToggle = document.createElement("label");
+        flagsToggle.className = "general-settings__flags-toggle";
+        const flagsCheck = document.createElement("input");
+        flagsCheck.type = "checkbox";
+        flagsCheck.checked = showGeneralCliFlags;
+        flagsCheck.addEventListener("change", () => {
+            showGeneralCliFlags = flagsCheck.checked;
+            layout.classList.toggle("show-cli-flags", showGeneralCliFlags);
+        });
+        flagsToggle.appendChild(flagsCheck);
+        flagsToggle.appendChild(document.createTextNode(" Show CLI flags"));
+        const saved = document.createElement("span");
+        saved.className = "general-settings__saved";
+        saved.innerHTML = `${iconSvg("check")}<span>Saved automatically</span>`;
         const restoreButton = document.createElement("button");
         restoreButton.type = "button";
         restoreButton.className = "ghost-btn";
@@ -2952,8 +3257,20 @@
             bindStateForInputs();
             queueCommandPreview();
         });
-        actions.appendChild(restoreButton);
-        panel.appendChild(actions);
+        footer.appendChild(flagsToggle);
+        footer.appendChild(saved);
+        footer.appendChild(restoreButton);
+
+        layout.appendChild(nav);
+        layout.appendChild(body);
+        panel.appendChild(layout);
+        panel.appendChild(footer);
+
+        const onChange = () => setTimeout(refreshChangedDots, 0);
+        layout.addEventListener("input", onChange);
+        layout.addEventListener("change", onChange);
+        selectSection(activeGeneralSection);
+        refreshChangedDots();
     }
 
     function getAllFields() {
@@ -5904,17 +6221,188 @@
         root.appendChild(buildConfigSectionCard(section));
     }
 
+    const THEME_SWATCHES = {
+        ocean: ["#2563eb", "#38bdf8", "#f5f3ff"],
+        emerald: ["#059669", "#34d399", "#f0fdf4"],
+        sunset: ["#ea580c", "#f59e0b", "#fff7ed"],
+        dark: ["#6366f1", "#a78bfa", "#111827"]
+    };
+    let appSettingsClockTimer = null;
+
+    function createAppSettingCard(icon, tone, titleText, hintText) {
+        const card = document.createElement("section");
+        card.className = "app-setting-card";
+        const head = document.createElement("div");
+        head.className = "app-setting-card__head";
+        const iconWrap = document.createElement("span");
+        iconWrap.className = `feature-hero__icon feature-hero__icon--small tone-${tone}`;
+        iconWrap.appendChild(iconElement(icon));
+        head.appendChild(iconWrap);
+        const text = document.createElement("div");
+        const title = document.createElement("h4");
+        title.textContent = titleText;
+        const hint = document.createElement("p");
+        hint.textContent = hintText;
+        text.appendChild(title);
+        text.appendChild(hint);
+        head.appendChild(text);
+        card.appendChild(head);
+        return card;
+    }
+
+    function setAppSettingValue(sectionName, key, value) {
+        if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
+        configFormValues[sectionName][key] = value;
+        queueAutoSaveAppSettings();
+    }
+
+    function timeZoneNow(zone) {
+        try {
+            return new Intl.DateTimeFormat(window.PM_LANG || undefined, {
+                timeZone: zone, weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
+            }).format(new Date());
+        } catch (error) {
+            return "";
+        }
+    }
+
     function renderAppSettingsSections() {
         const root = document.getElementById("app-settings-sections");
         if (!root) return;
         root.innerHTML = "";
-        if (!appSettingsSectionsData.length) {
-            root.innerHTML = `<div class="folder-error">No app settings available.</div>`;
-            return;
+        if (appSettingsClockTimer) {
+            clearInterval(appSettingsClockTimer);
+            appSettingsClockTimer = null;
         }
-        appSettingsSectionsData.forEach((section) => {
-            root.appendChild(buildConfigSectionCard(section));
+        const grid = document.createElement("div");
+        grid.className = "app-settings-grid";
+
+        // Theme: four visual swatches, applied and saved on click.
+        const currentTheme = String(configFormValues?.["Web Interface"]?.["THEME"] || uiState?.theme || "ocean");
+        const themeCard = createAppSettingCard("palette", "gph", "Theme", "Colours of the Web Interface for your user.");
+        themeCard.classList.add("app-setting-card--wide");
+        const swatches = document.createElement("div");
+        swatches.className = "theme-swatches";
+        swatches.setAttribute("role", "radiogroup");
+        swatches.setAttribute("aria-label", "Theme");
+        ["ocean", "emerald", "sunset", "dark"].forEach((key) => {
+            const colors = THEME_SWATCHES[key];
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "theme-swatch";
+            button.dataset.theme = key;
+            button.setAttribute("role", "radio");
+            const active = key === (THEMES[currentTheme] ? currentTheme : "ocean");
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-checked", active ? "true" : "false");
+            const preview = document.createElement("span");
+            preview.className = "theme-swatch__preview";
+            preview.style.background = colors[2];
+            preview.innerHTML = `<span class="theme-swatch__bar" style="background:linear-gradient(135deg, ${colors[0]}, ${colors[1]})"></span>`
+                + `<span class="theme-swatch__line" style="background:${colors[0]}"></span><span class="theme-swatch__line theme-swatch__line--short" style="background:${colors[1]}"></span>`;
+            const name = document.createElement("span");
+            name.className = "theme-swatch__name";
+            name.innerHTML = `${iconSvg("check", "theme-swatch__check")}<span></span>`;
+            name.querySelector("span").textContent = THEMES[key].name;
+            button.appendChild(preview);
+            button.appendChild(name);
+            button.addEventListener("click", () => {
+                applyTheme(key, true);
+                setAppSettingValue("Web Interface", "THEME", key);
+                swatches.querySelectorAll(".theme-swatch").forEach((item) => {
+                    const isActive = item.dataset.theme === key;
+                    item.classList.toggle("is-active", isActive);
+                    item.setAttribute("aria-checked", isActive ? "true" : "false");
+                });
+            });
+            swatches.appendChild(button);
         });
+        themeCard.appendChild(swatches);
+        grid.appendChild(themeCard);
+
+        // Time zone: searchable list with a live clock of the chosen zone.
+        const timezoneSection = appSettingsSectionsData.find((section) => section?.name === "TimeZone");
+        const timezoneField = (timezoneSection?.fields || []).find((field) => String(field?.key || "") === "timezone");
+        const zones = Array.isArray(timezoneField?.choices) && timezoneField.choices.length
+            ? timezoneField.choices.map(String)
+            : (typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : []);
+        const currentZone = String(configFormValues?.["TimeZone"]?.["timezone"] || timezoneField?.value || "Europe/Madrid");
+        const zoneCard = createAppSettingCard("calendar", "gto", "Time zone", "Used for the dates and times shown in logs and reports.");
+        const zoneWrap = document.createElement("div");
+        zoneWrap.className = "tz-picker";
+        const zoneInput = document.createElement("input");
+        zoneInput.type = "search";
+        zoneInput.className = "field__input";
+        zoneInput.value = currentZone;
+        zoneInput.setAttribute("aria-label", "Time zone");
+        zoneInput.placeholder = "Search a city or region";
+        zoneInput.autocomplete = "off";
+        const listId = nextUiElementId("tz");
+        zoneInput.setAttribute("list", listId);
+        const datalist = document.createElement("datalist");
+        datalist.id = listId;
+        zones.forEach((zone) => datalist.appendChild(new Option(zone, zone)));
+        const clock = document.createElement("div");
+        clock.className = "tz-picker__clock";
+        clock.setAttribute("data-no-i18n", "");
+        let appliedZone = currentZone;
+        const updateClock = () => {
+            const now = timeZoneNow(appliedZone);
+            clock.innerHTML = `${iconSvg("activity")}<span></span>`;
+            clock.querySelector("span").textContent = now ? `${appliedZone} · ${now}` : appliedZone;
+        };
+        const commitZone = () => {
+            const value = zoneInput.value.trim();
+            const match = zones.find((zone) => zone.toLowerCase() === value.toLowerCase());
+            zoneInput.classList.toggle("field__input--invalid", Boolean(value) && !match);
+            if (!match || match === appliedZone) return;
+            zoneInput.value = match;
+            appliedZone = match;
+            setAppSettingValue("TimeZone", "timezone", match);
+            updateClock();
+        };
+        zoneInput.addEventListener("change", commitZone);
+        zoneInput.addEventListener("input", () => {
+            if (zones.includes(zoneInput.value.trim())) commitZone();
+        });
+        zoneWrap.appendChild(zoneInput);
+        zoneWrap.appendChild(datalist);
+        zoneWrap.appendChild(clock);
+        zoneCard.appendChild(zoneWrap);
+        updateClock();
+        appSettingsClockTimer = setInterval(updateClock, 30000);
+        grid.appendChild(zoneCard);
+
+        // Language: saved for the user and applied by reloading the page.
+        const langs = window.PM_LANGS || {en: "English"};
+        const currentLang = window.PM_LANG || "en";
+        const langCard = createAppSettingCard("book", "syn", "Language", "Language of the Web Interface and of the emails you receive.");
+        const langGrid = document.createElement("div");
+        langGrid.className = "lang-options";
+        langGrid.setAttribute("role", "radiogroup");
+        langGrid.setAttribute("aria-label", "Language");
+        Object.keys(langs).forEach((code) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "lang-option";
+            button.setAttribute("role", "radio");
+            button.setAttribute("data-no-i18n", "");
+            const active = code === currentLang;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-checked", active ? "true" : "false");
+            button.textContent = langs[code];
+            button.addEventListener("click", () => {
+                if (code === currentLang) return;
+                langGrid.querySelectorAll(".lang-option").forEach((item) => { item.disabled = true; });
+                fetch("/api/lang", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({lang: code})})
+                    .finally(() => window.location.reload());
+            });
+            langGrid.appendChild(button);
+        });
+        langCard.appendChild(langGrid);
+        grid.appendChild(langCard);
+
+        root.appendChild(grid);
     }
 
     function renderConfigFormSections(data) {
@@ -5963,7 +6451,15 @@
         const configStatus = document.getElementById("config-status");
         if (configStatus) configStatus.textContent = message;
         const appStatus = document.getElementById("app-settings-status");
-        if (appStatus) appStatus.textContent = message.replace(/^Config status:/, "App settings status:");
+        if (appStatus) {
+            const text = String(message || "");
+            const failed = /failed/i.test(text);
+            appStatus.parentElement?.classList.toggle("app-settings-saved--error", failed);
+            if (failed) appStatus.textContent = pmT("The changes could not be saved. Try again.");
+            else if (/auto-saving/i.test(text)) appStatus.textContent = pmT("Saving...");
+            else if (/auto-saved/i.test(text)) appStatus.textContent = pmT("Saved automatically.");
+            else appStatus.textContent = pmT("Changes are applied and saved automatically.");
+        }
     }
 
     async function autoSaveAppSettings() {
@@ -7142,7 +7638,6 @@
         });
         setJobInputControlsState(false);
         document.getElementById("save-config-btn").addEventListener("click", saveConfig);
-        document.getElementById("save-app-settings-btn").addEventListener("click", saveConfig);
         document.getElementById("logout-btn").addEventListener("click", async () => {
             await apiFetch("/api/auth/logout", {method: "POST"});
             window.location.href = "/login";

@@ -33,6 +33,9 @@ msgstr "(出力なし)"
 msgid "(username)"
 msgstr "(ユーザー名)"
 
+msgid "+ Add"
+msgstr "+ 追加"
+
 msgid "+ Add row"
 msgstr "+ 行を追加"
 
@@ -342,6 +345,9 @@ msgstr "アセットのないアルバム"
 msgid "Albums with the same name"
 msgstr "同じ名前のアルバム"
 
+msgid "All"
+msgstr "すべて"
+
 msgid "All Users"
 msgstr "すべてのユーザー"
 
@@ -591,8 +597,14 @@ msgstr "選択した {0} 人のユーザーのロールを {1} に変更しま�
 msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
 msgstr "この IP を、Immich サーバーの IP または有効な Immich URL に置き換えてください"
 
+msgid "Changed from the default"
+msgstr "既定値から変更済み"
+
 msgid "Changed {0} users. Not changed:"
 msgstr "{0} 人のユーザーを変更しました。未変更:"
+
+msgid "Changes are applied and saved automatically."
+msgstr "変更はすぐに適用され、自動的に保存されます。"
 
 msgid "Changes your library"
 msgstr "ライブラリを変更します"
@@ -620,6 +632,9 @@ msgstr "'--remove-duplicates-assets' で残すアセットを選択します。"
 
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr "'--remove-duplicates-assets' で残すアセットを選択します。more-people/tags 戦略では、異なる人物の数が最も多いアセットを残し、次にタグ数を比較し、最後に指定された同点時の基準を適用します。'better-quality' は Immich ネイティブの提案を使用し、'oldest' と 'newest' はアップロード日を使用します(デフォルト: Immich ネイティブの重複アルゴリズムでは more-people/tags-then-better-quality、PhotoMigrator の重複アルゴリズムでは more-people/tags-then-oldest)。"
+
+msgid "City"
+msgstr "都市"
 
 msgid "Clean up"
 msgstr "クリーンアップ"
@@ -650,6 +665,9 @@ msgstr "作成せずに閉じる"
 
 msgid "Collapse panel"
 msgstr "パネルを折りたたむ"
+
+msgid "Colours of the Web Interface for your user."
+msgstr "あなたのユーザーの Web インターフェースの配色。"
 
 msgid "Comma-separated folder paths to scan for duplicates."
 msgstr "重複をスキャンするフォルダーのパスをカンマ区切りで指定します。"
@@ -747,6 +765,9 @@ msgstr "新しいパスワードの確認"
 msgid "Confirm password"
 msgstr "パスワードの確認"
 
+msgid "Confirmations and external tools used during a run."
+msgstr "実行中に使用する確認と外部ツール。"
+
 msgid "Connect your services"
 msgstr "サービスを接続"
 
@@ -776,6 +797,9 @@ msgstr "ログをコピー"
 
 msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
 msgstr "すべての写真、動画、アルバムをソースからターゲットへ 1 回の実行でコピーまたは移動します。アルバムはターゲット上に再作成されます。"
+
+msgid "Country"
+msgstr "国"
 
 msgid "Create"
 msgstr "作成"
@@ -861,6 +885,9 @@ msgstr "毎日"
 msgid "Dangerous Module"
 msgstr "危険なモジュール"
 
+msgid "Dark"
+msgstr "ダーク"
+
 msgid "Dark UI palette"
 msgstr "ダーク UI パレット"
 
@@ -893,6 +920,9 @@ msgstr "日付と範囲の区切り文字"
 
 msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
 msgstr "日付と範囲の区切り文字は '--date-separator' と '--range-separator' でカスタマイズできます。"
+
+msgid "Date range"
+msgstr "期間"
 
 msgid "Date separator"
 msgstr "日付の区切り文字"
@@ -1128,6 +1158,9 @@ msgstr "メールの状態: {0}"
 msgid "Emails of the tool"
 msgstr "ツールからのメール"
 
+msgid "Emerald"
+msgstr "エメラルド"
+
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "GPTH 処理中のエラーメッセージを有効または無効にします。"
 
@@ -1160,6 +1193,9 @@ msgstr "デフォルトで有効です。無効にするには '--no-preview-alb
 
 msgid "Encryption"
 msgstr "暗号化"
+
+msgid "End"
+msgstr "終了"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "フォルダー名、または次の内部の絶対パスを入力してください:"
@@ -1575,6 +1611,9 @@ msgstr "送信元"
 msgid "GPTH messages"
 msgstr "GPTH メッセージ"
 
+msgid "General argument sections"
+msgstr "一般引数のセクション"
+
 msgid "General arguments"
 msgstr "一般引数"
 
@@ -1827,6 +1866,9 @@ msgstr "それぞれ最良のコピーを残す"
 msgid "Language"
 msgstr "言語"
 
+msgid "Language of the Web Interface and of the emails you receive."
+msgstr "Web インターフェースと受信するメールの言語。"
+
 msgid "Last Updated"
 msgstr "最終更新"
 
@@ -1983,6 +2025,9 @@ msgstr "複数のアルバムはカンマまたはスペースで区切り、引
 msgid "Must change password"
 msgstr "パスワード変更が必要"
 
+msgid "Names of the folders that PhotoMigrator creates."
+msgstr "PhotoMigrator が作成するフォルダーの名前。"
+
 msgid "Naming & Folders"
 msgstr "名前とフォルダー"
 
@@ -2091,6 +2136,9 @@ msgstr "Google Photos アカウント {0} の OAuth クライアントシーク�
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Google Photos アカウント {0} の OAuth リフレッシュトークン"
 
+msgid "Ocean"
+msgstr "オーシャン"
+
 msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
 msgstr "古いスケジュールバックアップは、最新の 1 件を除いて削除されます。「今すぐバックアップ」で作成したバックアップは削除されません。"
 
@@ -2126,6 +2174,12 @@ msgstr "現在オンライン"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "この操作を承認できるのは有効な管理者のみです。管理者のユーザー名とパスワードを入力してください。"
+
+msgid "Only assets taken between these dates. Leave a side empty for no limit."
+msgstr "この期間に撮影されたアイテムのみ。片側を空欄にすると制限なし。"
+
+msgid "Only assets taken in this country or city, or where this person appears."
+msgstr "この国や都市で撮影された、またはこの人物が写っているアイテムのみ。"
 
 msgid "Open Activity"
 msgstr "アクティビティを開く"
@@ -2232,11 +2286,17 @@ msgstr "整理"
 msgid "Organize Local Folder By Date"
 msgstr "ローカルフォルダーを日付別に整理"
 
+msgid "Other"
+msgstr "その他"
+
 msgid "Other Features"
 msgstr "その他の機能"
 
 msgid "Other Features · PhotoMigrator"
 msgstr "その他の機能 · PhotoMigrator"
+
+msgid "Other arguments shared by every feature."
+msgstr "すべての機能で共有されるその他の引数。"
 
 msgid "Output Folder"
 msgstr "出力フォルダー"
@@ -2286,6 +2346,9 @@ msgstr "保留中のアクセスリクエスト"
 msgid "Period"
 msgstr "期間"
 
+msgid "Person"
+msgstr "人物"
+
 msgid "Photo libraries"
 msgstr "フォトライブラリ"
 
@@ -2307,11 +2370,17 @@ msgstr "PhotoMigrator には GPTH が組み込まれていますが、別のバ�
 msgid "PhotoMigrator website"
 msgstr "PhotoMigrator の Web サイト"
 
+msgid "Photos"
+msgstr "写真"
+
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
 msgstr "写真、動画、アルバムを移行元から移行先へ。ライブダッシュボード付き。"
 
 msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
 msgstr "タスクを選んでください。PhotoMigrator は、そのタスクに必要なオプションと、実行前の正確なコマンドだけを表示します。"
+
+msgid "Place and people"
+msgstr "場所と人物"
 
 msgid "Please choose a path that does not contain: {0}."
 msgstr "次を含まないパスを選択してください: {0}。"
@@ -2550,6 +2619,9 @@ msgstr "空のアルバムを削除します。"
 msgid "Remove the saved password"
 msgstr "保存済みのパスワードを削除"
 
+msgid "Remove {0}"
+msgstr "{0} を削除"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "削除済み: {0} | 失敗: {1}"
 
@@ -2766,8 +2838,17 @@ msgstr "先に SMTP サーバーを保存してください"
 msgid "Saved"
 msgstr "保存済み"
 
+msgid "Saved automatically"
+msgstr "自動保存済み"
+
+msgid "Saved automatically."
+msgstr "自動保存しました。"
+
 msgid "Saved · leave empty to keep it"
 msgstr "保存済み · 空欄のままにすると維持されます"
+
+msgid "Saving..."
+msgstr "保存中..."
 
 msgid "Saving…"
 msgstr "保存中…"
@@ -2792,6 +2873,9 @@ msgstr "ログを最初の行までスクロール"
 
 msgid "Scroll log to the last line"
 msgstr "ログを最後の行までスクロール"
+
+msgid "Search a city or region"
+msgstr "都市または地域を検索"
 
 msgid "Search all values"
 msgstr "すべての値を検索"
@@ -2948,6 +3032,9 @@ msgstr "管理者 API キーを表示"
 
 msgid "Show API key user"
 msgstr "ユーザー API キーを表示"
+
+msgid "Show CLI flags"
+msgstr "CLI フラグを表示"
 
 msgid "Show Client secret"
 msgstr "クライアントシークレットを表示"
@@ -3177,6 +3264,9 @@ msgstr "出力フォルダーのサフィックスを指定します。デフォ
 msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr "出力フォルダーのサフィックスを指定します。デフォルト: 'processed'。出力フォルダーの名前は、入力フォルダーと同じ名前に、このサフィックスと実行時のタイムスタンプが続く形式になります。"
 
+msgid "Start"
+msgstr "開始"
+
 msgid "Start Time: -"
 msgstr "開始時刻: -"
 
@@ -3273,6 +3363,9 @@ msgstr "保存済みバックアップ"
 msgid "Sunday"
 msgstr "日曜日"
 
+msgid "Sunset"
+msgstr "サンセット"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -3350,6 +3443,9 @@ msgstr "テストメールを {0} に送信しました。"
 
 msgid "The account is not active yet. We will email you when it is."
 msgstr "アカウントはまだ有効ではありません。有効になりましたらメールでお知らせします。"
+
+msgid "The changes could not be saved. Try again."
+msgstr "変更を保存できませんでした。もう一度お試しください。"
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
 msgstr "デモロールでは、TimeZone と Theme 以外の設定変更を保存できません。"
@@ -3642,6 +3738,9 @@ msgstr "切り詰められたアルバムのグループ化を試行"
 msgid "Tuesday"
 msgstr "火曜日"
 
+msgid "Type"
+msgstr "種類"
+
 msgid "Type a new password and leave the field to save it (at least {0} characters)"
 msgstr "新しいパスワードを入力し、フィールドから移動すると保存されます（{0} 文字以上）"
 
@@ -3807,6 +3906,9 @@ msgstr "'--remove-albums' と併用します。使用できる形式には YYYY�
 msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
 msgstr "アカウントに関する通知(申請、有効化、パスワード変更)と、完了したタスクのメールに使用されます。空の項目では次を使用します:"
 
+msgid "Used for the dates and times shown in logs and reports."
+msgstr "ログやレポートに表示される日時に使用されます。"
+
 msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
 msgstr "OUTPUT_TAKEOUT_FOLDER 内のフォルダーを移動または名前変更した後に、一部のアルバムが空に見える場合に便利です。"
 
@@ -3873,6 +3975,9 @@ msgstr "値はこのページだけでなく、テーブル全体から取得さ
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "バージョン v5.0.0 · サインインして続行"
 
+msgid "Videos"
+msgstr "動画"
+
 msgid "Volumes folder"
 msgstr "ボリュームフォルダー"
 
@@ -3905,6 +4010,9 @@ msgstr "おかえりなさい、{0} さん"
 
 msgid "What do you want to move today?"
 msgstr "今日は何を移行しますか？"
+
+msgid "What is written to the log file and where."
+msgstr "ログファイルに書き込む内容と場所。"
 
 msgid "What to do with detected duplicates: list, move, or delete."
 msgstr "検出された重複に対する操作: 一覧表示、移動、削除。"
@@ -3962,6 +4070,9 @@ msgstr "移行元と移行先"
 
 msgid "Where to put the files on the server"
 msgstr "サーバー上でのファイルの保存先"
+
+msgid "Which photos and videos every feature processes."
+msgstr "各機能が処理する写真と動画。"
 
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "このフラグを有効にすると、アンダースコアとスペースの違いや、重複のような末尾の数字サフィックスなどの無害なバリアントが正規化されます"

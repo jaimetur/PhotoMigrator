@@ -33,6 +33,9 @@ msgstr "(sin salida)"
 msgid "(username)"
 msgstr "(usuario)"
 
+msgid "+ Add"
+msgstr "+ Añadir"
+
 msgid "+ Add row"
 msgstr "+ Añadir fila"
 
@@ -342,6 +345,9 @@ msgstr "Álbumes sin elementos"
 msgid "Albums with the same name"
 msgstr "Álbumes con el mismo nombre"
 
+msgid "All"
+msgstr "Todo"
+
 msgid "All Users"
 msgstr "Todos los usuarios"
 
@@ -591,8 +597,14 @@ msgstr "¿Cambiar el rol de los {0} usuarios seleccionados a {1}?"
 msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
 msgstr "Cambia esta IP por la IP del servidor Immich o por tu URL de Immich válida"
 
+msgid "Changed from the default"
+msgstr "Cambiado respecto al valor por defecto"
+
 msgid "Changed {0} users. Not changed:"
 msgstr "{0} usuarios cambiados. No cambiados:"
+
+msgid "Changes are applied and saved automatically."
+msgstr "Los cambios se aplican y se guardan automáticamente."
 
 msgid "Changes your library"
 msgstr "Modifica tu biblioteca"
@@ -620,6 +632,9 @@ msgstr "Elige el elemento que se conserva para '--remove-duplicates-assets'."
 
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr "Elige el elemento que se conserva para '--remove-duplicates-assets'. Las estrategias more-people/tags conservan el elemento con más personas distintas, después etiquetas, y luego aplican su criterio de desempate indicado. 'better-quality' usa la sugerencia nativa de Immich; 'oldest' y 'newest' usan la fecha de subida (predeterminado: more-people/tags-then-better-quality para el algoritmo nativo de duplicados de Immich o more-people/tags-then-oldest para el algoritmo de duplicados de PhotoMigrator)."
+
+msgid "City"
+msgstr "Ciudad"
 
 msgid "Clean up"
 msgstr "Limpiar"
@@ -650,6 +665,9 @@ msgstr "Cerrar sin crear"
 
 msgid "Collapse panel"
 msgstr "Contraer panel"
+
+msgid "Colours of the Web Interface for your user."
+msgstr "Colores de la interfaz web para tu usuario."
 
 msgid "Comma-separated folder paths to scan for duplicates."
 msgstr "Rutas de carpetas separadas por comas donde buscar duplicados."
@@ -747,6 +765,9 @@ msgstr "Confirmar nueva contraseña"
 msgid "Confirm password"
 msgstr "Confirmar contraseña"
 
+msgid "Confirmations and external tools used during a run."
+msgstr "Confirmaciones y herramientas externas usadas durante una ejecución."
+
 msgid "Connect your services"
 msgstr "Conecta tus servicios"
 
@@ -776,6 +797,9 @@ msgstr "Copiar registro"
 
 msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
 msgstr "Copia o mueve todas las fotos, vídeos y álbumes de un origen a un destino en una sola ejecución. Los álbumes se recrean en el destino."
+
+msgid "Country"
+msgstr "País"
 
 msgid "Create"
 msgstr "Crear"
@@ -861,6 +885,9 @@ msgstr "Diaria"
 msgid "Dangerous Module"
 msgstr "Módulo peligroso"
 
+msgid "Dark"
+msgstr "Oscuro"
+
 msgid "Dark UI palette"
 msgstr "Paleta de interfaz oscura"
 
@@ -893,6 +920,9 @@ msgstr "Separadores de fecha y de rango"
 
 msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
 msgstr "Los separadores de fecha y de rango se pueden personalizar con '--date-separator' y '--range-separator'."
+
+msgid "Date range"
+msgstr "Rango de fechas"
 
 msgid "Date separator"
 msgstr "Separador de fecha"
@@ -1128,6 +1158,9 @@ msgstr "Estado del correo: {0}"
 msgid "Emails of the tool"
 msgstr "Emails de la herramienta"
 
+msgid "Emerald"
+msgstr "Esmeralda"
+
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "Activa o desactiva los mensajes de error durante el procesamiento con GPTH."
 
@@ -1160,6 +1193,9 @@ msgstr "Activado por defecto; usa '--no-preview-album-actions' para desactivarlo
 
 msgid "Encryption"
 msgstr "Cifrado"
+
+msgid "End"
+msgstr "Fin"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "Introduce un nombre de carpeta o una ruta absoluta dentro de"
@@ -1575,6 +1611,9 @@ msgstr "Remitente"
 msgid "GPTH messages"
 msgstr "Mensajes de GPTH"
 
+msgid "General argument sections"
+msgstr "Secciones de argumentos generales"
+
 msgid "General arguments"
 msgstr "Argumentos generales"
 
@@ -1827,6 +1866,9 @@ msgstr "Conservar la mejor copia de cada una"
 msgid "Language"
 msgstr "Idioma"
 
+msgid "Language of the Web Interface and of the emails you receive."
+msgstr "Idioma de la interfaz web y de los correos que recibes."
+
 msgid "Last Updated"
 msgstr "Última actualización"
 
@@ -1983,6 +2025,9 @@ msgstr "Se pueden indicar varios álbumes separados por coma o espacio y entre c
 msgid "Must change password"
 msgstr "Debe cambiar la contraseña"
 
+msgid "Names of the folders that PhotoMigrator creates."
+msgstr "Nombres de las carpetas que crea PhotoMigrator."
+
 msgid "Naming & Folders"
 msgstr "Nombres y carpetas"
 
@@ -2091,6 +2136,9 @@ msgstr "Secreto de cliente OAuth de la cuenta {0} de Google Photos"
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Token de actualización OAuth de la cuenta {0} de Google Photos"
 
+msgid "Ocean"
+msgstr "Océano"
+
 msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
 msgstr "Las copias programadas anteriores se eliminan, excepto la más reciente. Las copias hechas con Hacer copia ahora nunca se eliminan."
 
@@ -2126,6 +2174,12 @@ msgstr "En línea ahora"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "Solo un administrador activo puede autorizar esta acción. Introduce el usuario y la contraseña de administrador."
+
+msgid "Only assets taken between these dates. Leave a side empty for no limit."
+msgstr "Solo los elementos tomados entre estas fechas. Deja un lado vacío para no poner límite."
+
+msgid "Only assets taken in this country or city, or where this person appears."
+msgstr "Solo los elementos tomados en este país o ciudad, o en los que aparece esta persona."
 
 msgid "Open Activity"
 msgstr "Abrir Actividad"
@@ -2232,11 +2286,17 @@ msgstr "Organizar"
 msgid "Organize Local Folder By Date"
 msgstr "Organizar carpeta local por fecha"
 
+msgid "Other"
+msgstr "Otros"
+
 msgid "Other Features"
 msgstr "Otras funciones"
 
 msgid "Other Features · PhotoMigrator"
 msgstr "Otras funciones · PhotoMigrator"
+
+msgid "Other arguments shared by every feature."
+msgstr "Otros argumentos compartidos por todas las funciones."
 
 msgid "Output Folder"
 msgstr "Carpeta de salida"
@@ -2286,6 +2346,9 @@ msgstr "Solicitudes de acceso pendientes"
 msgid "Period"
 msgstr "Periodo"
 
+msgid "Person"
+msgstr "Persona"
+
 msgid "Photo libraries"
 msgstr "Bibliotecas de fotos"
 
@@ -2307,11 +2370,17 @@ msgstr "PhotoMigrator incluye una versión integrada de GPTH Tool, pero si quier
 msgid "PhotoMigrator website"
 msgstr "Sitio web de PhotoMigrator"
 
+msgid "Photos"
+msgstr "Fotos"
+
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
 msgstr "Fotos, vídeos y álbumes de un origen a un destino, con un panel en directo."
 
 msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
 msgstr "Elige una tarea. PhotoMigrator solo muestra las opciones que esa tarea necesita y el comando exacto antes de ejecutar nada."
+
+msgid "Place and people"
+msgstr "Lugar y personas"
 
 msgid "Please choose a path that does not contain: {0}."
 msgstr "Elige una ruta que no contenga: {0}."
@@ -2550,6 +2619,9 @@ msgstr "Elimina los álbumes vacíos."
 msgid "Remove the saved password"
 msgstr "Quitar la contraseña guardada"
 
+msgid "Remove {0}"
+msgstr "Quitar {0}"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "Eliminados: {0} | Con error: {1}"
 
@@ -2766,8 +2838,17 @@ msgstr "Guarda primero el servidor SMTP"
 msgid "Saved"
 msgstr "Guardado"
 
+msgid "Saved automatically"
+msgstr "Guardado automáticamente"
+
+msgid "Saved automatically."
+msgstr "Guardado automáticamente."
+
 msgid "Saved · leave empty to keep it"
 msgstr "Guardado · déjalo vacío para conservarlo"
+
+msgid "Saving..."
+msgstr "Guardando..."
 
 msgid "Saving…"
 msgstr "Guardando…"
@@ -2792,6 +2873,9 @@ msgstr "Desplazar el registro a la primera línea"
 
 msgid "Scroll log to the last line"
 msgstr "Desplazar el registro a la última línea"
+
+msgid "Search a city or region"
+msgstr "Busca una ciudad o región"
 
 msgid "Search all values"
 msgstr "Buscar en todos los valores"
@@ -2948,6 +3032,9 @@ msgstr "Mostrar API key de administrador"
 
 msgid "Show API key user"
 msgstr "Mostrar API key de usuario"
+
+msgid "Show CLI flags"
+msgstr "Mostrar flags de CLI"
 
 msgid "Show Client secret"
 msgstr "Mostrar secreto de cliente"
@@ -3177,6 +3264,9 @@ msgstr "Indica el sufijo de la carpeta de salida. Por defecto: 'processed'"
 msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr "Especifica el sufijo de la carpeta de salida. Predeterminado: 'processed'. La carpeta de salida tendrá el mismo nombre que la carpeta de entrada seguido de este sufijo y de la marca de tiempo de la ejecución."
 
+msgid "Start"
+msgstr "Inicio"
+
 msgid "Start Time: -"
 msgstr "Hora de inicio: -"
 
@@ -3273,6 +3363,9 @@ msgstr "Copias guardadas"
 msgid "Sunday"
 msgstr "Domingo"
 
+msgid "Sunset"
+msgstr "Atardecer"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -3350,6 +3443,9 @@ msgstr "Email de prueba enviado a {0}."
 
 msgid "The account is not active yet. We will email you when it is."
 msgstr "La cuenta aún no está activa. Te enviaremos un correo cuando lo esté."
+
+msgid "The changes could not be saved. Try again."
+msgstr "No se han podido guardar los cambios. Inténtalo de nuevo."
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
 msgstr "El rol de demo no puede guardar cambios de configuración, salvo la zona horaria y el tema."
@@ -3642,6 +3738,9 @@ msgstr "Probar agrupación de álbumes truncados"
 msgid "Tuesday"
 msgstr "Martes"
 
+msgid "Type"
+msgstr "Tipo"
+
 msgid "Type a new password and leave the field to save it (at least {0} characters)"
 msgstr "Escribe una contraseña nueva y sal del campo para guardarla (al menos {0} caracteres)"
 
@@ -3807,6 +3906,9 @@ msgstr "Úsalo con '--remove-albums'; los formatos aceptados incluyen YYYY, YYYY
 msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
 msgstr "Se usa para los avisos de la cuenta (solicitudes, activaciones, cambios de contraseña) y para los correos de tareas finalizadas. Los campos vacíos usan las"
 
+msgid "Used for the dates and times shown in logs and reports."
+msgstr "Se usa para las fechas y horas de los registros e informes."
+
 msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
 msgstr "Útil tras mover o renombrar carpetas en OUTPUT_TAKEOUT_FOLDER cuando algunos álbumes aparecen vacíos."
 
@@ -3873,6 +3975,9 @@ msgstr "Los valores proceden de toda la tabla, no solo de esta página."
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "Versión v5.0.0 · Inicia sesión para continuar"
 
+msgid "Videos"
+msgstr "Vídeos"
+
 msgid "Volumes folder"
 msgstr "Carpeta de volúmenes"
 
@@ -3905,6 +4010,9 @@ msgstr "Te damos la bienvenida de nuevo, {0}"
 
 msgid "What do you want to move today?"
 msgstr "¿Qué quieres mover hoy?"
+
+msgid "What is written to the log file and where."
+msgstr "Qué se escribe en el archivo de registro y dónde."
 
 msgid "What to do with detected duplicates: list, move, or delete."
 msgstr "Qué hacer con los duplicados detectados: listar, mover o eliminar."
@@ -3962,6 +4070,9 @@ msgstr "De dónde a dónde"
 
 msgid "Where to put the files on the server"
 msgstr "Dónde colocar los archivos en el servidor"
+
+msgid "Which photos and videos every feature processes."
+msgstr "Qué fotos y vídeos procesa cada función."
 
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "Con esta opción activada, se normalizan variantes inofensivas como guiones bajos frente a espacios y sufijos numéricos finales que parecen duplicados"

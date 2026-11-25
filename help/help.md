@@ -56,8 +56,8 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 
 ### 5. Settings
 - `Service credentials`: one entry per service with its configured accounts, account tabs and import/export of the configuration.
-- `General arguments`: global arguments (logs, execution, folder names and filters).
-- `App settings`: theme and time zone.
+- `General arguments`: global arguments in four sections chosen from a side menu (`Filters`, `Logs`, `Execution`, `Folders`); a dot marks the sections changed from the default. Each option shows its name, a one-line help and its control. `Filters` has a date range, an `All / Photos / Videos` selector, country, city and person, and the excluded folders and files as removable chips. Changes are saved automatically; `Restore defaults` resets them and `Show CLI flags` shows the command-line flag of each option.
+- `App settings`: theme (four previews), time zone (searchable, with the current time in that zone) and language. Changes are applied and saved at once.
 
 ---
 

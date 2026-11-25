@@ -33,6 +33,9 @@ msgstr "(geen uitvoer)"
 msgid "(username)"
 msgstr "(gebruikersnaam)"
 
+msgid "+ Add"
+msgstr "+ Toevoegen"
+
 msgid "+ Add row"
 msgstr "+ Rij toevoegen"
 
@@ -342,6 +345,9 @@ msgstr "Albums zonder items"
 msgid "Albums with the same name"
 msgstr "Albums met dezelfde naam"
 
+msgid "All"
+msgstr "Alles"
+
 msgid "All Users"
 msgstr "Alle gebruikers"
 
@@ -591,8 +597,14 @@ msgstr "De rol van de {0} geselecteerde gebruikers wijzigen in {1}?"
 msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
 msgstr "Vervang dit IP-adres door het IP-adres van je Immich-server of door je geldige Immich-URL"
 
+msgid "Changed from the default"
+msgstr "Gewijzigd ten opzichte van de standaard"
+
 msgid "Changed {0} users. Not changed:"
 msgstr "{0} gebruikers gewijzigd. Niet gewijzigd:"
+
+msgid "Changes are applied and saved automatically."
+msgstr "Wijzigingen worden direct toegepast en automatisch opgeslagen."
 
 msgid "Changes your library"
 msgstr "Wijzigt je bibliotheek"
@@ -620,6 +632,9 @@ msgstr "Kies het te behouden item voor '--remove-duplicates-assets'."
 
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr "Kies het te behouden item voor '--remove-duplicates-assets'. De strategieën more-people/tags behouden het item met de meeste verschillende personen, daarna de meeste tags, en passen vervolgens hun genoemde tiebreaker toe. 'better-quality' gebruikt de eigen suggestie van Immich; 'oldest' en 'newest' gebruiken de uploaddatum (standaard: more-people/tags-then-better-quality voor het eigen duplicatenalgoritme van Immich, of more-people/tags-then-oldest voor het duplicatenalgoritme van PhotoMigrator)."
+
+msgid "City"
+msgstr "Stad"
 
 msgid "Clean up"
 msgstr "Opruimen"
@@ -650,6 +665,9 @@ msgstr "Sluiten zonder aan te maken"
 
 msgid "Collapse panel"
 msgstr "Paneel samenvouwen"
+
+msgid "Colours of the Web Interface for your user."
+msgstr "Kleuren van de webinterface voor je gebruiker."
 
 msgid "Comma-separated folder paths to scan for duplicates."
 msgstr "Mappaden, gescheiden door komma's, die op duplicaten worden gescand."
@@ -747,6 +765,9 @@ msgstr "Bevestig nieuw wachtwoord"
 msgid "Confirm password"
 msgstr "Bevestig wachtwoord"
 
+msgid "Confirmations and external tools used during a run."
+msgstr "Bevestigingen en externe hulpmiddelen tijdens een uitvoering."
+
 msgid "Connect your services"
 msgstr "Verbind je services"
 
@@ -776,6 +797,9 @@ msgstr "Logboek kopiëren"
 
 msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
 msgstr "Kopieer of verplaats alle foto's, video's en albums in één keer van een bron naar een doel. Albums worden op het doel opnieuw aangemaakt."
+
+msgid "Country"
+msgstr "Land"
 
 msgid "Create"
 msgstr "Maken"
@@ -861,6 +885,9 @@ msgstr "Dagelijks"
 msgid "Dangerous Module"
 msgstr "Gevaarlijke module"
 
+msgid "Dark"
+msgstr "Donker"
+
 msgid "Dark UI palette"
 msgstr "Donker interfacepalet"
 
@@ -893,6 +920,9 @@ msgstr "Scheidingstekens voor datums en bereiken"
 
 msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
 msgstr "Scheidingstekens voor datums en bereiken kunnen worden aangepast met '--date-separator' en '--range-separator'."
+
+msgid "Date range"
+msgstr "Datumbereik"
 
 msgid "Date separator"
 msgstr "Datumscheidingsteken"
@@ -1128,6 +1158,9 @@ msgstr "E-mailstatus: {0}"
 msgid "Emails of the tool"
 msgstr "E-mails van de tool"
 
+msgid "Emerald"
+msgstr "Smaragd"
+
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "Schakel foutmeldingen tijdens de GPTH-verwerking in of uit."
 
@@ -1160,6 +1193,9 @@ msgstr "Standaard ingeschakeld; gebruik '--no-preview-album-actions' om het uit 
 
 msgid "Encryption"
 msgstr "Versleuteling"
+
+msgid "End"
+msgstr "Einde"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "Voer een mapnaam in, of een absoluut pad binnen"
@@ -1575,6 +1611,9 @@ msgstr "Van"
 msgid "GPTH messages"
 msgstr "GPTH-meldingen"
 
+msgid "General argument sections"
+msgstr "Secties van algemene argumenten"
+
 msgid "General arguments"
 msgstr "Algemene argumenten"
 
@@ -1827,6 +1866,9 @@ msgstr "De beste kopie van elk bewaren"
 msgid "Language"
 msgstr "Taal"
 
+msgid "Language of the Web Interface and of the emails you receive."
+msgstr "Taal van de webinterface en van de e-mails die je ontvangt."
+
 msgid "Last Updated"
 msgstr "Laatst bijgewerkt"
 
@@ -1983,6 +2025,9 @@ msgstr "Meerdere albums kunnen worden gescheiden door een komma of spatie en tus
 msgid "Must change password"
 msgstr "Moet wachtwoord wijzigen"
 
+msgid "Names of the folders that PhotoMigrator creates."
+msgstr "Namen van de mappen die PhotoMigrator aanmaakt."
+
 msgid "Naming & Folders"
 msgstr "Naamgeving en mappen"
 
@@ -2091,6 +2136,9 @@ msgstr "OAuth-client secret voor Google Photos-account {0}"
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "OAuth-vernieuwingstoken voor Google Photos-account {0}"
 
+msgid "Ocean"
+msgstr "Oceaan"
+
 msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
 msgstr "Oudere geplande back-ups worden verwijderd, behalve de nieuwste. Back-ups die met Nu back-up maken zijn gemaakt, worden nooit verwijderd."
 
@@ -2126,6 +2174,12 @@ msgstr "Nu online"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "Alleen een actieve beheerder kan deze actie autoriseren. Voer de gebruikersnaam en het wachtwoord van de beheerder in."
+
+msgid "Only assets taken between these dates. Leave a side empty for no limit."
+msgstr "Alleen items die tussen deze datums zijn gemaakt. Laat een kant leeg voor geen grens."
+
+msgid "Only assets taken in this country or city, or where this person appears."
+msgstr "Alleen items uit dit land of deze stad, of waarop deze persoon staat."
 
 msgid "Open Activity"
 msgstr "Activiteit openen"
@@ -2232,11 +2286,17 @@ msgstr "Ordenen"
 msgid "Organize Local Folder By Date"
 msgstr "Lokale map ordenen op datum"
 
+msgid "Other"
+msgstr "Overig"
+
 msgid "Other Features"
 msgstr "Andere functies"
 
 msgid "Other Features · PhotoMigrator"
 msgstr "Andere functies · PhotoMigrator"
+
+msgid "Other arguments shared by every feature."
+msgstr "Overige argumenten die alle functies delen."
 
 msgid "Output Folder"
 msgstr "Uitvoermap"
@@ -2286,6 +2346,9 @@ msgstr "Openstaande toegangsaanvragen"
 msgid "Period"
 msgstr "Periode"
 
+msgid "Person"
+msgstr "Persoon"
+
 msgid "Photo libraries"
 msgstr "Fotobibliotheken"
 
@@ -2307,11 +2370,17 @@ msgstr "PhotoMigrator bevat een ingebouwde versie van GPTH, maar als je een ande
 msgid "PhotoMigrator website"
 msgstr "PhotoMigrator-website"
 
+msgid "Photos"
+msgstr "Foto's"
+
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
 msgstr "Foto's, video's en albums van een bron naar een doel, met een live dashboard."
 
 msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
 msgstr "Kies een taak. PhotoMigrator toont alleen de opties die voor die taak nodig zijn en de exacte opdracht voordat er iets wordt uitgevoerd."
+
+msgid "Place and people"
+msgstr "Plaats en personen"
 
 msgid "Please choose a path that does not contain: {0}."
 msgstr "Kies een pad dat het volgende niet bevat: {0}."
@@ -2550,6 +2619,9 @@ msgstr "Verwijder lege albums."
 msgid "Remove the saved password"
 msgstr "Het opgeslagen wachtwoord verwijderen"
 
+msgid "Remove {0}"
+msgstr "{0} verwijderen"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "Verwijderd: {0} | Mislukt: {1}"
 
@@ -2766,8 +2838,17 @@ msgstr "Sla eerst de SMTP-server op"
 msgid "Saved"
 msgstr "Opgeslagen"
 
+msgid "Saved automatically"
+msgstr "Automatisch opgeslagen"
+
+msgid "Saved automatically."
+msgstr "Automatisch opgeslagen."
+
 msgid "Saved · leave empty to keep it"
 msgstr "Opgeslagen · laat leeg om te behouden"
+
+msgid "Saving..."
+msgstr "Opslaan..."
 
 msgid "Saving…"
 msgstr "Opslaan…"
@@ -2792,6 +2873,9 @@ msgstr "Logboek naar de eerste regel scrollen"
 
 msgid "Scroll log to the last line"
 msgstr "Logboek naar de laatste regel scrollen"
+
+msgid "Search a city or region"
+msgstr "Zoek een stad of regio"
 
 msgid "Search all values"
 msgstr "Alle waarden doorzoeken"
@@ -2948,6 +3032,9 @@ msgstr "API-sleutel voor beheerder tonen"
 
 msgid "Show API key user"
 msgstr "API-sleutel voor gebruiker tonen"
+
+msgid "Show CLI flags"
+msgstr "CLI-vlaggen tonen"
 
 msgid "Show Client secret"
 msgstr "Client secret tonen"
@@ -3177,6 +3264,9 @@ msgstr "Geef het achtervoegsel voor de uitvoermap op. Standaard: 'processed'"
 msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr "Geef het achtervoegsel op voor de uitvoermap. Standaard: 'processed'. De uitvoermap krijgt dezelfde naam als de invoermap, gevolgd door dit achtervoegsel en de tijdstempel van de uitvoering."
 
+msgid "Start"
+msgstr "Begin"
+
 msgid "Start Time: -"
 msgstr "Starttijd: -"
 
@@ -3273,6 +3363,9 @@ msgstr "Opgeslagen back-ups"
 msgid "Sunday"
 msgstr "Zondag"
 
+msgid "Sunset"
+msgstr "Zonsondergang"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -3350,6 +3443,9 @@ msgstr "Testmail verzonden naar {0}."
 
 msgid "The account is not active yet. We will email you when it is."
 msgstr "Het account is nog niet actief. We sturen je een e-mail zodra het actief is."
+
+msgid "The changes could not be saved. Try again."
+msgstr "De wijzigingen konden niet worden opgeslagen. Probeer het opnieuw."
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
 msgstr "De demorol kan geen configuratiewijzigingen opslaan, behalve TimeZone en Theme."
@@ -3642,6 +3738,9 @@ msgstr "Groeperen van ingekorte albums proberen"
 msgid "Tuesday"
 msgstr "Dinsdag"
 
+msgid "Type"
+msgstr "Type"
+
 msgid "Type a new password and leave the field to save it (at least {0} characters)"
 msgstr "Typ een nieuw wachtwoord en verlaat het veld om het op te slaan (minstens {0} tekens)"
 
@@ -3807,6 +3906,9 @@ msgstr "Gebruik met '--remove-albums'; toegestane formaten zijn onder meer YYYY,
 msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
 msgstr "Wordt gebruikt voor accountmeldingen (aanvragen, activeringen, wachtwoordwijzigingen) en voor de e-mails over voltooide taken. Lege velden gebruiken de"
 
+msgid "Used for the dates and times shown in logs and reports."
+msgstr "Gebruikt voor datums en tijden in logboeken en rapporten."
+
 msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
 msgstr "Handig na het verplaatsen of hernoemen van mappen in OUTPUT_TAKEOUT_FOLDER wanneer sommige albums leeg lijken."
 
@@ -3873,6 +3975,9 @@ msgstr "Waarden komen uit de hele tabel, niet alleen van deze pagina."
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "Versie v5.0.0 · Meld je aan om verder te gaan"
 
+msgid "Videos"
+msgstr "Video's"
+
 msgid "Volumes folder"
 msgstr "Volumesmap"
 
@@ -3905,6 +4010,9 @@ msgstr "Welkom terug, {0}"
 
 msgid "What do you want to move today?"
 msgstr "Wat wil je vandaag verplaatsen?"
+
+msgid "What is written to the log file and where."
+msgstr "Wat er in het logbestand wordt geschreven en waar."
 
 msgid "What to do with detected duplicates: list, move, or delete."
 msgstr "Wat te doen met gedetecteerde duplicaten: weergeven, verplaatsen of verwijderen."
@@ -3962,6 +4070,9 @@ msgstr "Van waar naar waar"
 
 msgid "Where to put the files on the server"
 msgstr "Waar de bestanden op de server komen"
+
+msgid "Which photos and videos every feature processes."
+msgstr "Welke foto's en video's elke functie verwerkt."
 
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "Met deze vlag ingeschakeld worden onschuldige varianten, zoals underscores versus spaties en overbodige numerieke achtervoegsels, genormaliseerd"

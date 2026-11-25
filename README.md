@@ -187,7 +187,7 @@ Main characteristics:
   - **Tools:** Other Features, Upload to Server
 - A colour per feature (sidebar icon, header, steps and `Run` button), cards that are easy to tell apart, a visual action picker, option cards with plain-language labels, inline help and the CLI flag of every field, and a run panel that sits next to the options on wide screens.
 - `Activity` page with the job status, live dashboard, log and answers to the questions a job asks.
-- `Settings` with `Service credentials`, `General arguments` (shared by all features) and `App settings` (theme and time zone).
+- `Settings` with `Service credentials`, `General arguments` (shared by all features) and `App settings` (theme, time zone and language).
 - Automatic Migration and Local Photos Folder workflows support exclusion filters for unwanted folders/files such as `@eaDir`, `.@__thumb`, `@Recycle`, `SYNOFILE_THUMB*`, `SYNOPHOTO_THUMB*`, `SYNOVIDEO_THUMB*`, `SYNOPHOTO_FILM*`, `Thumbs.db`, `ehthumbs.db`, `.DS_Store`, or `._*`.
 - Real command preview + execution output in the browser.
 - Multi-user accounts with email: sign in with your username or email, `Request an account` from the login page (an admin approves it), and optional emails for account notices and finished tasks (`Email me when it finishes`) through your own SMTP server.

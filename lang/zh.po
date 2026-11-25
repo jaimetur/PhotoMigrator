@@ -33,6 +33,9 @@ msgstr "（无输出）"
 msgid "(username)"
 msgstr "（用户名）"
 
+msgid "+ Add"
+msgstr "+ 添加"
+
 msgid "+ Add row"
 msgstr "+ 添加行"
 
@@ -342,6 +345,9 @@ msgstr "没有资源的相册"
 msgid "Albums with the same name"
 msgstr "同名相册"
 
+msgid "All"
+msgstr "全部"
+
 msgid "All Users"
 msgstr "所有用户"
 
@@ -591,8 +597,14 @@ msgstr "将所选的 {0} 个用户的角色更改为 {1}？"
 msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
 msgstr "请将此 IP 替换为 Immich 服务器的 IP 或您有效的 Immich URL"
 
+msgid "Changed from the default"
+msgstr "已更改（非默认值）"
+
 msgid "Changed {0} users. Not changed:"
 msgstr "已更改 {0} 个用户。未更改："
+
+msgid "Changes are applied and saved automatically."
+msgstr "更改会立即生效并自动保存。"
 
 msgid "Changes your library"
 msgstr "会更改您的图库"
@@ -620,6 +632,9 @@ msgstr "选择 '--remove-duplicates-assets' 要保留的资源。"
 
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr "选择 '--remove-duplicates-assets' 要保留的资源。more-people/tags 策略会保留人物种类最多的资源，其次是标签最多的，然后按其指定的决胜规则处理。'better-quality' 使用 Immich 的原生建议；'oldest' 和 'newest' 使用上传日期（默认：Immich 原生重复项算法使用 more-people/tags-then-better-quality，PhotoMigrator 重复项算法使用 more-people/tags-then-oldest）。"
+
+msgid "City"
+msgstr "城市"
 
 msgid "Clean up"
 msgstr "清理"
@@ -650,6 +665,9 @@ msgstr "关闭且不创建"
 
 msgid "Collapse panel"
 msgstr "折叠面板"
+
+msgid "Colours of the Web Interface for your user."
+msgstr "您的用户的网页界面配色。"
 
 msgid "Comma-separated folder paths to scan for duplicates."
 msgstr "要扫描重复项的文件夹路径，以逗号分隔。"
@@ -747,6 +765,9 @@ msgstr "确认新密码"
 msgid "Confirm password"
 msgstr "确认密码"
 
+msgid "Confirmations and external tools used during a run."
+msgstr "运行期间使用的确认和外部工具。"
+
 msgid "Connect your services"
 msgstr "连接您的服务"
 
@@ -776,6 +797,9 @@ msgstr "复制日志"
 
 msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
 msgstr "一次运行即可将所有照片、视频和相册从源复制或移动到目标。相册将在目标上重新创建。"
+
+msgid "Country"
+msgstr "国家"
 
 msgid "Create"
 msgstr "创建"
@@ -861,6 +885,9 @@ msgstr "每天"
 msgid "Dangerous Module"
 msgstr "危险模块"
 
+msgid "Dark"
+msgstr "深色"
+
 msgid "Dark UI palette"
 msgstr "深色界面调色板"
 
@@ -893,6 +920,9 @@ msgstr "日期和范围分隔符"
 
 msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
 msgstr "日期和范围分隔符可通过 '--date-separator' 和 '--range-separator' 自定义。"
+
+msgid "Date range"
+msgstr "日期范围"
 
 msgid "Date separator"
 msgstr "日期分隔符"
@@ -1128,6 +1158,9 @@ msgstr "电子邮件状态：{0}"
 msgid "Emails of the tool"
 msgstr "工具邮件"
 
+msgid "Emerald"
+msgstr "翡翠绿"
+
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "启用或禁用 GPTH 处理期间的错误消息。"
 
@@ -1160,6 +1193,9 @@ msgstr "默认启用；使用 '--no-preview-album-actions' 可将其禁用。"
 
 msgid "Encryption"
 msgstr "加密"
+
+msgid "End"
+msgstr "结束"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "请输入文件夹名称，或以下位置内的绝对路径："
@@ -1575,6 +1611,9 @@ msgstr "发件人"
 msgid "GPTH messages"
 msgstr "GPTH 消息"
 
+msgid "General argument sections"
+msgstr "通用参数分区"
+
 msgid "General arguments"
 msgstr "通用参数"
 
@@ -1827,6 +1866,9 @@ msgstr "每组保留最佳副本"
 msgid "Language"
 msgstr "语言"
 
+msgid "Language of the Web Interface and of the emails you receive."
+msgstr "网页界面及您收到的邮件所用的语言。"
+
 msgid "Last Updated"
 msgstr "最后更新"
 
@@ -1983,6 +2025,9 @@ msgstr "多个相册可用逗号或空格分隔，并加引号。"
 msgid "Must change password"
 msgstr "必须更改密码"
 
+msgid "Names of the folders that PhotoMigrator creates."
+msgstr "PhotoMigrator 创建的文件夹名称。"
+
 msgid "Naming & Folders"
 msgstr "命名与文件夹"
 
@@ -2091,6 +2136,9 @@ msgstr "Google Photos 账户 {0} 的 OAuth 客户端密钥"
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Google Photos 账户 {0} 的 OAuth 刷新令牌"
 
+msgid "Ocean"
+msgstr "海洋蓝"
+
 msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
 msgstr "较早的计划备份会被删除，最新的一个除外。通过“立即备份”创建的备份永远不会被删除。"
 
@@ -2126,6 +2174,12 @@ msgstr "当前在线"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "只有已启用的管理员才能授权此操作。请输入管理员用户名和密码。"
+
+msgid "Only assets taken between these dates. Leave a side empty for no limit."
+msgstr "仅包含在这些日期之间拍摄的项目。留空一侧表示不限。"
+
+msgid "Only assets taken in this country or city, or where this person appears."
+msgstr "仅包含在此国家或城市拍摄、或出现此人的项目。"
 
 msgid "Open Activity"
 msgstr "打开活动"
@@ -2232,11 +2286,17 @@ msgstr "整理"
 msgid "Organize Local Folder By Date"
 msgstr "按日期整理本地文件夹"
 
+msgid "Other"
+msgstr "其他"
+
 msgid "Other Features"
 msgstr "其他功能"
 
 msgid "Other Features · PhotoMigrator"
 msgstr "其他功能 · PhotoMigrator"
+
+msgid "Other arguments shared by every feature."
+msgstr "所有功能共用的其他参数。"
 
 msgid "Output Folder"
 msgstr "输出文件夹"
@@ -2286,6 +2346,9 @@ msgstr "待处理的访问申请"
 msgid "Period"
 msgstr "周期"
 
+msgid "Person"
+msgstr "人物"
+
 msgid "Photo libraries"
 msgstr "照片图库"
 
@@ -2307,11 +2370,17 @@ msgstr "PhotoMigrator 内置了 GPTH 的嵌入版本，但如果您想使用其�
 msgid "PhotoMigrator website"
 msgstr "PhotoMigrator 网站"
 
+msgid "Photos"
+msgstr "照片"
+
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
 msgstr "照片、视频和相册从源迁移到目标，并带实时仪表盘。"
 
 msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
 msgstr "选择一项任务。PhotoMigrator 只会显示该任务所需的选项，并在运行前显示确切的命令。"
+
+msgid "Place and people"
+msgstr "地点和人物"
 
 msgid "Please choose a path that does not contain: {0}."
 msgstr "请选择不包含以下内容的路径：{0}。"
@@ -2550,6 +2619,9 @@ msgstr "删除空相册。"
 msgid "Remove the saved password"
 msgstr "删除已保存的密码"
 
+msgid "Remove {0}"
+msgstr "移除 {0}"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "已删除：{0} | 失败：{1}"
 
@@ -2766,8 +2838,17 @@ msgstr "请先保存 SMTP 服务器"
 msgid "Saved"
 msgstr "已保存"
 
+msgid "Saved automatically"
+msgstr "已自动保存"
+
+msgid "Saved automatically."
+msgstr "已自动保存。"
+
 msgid "Saved · leave empty to keep it"
 msgstr "已保存 · 留空则保留"
+
+msgid "Saving..."
+msgstr "正在保存..."
 
 msgid "Saving…"
 msgstr "正在保存…"
@@ -2792,6 +2873,9 @@ msgstr "将日志滚动到第一行"
 
 msgid "Scroll log to the last line"
 msgstr "将日志滚动到最后一行"
+
+msgid "Search a city or region"
+msgstr "搜索城市或地区"
 
 msgid "Search all values"
 msgstr "搜索所有值"
@@ -2948,6 +3032,9 @@ msgstr "显示管理员 API 密钥"
 
 msgid "Show API key user"
 msgstr "显示用户 API 密钥"
+
+msgid "Show CLI flags"
+msgstr "显示 CLI 参数"
 
 msgid "Show Client secret"
 msgstr "显示客户端密钥"
@@ -3177,6 +3264,9 @@ msgstr "指定输出文件夹的后缀。默认：'processed'"
 msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr "指定输出文件夹的后缀。默认值：'processed'。输出文件夹的名称为输入文件夹名称，后接此后缀和执行时间戳。"
 
+msgid "Start"
+msgstr "开始"
+
 msgid "Start Time: -"
 msgstr "开始时间：-"
 
@@ -3273,6 +3363,9 @@ msgstr "已存储的备份"
 msgid "Sunday"
 msgstr "星期日"
 
+msgid "Sunset"
+msgstr "日落橙"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -3350,6 +3443,9 @@ msgstr "测试邮件已发送至 {0}。"
 
 msgid "The account is not active yet. We will email you when it is."
 msgstr "该账户尚未启用。启用后我们会通过电子邮件通知您。"
+
+msgid "The changes could not be saved. Try again."
+msgstr "无法保存更改，请重试。"
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
 msgstr "演示角色除 TimeZone 和 Theme 外，无法保存配置更改。"
@@ -3642,6 +3738,9 @@ msgstr "尝试按截断名称分组相册"
 msgid "Tuesday"
 msgstr "星期二"
 
+msgid "Type"
+msgstr "类型"
+
 msgid "Type a new password and leave the field to save it (at least {0} characters)"
 msgstr "输入新密码并离开该字段即可保存（至少 {0} 个字符）"
 
@@ -3807,6 +3906,9 @@ msgstr "与 '--remove-albums' 一起使用；可接受的格式包括 YYYY、YYY
 msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
 msgstr "用于账户通知（申请、启用、密码更改）以及任务完成邮件。留空的字段将使用"
 
+msgid "Used for the dates and times shown in logs and reports."
+msgstr "用于日志和报告中显示的日期和时间。"
+
 msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
 msgstr "当在 OUTPUT_TAKEOUT_FOLDER 中移动/重命名文件夹后某些相册显示为空时，此功能很有用。"
 
@@ -3873,6 +3975,9 @@ msgstr "值来自整个表，而不仅是当前页。"
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "版本 v5.0.0 · 登录以继续"
 
+msgid "Videos"
+msgstr "视频"
+
 msgid "Volumes folder"
 msgstr "卷文件夹"
 
@@ -3905,6 +4010,9 @@ msgstr "欢迎回来，{0}"
 
 msgid "What do you want to move today?"
 msgstr "今天想迁移什么？"
+
+msgid "What is written to the log file and where."
+msgstr "写入日志文件的内容及位置。"
 
 msgid "What to do with detected duplicates: list, move, or delete."
 msgstr "如何处理检测到的重复项：列出、移动或删除。"
@@ -3962,6 +4070,9 @@ msgstr "从哪里到哪里"
 
 msgid "Where to put the files on the server"
 msgstr "文件存放在服务器上的位置"
+
+msgid "Which photos and videos every feature processes."
+msgstr "每个功能处理哪些照片和视频。"
 
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "启用此标志后，无害的变体（例如下划线与空格，以及末尾类似重复的数字后缀）会被规范化"

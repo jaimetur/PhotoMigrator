@@ -32,6 +32,9 @@ msgstr ""
 msgid "(username)"
 msgstr ""
 
+msgid "+ Add"
+msgstr ""
+
 msgid "+ Add row"
 msgstr ""
 
@@ -314,6 +317,9 @@ msgstr ""
 msgid "Albums with the same name"
 msgstr ""
 
+msgid "All"
+msgstr ""
+
 msgid "All dates"
 msgstr ""
 
@@ -527,7 +533,13 @@ msgstr ""
 msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
 msgstr ""
 
+msgid "Changed from the default"
+msgstr ""
+
 msgid "Changed {0} users. Not changed:"
+msgstr ""
+
+msgid "Changes are applied and saved automatically."
 msgstr ""
 
 msgid "Changes your library"
@@ -554,6 +566,9 @@ msgstr ""
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr ""
 
+msgid "City"
+msgstr ""
+
 msgid "Clean up"
 msgstr ""
 
@@ -576,6 +591,9 @@ msgid "Close without creating"
 msgstr ""
 
 msgid "Collapse panel"
+msgstr ""
+
+msgid "Colours of the Web Interface for your user."
 msgstr ""
 
 msgid "Comma-separated folder paths to scan for duplicates."
@@ -668,6 +686,9 @@ msgstr ""
 msgid "Confirm password"
 msgstr ""
 
+msgid "Confirmations and external tools used during a run."
+msgstr ""
+
 msgid "Connect your services"
 msgstr ""
 
@@ -693,6 +714,9 @@ msgid "Copy log"
 msgstr ""
 
 msgid "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."
+msgstr ""
+
+msgid "Country"
 msgstr ""
 
 msgid "Create"
@@ -764,6 +788,9 @@ msgstr ""
 msgid "Dangerous Module"
 msgstr ""
 
+msgid "Dark"
+msgstr ""
+
 msgid "Dark UI palette"
 msgstr ""
 
@@ -792,6 +819,9 @@ msgid "Date and range separators"
 msgstr ""
 
 msgid "Date and range separators can be customized with '--date-separator' and '--range-separator'."
+msgstr ""
+
+msgid "Date range"
 msgstr ""
 
 msgid "Date separator"
@@ -1001,6 +1031,9 @@ msgstr ""
 msgid "Emails of the tool"
 msgstr ""
 
+msgid "Emerald"
+msgstr ""
+
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr ""
 
@@ -1029,6 +1062,9 @@ msgid "Enabled by default; use '--no-preview-album-actions' to disable it."
 msgstr ""
 
 msgid "Encryption"
+msgstr ""
+
+msgid "End"
 msgstr ""
 
 msgid "Enter a folder name, or an absolute path inside"
@@ -1424,6 +1460,9 @@ msgstr ""
 msgid "GPTH messages"
 msgstr ""
 
+msgid "General argument sections"
+msgstr ""
+
 msgid "General arguments"
 msgstr ""
 
@@ -1655,6 +1694,9 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
+msgid "Language of the Web Interface and of the emails you receive."
+msgstr ""
+
 msgid "Last Updated"
 msgstr ""
 
@@ -1796,6 +1838,9 @@ msgstr ""
 msgid "Must change password"
 msgstr ""
 
+msgid "Names of the folders that PhotoMigrator creates."
+msgstr ""
+
 msgid "Naming & Folders"
 msgstr ""
 
@@ -1892,6 +1937,9 @@ msgstr ""
 msgid "Notice"
 msgstr ""
 
+msgid "Ocean"
+msgstr ""
+
 msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
 msgstr ""
 
@@ -1926,6 +1974,12 @@ msgid "Online now"
 msgstr ""
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
+msgstr ""
+
+msgid "Only assets taken between these dates. Leave a side empty for no limit."
+msgstr ""
+
+msgid "Only assets taken in this country or city, or where this person appears."
 msgstr ""
 
 msgid "Open Activity"
@@ -2030,10 +2084,16 @@ msgstr ""
 msgid "Organize Local Folder By Date"
 msgstr ""
 
+msgid "Other"
+msgstr ""
+
 msgid "Other Features"
 msgstr ""
 
 msgid "Other Features · PhotoMigrator"
+msgstr ""
+
+msgid "Other arguments shared by every feature."
 msgstr ""
 
 msgid "Output Folder"
@@ -2084,6 +2144,9 @@ msgstr ""
 msgid "Period"
 msgstr ""
 
+msgid "Person"
+msgstr ""
+
 msgid "Photo libraries"
 msgstr ""
 
@@ -2105,7 +2168,13 @@ msgstr ""
 msgid "PhotoMigrator website"
 msgstr ""
 
+msgid "Photos"
+msgstr ""
+
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
+msgstr ""
+
+msgid "Place and people"
 msgstr ""
 
 msgid "Please choose a path that does not contain: {0}."
@@ -2324,6 +2393,9 @@ msgstr ""
 msgid "Remove the saved password"
 msgstr ""
 
+msgid "Remove {0}"
+msgstr ""
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr ""
 
@@ -2498,7 +2570,16 @@ msgstr ""
 msgid "Saved"
 msgstr ""
 
+msgid "Saved automatically"
+msgstr ""
+
+msgid "Saved automatically."
+msgstr ""
+
 msgid "Saved · leave empty to keep it"
+msgstr ""
+
+msgid "Saving..."
 msgstr ""
 
 msgid "Saving…"
@@ -2523,6 +2604,9 @@ msgid "Scroll log to the first line"
 msgstr ""
 
 msgid "Scroll log to the last line"
+msgstr ""
+
+msgid "Search a city or region"
 msgstr ""
 
 msgid "Search all values"
@@ -2655,6 +2739,9 @@ msgid "Show API key admin"
 msgstr ""
 
 msgid "Show API key user"
+msgstr ""
+
+msgid "Show CLI flags"
 msgstr ""
 
 msgid "Show GPTH error messages"
@@ -2879,6 +2966,9 @@ msgstr ""
 msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr ""
 
+msgid "Start"
+msgstr ""
+
 msgid "Start Time: -"
 msgstr ""
 
@@ -2954,6 +3044,9 @@ msgstr ""
 msgid "Sunday"
 msgstr ""
 
+msgid "Sunset"
+msgstr ""
+
 msgid "Synology"
 msgstr ""
 
@@ -3000,6 +3093,9 @@ msgid "Test email sent to {0}."
 msgstr ""
 
 msgid "The account is not active yet. We will email you when it is."
+msgstr ""
+
+msgid "The changes could not be saved. Try again."
 msgstr ""
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
@@ -3281,6 +3377,9 @@ msgstr ""
 msgid "Tuesday"
 msgstr ""
 
+msgid "Type"
+msgstr ""
+
 msgid "Type a new password and leave the field to save it (at least {0} characters)"
 msgstr ""
 
@@ -3440,6 +3539,9 @@ msgstr ""
 msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
 msgstr ""
 
+msgid "Used for the dates and times shown in logs and reports."
+msgstr ""
+
 msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
 msgstr ""
 
@@ -3506,6 +3608,9 @@ msgstr ""
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr ""
 
+msgid "Videos"
+msgstr ""
+
 msgid "Volumes folder"
 msgstr ""
 
@@ -3531,6 +3636,9 @@ msgid "Weekly"
 msgstr ""
 
 msgid "What do you want to move today?"
+msgstr ""
+
+msgid "What is written to the log file and where."
 msgstr ""
 
 msgid "What to do with detected duplicates: list, move, or delete."
@@ -3585,6 +3693,9 @@ msgid "Where from and where to"
 msgstr ""
 
 msgid "Where to put the files on the server"
+msgstr ""
+
+msgid "Which photos and videos every feature processes."
 msgstr ""
 
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
