@@ -102,6 +102,9 @@ msgstr "<b>{0}</b> ({1}) ha solicitado una cuenta de PhotoMigrator."
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr "<b>{0}</b> ({1}) ha solicitado una cuenta de PhotoMigrator.<br>Mensaje: <i>{2}</i>"
 
+msgid "<b>{0}</b> ({1}) created the task <b>{2}</b>."
+msgstr "<b>{0}</b> ({1}) ha creado la tarea <b>{2}</b>."
+
 msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
 msgstr "Se cifra una copia solo para esta tarea y se elimina cuando termina. Tu cuenta guardada no se modifica."
 
@@ -2013,6 +2016,12 @@ msgstr "Acepto los"
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "Deben existir en Config.ini las entradas IMMICH_USERNAME_2/IMMICH_PASSWORD_2 o IMMICH_API_KEY_USER_2."
 
+msgid "import from Dropbox"
+msgstr "importación desde Dropbox"
+
+msgid "import from OneDrive"
+msgstr "importación desde OneDrive"
+
 msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "IMPORTANTE: 'move' y 'remove' modifican archivos; empieza con 'list' si quieres revisar primero."
 
@@ -2030,6 +2039,9 @@ msgstr "IMPORTANTE: Este módulo es un proceso local de preprocesamiento. Por s�
 
 msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "IMPORTANTE: remove_duplicate y replace_duplicate son operaciones irreversibles."
+
+msgid "Input: {0}. The task is waiting for its files and the quote."
+msgstr "Entrada: {0}. La tarea está esperando sus archivos y el presupuesto."
 
 msgid "IP Address"
 msgstr "Dirección IP"
@@ -2385,6 +2397,12 @@ msgstr "Nunca se muestra. Déjalo vacío para conservar la contraseña guardada.
 msgid "New account request"
 msgstr "Nueva solicitud de cuenta"
 
+msgid "New cloud service task"
+msgstr "Nueva tarea del servicio en la nube"
+
+msgid "New cloud service task: {0}"
+msgstr "Nueva tarea del servicio en la nube: {0}"
+
 msgid "New here?"
 msgstr "¿Eres nuevo?"
 
@@ -2582,6 +2600,9 @@ msgstr "Abrir selector de CSV"
 
 msgid "Open Help"
 msgstr "Abrir Ayuda"
+
+msgid "Open in the Administration Panel"
+msgstr "Abrir en el Panel de Administración"
 
 msgid "Open PhotoMigrator"
 msgstr "Abrir PhotoMigrator"
@@ -4533,6 +4554,9 @@ msgstr "Subida completada con advertencias"
 msgid "Upload Failed"
 msgstr "Error en la subida"
 
+msgid "upload from the browser"
+msgstr "subida desde el navegador"
+
 msgid "Upload Here"
 msgstr "Subir aquí"
 
@@ -5289,11 +5313,17 @@ msgstr "{0} funciones"
 msgid "{0} finished"
 msgstr "{0} ha finalizado"
 
+msgid "{0} hour"
+msgstr "{0} hora"
+
 msgid "{0} hours"
 msgstr "{0} horas"
 
 msgid "{0} is active"
 msgstr "{0} está activo"
+
+msgid "{0} minutes"
+msgstr "{0} minutos"
 
 msgid "{0} must change the password"
 msgstr "{0} debe cambiar la contraseña"

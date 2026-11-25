@@ -102,6 +102,9 @@ msgstr "<b>{0}</b> ({1}) が PhotoMigrator アカウントを申請しました�
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr "<b>{0}</b> ({1}) が PhotoMigrator アカウントを申請しました。<br>メッセージ: <i>{2}</i>"
 
+msgid "<b>{0}</b> ({1}) created the task <b>{2}</b>."
+msgstr "<b>{0}</b> ({1}) がタスク <b>{2}</b> を作成しました。"
+
 msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
 msgstr "コピーはこのタスク専用に暗号化され、終了時に削除されます。保存済みのアカウントは変更されません。"
 
@@ -2013,6 +2016,12 @@ msgstr "次に同意します："
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "Config.ini に IMMICH_USERNAME_2/IMMICH_PASSWORD_2 または IMMICH_API_KEY_USER_2 のエントリが存在する必要があります。"
 
+msgid "import from Dropbox"
+msgstr "Dropbox からのインポート"
+
+msgid "import from OneDrive"
+msgstr "OneDrive からのインポート"
+
 msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "重要: 'move' と 'remove' はファイルを変更します。先に確認したい場合は 'list' から始めてください。"
 
@@ -2030,6 +2039,9 @@ msgstr "重要: このモジュールはローカルの前処理パイプライ�
 
 msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "重要: remove_duplicate と replace_duplicate は元に戻せない操作です。"
+
+msgid "Input: {0}. The task is waiting for its files and the quote."
+msgstr "入力: {0}。タスクはファイルと見積もりを待っています。"
 
 msgid "IP Address"
 msgstr "IP アドレス"
@@ -2385,6 +2397,12 @@ msgstr "表示されません。空欄のままにすると保存済みのパス
 msgid "New account request"
 msgstr "新しいアカウント申請"
 
+msgid "New cloud service task"
+msgstr "クラウドサービスの新しいタスク"
+
+msgid "New cloud service task: {0}"
+msgstr "クラウドサービスの新しいタスク: {0}"
+
 msgid "New here?"
 msgstr "初めてですか?"
 
@@ -2582,6 +2600,9 @@ msgstr "CSV セレクターを開く"
 
 msgid "Open Help"
 msgstr "ヘルプを開く"
+
+msgid "Open in the Administration Panel"
+msgstr "管理パネルで開く"
 
 msgid "Open PhotoMigrator"
 msgstr "PhotoMigrator を開く"
@@ -4533,6 +4554,9 @@ msgstr "警告付きでアップロードが完了しました"
 msgid "Upload Failed"
 msgstr "アップロードに失敗しました"
 
+msgid "upload from the browser"
+msgstr "ブラウザからのアップロード"
+
 msgid "Upload Here"
 msgstr "ここにアップロード"
 
@@ -5289,11 +5313,17 @@ msgstr "{0} 個の機能"
 msgid "{0} finished"
 msgstr "{0} が完了しました"
 
+msgid "{0} hour"
+msgstr "{0}時間"
+
 msgid "{0} hours"
 msgstr "{0} 時間"
 
 msgid "{0} is active"
 msgstr "{0} は有効です"
+
+msgid "{0} minutes"
+msgstr "{0}分"
 
 msgid "{0} must change the password"
 msgstr "{0} はパスワードを変更する必要があります"

@@ -102,6 +102,9 @@ msgstr "<b>{0}</b> ({1}) ha sol·licitat un compte de PhotoMigrator."
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr "<b>{0}</b> ({1}) ha sol·licitat un compte de PhotoMigrator.<br>Missatge: <i>{2}</i>"
 
+msgid "<b>{0}</b> ({1}) created the task <b>{2}</b>."
+msgstr "<b>{0}</b> ({1}) ha creat la tasca <b>{2}</b>."
+
 msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
 msgstr "Es xifra una còpia només per a aquesta tasca i s'elimina quan acaba. El teu compte desat no es modifica."
 
@@ -2013,6 +2016,12 @@ msgstr "Accepto els"
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "Han d'existir a Config.ini les entrades IMMICH_USERNAME_2/IMMICH_PASSWORD_2 o IMMICH_API_KEY_USER_2."
 
+msgid "import from Dropbox"
+msgstr "importació des de Dropbox"
+
+msgid "import from OneDrive"
+msgstr "importació des de OneDrive"
+
 msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "IMPORTANT: 'move' i 'remove' modifiquen fitxers; comenceu amb 'list' si voleu revisar-ho primer."
 
@@ -2030,6 +2039,9 @@ msgstr "IMPORTANT: Aquest mòdul és un procés de preprocessament local. No env
 
 msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "IMPORTANT: remove_duplicate i replace_duplicate són operacions irreversibles."
+
+msgid "Input: {0}. The task is waiting for its files and the quote."
+msgstr "Entrada: {0}. La tasca espera els fitxers i el pressupost."
 
 msgid "IP Address"
 msgstr "Adreça IP"
@@ -2385,6 +2397,12 @@ msgstr "Mai es mostra. Deixa'l buit per conservar la contrasenya desada."
 msgid "New account request"
 msgstr "Sol·licitud de compte nova"
 
+msgid "New cloud service task"
+msgstr "Nova tasca del servei al núvol"
+
+msgid "New cloud service task: {0}"
+msgstr "Nova tasca del servei al núvol: {0}"
+
 msgid "New here?"
 msgstr "Sou nou aquí?"
 
@@ -2582,6 +2600,9 @@ msgstr "Obre el selector de CSV"
 
 msgid "Open Help"
 msgstr "Obre l'ajuda"
+
+msgid "Open in the Administration Panel"
+msgstr "Obre al tauler d'administració"
 
 msgid "Open PhotoMigrator"
 msgstr "Obre PhotoMigrator"
@@ -4533,6 +4554,9 @@ msgstr "Pujada completada amb avisos"
 msgid "Upload Failed"
 msgstr "Ha fallat la pujada"
 
+msgid "upload from the browser"
+msgstr "pujada des del navegador"
+
 msgid "Upload Here"
 msgstr "Puja aquí"
 
@@ -5289,11 +5313,17 @@ msgstr "{0} funcions"
 msgid "{0} finished"
 msgstr "{0} ha acabat"
 
+msgid "{0} hour"
+msgstr "{0} hora"
+
 msgid "{0} hours"
 msgstr "{0} hores"
 
 msgid "{0} is active"
 msgstr "{0} està actiu"
+
+msgid "{0} minutes"
+msgstr "{0} minuts"
 
 msgid "{0} must change the password"
 msgstr "{0} ha de canviar la contrasenya"

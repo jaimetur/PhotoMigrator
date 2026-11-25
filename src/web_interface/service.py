@@ -137,7 +137,11 @@ EMAIL_TEXTS = [
     "Your task data has been deleted",
     "The data and credentials of your task <b>{0}</b> were deleted from our server on {1}.",
     "Your task was canceled", "Your task <b>{0}</b> was canceled and its data deleted.",
-    "{0} hours", "{0} days",
+    "{0} hours", "{0} days", "{0} hour", "{0} minutes",
+    "New cloud service task", "New cloud service task: {0}",
+    "<b>{0}</b> ({1}) created the task <b>{2}</b>.",
+    "Input: {0}. The task is waiting for its files and the quote.",
+    "Open in the Administration Panel", "upload from the browser", "import from Dropbox", "import from OneDrive",
 ]
 
 
@@ -234,7 +238,13 @@ def format_price(cents: int, currency: str = "eur") -> str:
 
 
 def format_duration(seconds: float) -> str:
-    hours = max(1, int(math.ceil(float(seconds) / 3600)))
+    total = float(seconds or 0)
+    if total < 3600:
+        minutes = max(5, int(math.ceil(total / 300)) * 5)
+        return "1 hour" if minutes >= 60 else f"{minutes} minutes"
+    hours = int(math.ceil(total / 3600))
+    if hours == 1:
+        return "1 hour"
     return f"{hours} hours" if hours < 48 else f"{int(math.ceil(hours / 24))} days"
 
 
@@ -594,6 +604,27 @@ def _task_link(task: Dict[str, Any], base_url: str = "") -> str:
     return f"{base}/service?task={task['id']}"
 
 
+INPUT_LABELS = {"upload": "upload from the browser", "dropbox": "import from Dropbox", "onedrive": "import from OneDrive"}
+
+
+def email_admin_new_task(task: Dict[str, Any]) -> None:
+    """Tell the operator (the contact email of the service) that a user created a task."""
+    recipient = str(load_settings().get("contact_email") or "").strip() or str(mailer.settings().get("from_address") or "")
+    if not recipient:
+        return
+    user = _user(int(task["user_id"]))
+    label = _task_label(task)
+    source = LABELS.get(task["source_service"], task["source_service"]) if task["kind"] == "cloud_to_cloud" \
+        else INPUT_LABELS.get(task["input_mode"], task["input_mode"])
+    paragraphs = [
+        f"<b>{_esc(str(user.get('username') or '-'))}</b> ({_esc(str(user.get('email') or '-'))}) created the task <b>{_esc(label)}</b>.",
+        f"Input: {_esc(source)}. The task is waiting for its files and the quote.",
+    ]
+    link = f"{DEPS.public_base_url(None)}/admin?tab=service&task={task['id']}"
+    mailer.send_later([recipient], f"New cloud service task: {label}",
+                      mailer.page("New cloud service task", paragraphs, link=("Open in the Administration Panel", link)))
+
+
 def email_quote(task: Dict[str, Any]) -> None:
     settings = load_settings()
     paragraphs = [f"We checked your task <b>{_esc(_task_label(task))}</b>: {format_bytes(task['size_bytes'])} of photos and videos."]
@@ -791,7 +822,9 @@ def create_task(user: Dict[str, Any], kind: str, takeout_type: str, input_mode: 
     ensure_task_dir(task_id)
     save_secrets(task_id, {"source": source_credentials, "target": target_credentials})
     record_event(task_id, "created", f"{kind} · terms {TERMS_VERSION} accepted")
-    return get_task(task_id) or task
+    task = get_task(task_id) or task
+    email_admin_new_task(task)
+    return task
 
 
 def max_input_bytes(kind: str) -> int:

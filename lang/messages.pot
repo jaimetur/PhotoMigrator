@@ -95,6 +95,9 @@ msgstr ""
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr ""
 
+msgid "<b>{0}</b> ({1}) created the task <b>{2}</b>."
+msgstr ""
+
 msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
 msgstr ""
 
@@ -1856,6 +1859,12 @@ msgstr ""
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr ""
 
+msgid "import from Dropbox"
+msgstr ""
+
+msgid "import from OneDrive"
+msgstr ""
+
 msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr ""
 
@@ -1872,6 +1881,9 @@ msgid "IMPORTANT: This module is a local preprocessing pipeline. It does not pus
 msgstr ""
 
 msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
+msgstr ""
+
+msgid "Input: {0}. The task is waiting for its files and the quote."
 msgstr ""
 
 msgid "IP address"
@@ -2198,6 +2210,12 @@ msgstr ""
 msgid "New account request"
 msgstr ""
 
+msgid "New cloud service task"
+msgstr ""
+
+msgid "New cloud service task: {0}"
+msgstr ""
+
 msgid "New here?"
 msgstr ""
 
@@ -2382,6 +2400,9 @@ msgid "Open CSV selector"
 msgstr ""
 
 msgid "Open Help"
+msgstr ""
+
+msgid "Open in the Administration Panel"
 msgstr ""
 
 msgid "Open PhotoMigrator"
@@ -4172,6 +4193,9 @@ msgstr ""
 msgid "Upload Failed"
 msgstr ""
 
+msgid "upload from the browser"
+msgstr ""
+
 msgid "Upload Here"
 msgstr ""
 
@@ -4883,10 +4907,16 @@ msgstr ""
 msgid "{0} finished"
 msgstr ""
 
+msgid "{0} hour"
+msgstr ""
+
 msgid "{0} hours"
 msgstr ""
 
 msgid "{0} is active"
+msgstr ""
+
+msgid "{0} minutes"
 msgstr ""
 
 msgid "{0} must change the password"

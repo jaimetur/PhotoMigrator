@@ -48,7 +48,7 @@ When the service is enabled, the sidebar shows `Cloud service > My tasks` with t
 ### Enable the service
 `Administration Panel > Cloud service`:
 - `Enabled`, prices, tasks run at a time, working space per task (10 TB by default, which fits a Takeout of about 3 TB), download speed limit (100 Mbps by default, shared by every download), download days and quote validity.
-- `Operator name` and `Contact email`, shown in the terms of service (`/terms`) and the privacy policy (`/privacy`). These pages are templates: have them reviewed before charging users.
+- `Operator name` and `Contact email`, shown in the terms of service (`/terms`) and the privacy policy (`/privacy`). These pages are templates: have them reviewed before charging users. The contact email also gets an email every time a user creates a task, with a button that opens the task in the Administration Panel.
 - The tab also lists every task with its user, size, payment and state, the queue, the revenue and refunds, and the free disk space. `Cancel` refunds tasks that have not started; a running task can be canceled with or without a refund. `Refund` returns the payment of a finished task.
 
 Tasks run one after another (or several at a time if you allow it). A task starts only when the volume has free space for it, and it is stopped (and refunded) if it uses more than the space per task. If the server restarts, interrupted tasks go back to the queue.

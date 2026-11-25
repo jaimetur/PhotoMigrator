@@ -4760,6 +4760,7 @@ tr.is-changed .adm-icon-btn--save { background: #16a34a; color: #ffffff; }
     color: var(--t-ink); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
 }
 .adm-table td { padding: 10px 12px; border-top: 1px solid var(--border-soft); vertical-align: middle; }
+.adm-table tr.is-highlighted td { background: var(--accent-soft); }
 .adm-sort { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
 .adm-sort::after { content: " ↕"; opacity: 0.45; }
 .adm-sort[data-dir="asc"]::after { content: " ↑"; opacity: 1; }

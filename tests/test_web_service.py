@@ -199,6 +199,17 @@ class TestCloudService(unittest.TestCase):
         response = self.client.post(f"/api/service/tasks/{task['id']}/uploads", json={"name": "photo.jpg", "size": 10})
         self.assertEqual(response.status_code, 400)
 
+    def test_admin_is_emailed_when_a_task_is_created(self):
+        self._enable(contact_email="ops@example.com")
+        self._login("alice", "alice-pass-123")
+        with patch.object(self.svc.mailer, "send_later") as send:
+            task = self._create()
+        recipients, subject, body = send.call_args_list[-1].args[:3]
+        self.assertEqual(recipients, ["ops@example.com"])
+        self.assertTrue(subject.startswith("New cloud service task"))
+        self.assertIn(f"tab=service&amp;task={task['id']}", body.replace("&amp;", "&").replace("&", "&amp;"))
+        self.assertIn("alice", body)
+
     def test_quote_checks_the_uploaded_zip_files(self):
         self._enable()
         self._login("alice", "alice-pass-123")

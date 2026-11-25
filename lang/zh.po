@@ -102,6 +102,9 @@ msgstr "<b>{0}</b>（{1}）申请了 PhotoMigrator 账户。"
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr "<b>{0}</b>（{1}）申请了 PhotoMigrator 账户。<br>留言：<i>{2}</i>"
 
+msgid "<b>{0}</b> ({1}) created the task <b>{2}</b>."
+msgstr "<b>{0}</b>（{1}）创建了任务 <b>{2}</b>。"
+
 msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
 msgstr "副本仅为此任务加密，并在任务结束时删除。您已保存的账户不会更改。"
 
@@ -2013,6 +2016,12 @@ msgstr "我接受"
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "Config.ini 中必须存在 IMMICH_USERNAME_2/IMMICH_PASSWORD_2 或 IMMICH_API_KEY_USER_2 条目。"
 
+msgid "import from Dropbox"
+msgstr "从 Dropbox 导入"
+
+msgid "import from OneDrive"
+msgstr "从 OneDrive 导入"
+
 msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "重要：'move' 和 'remove' 会修改文件；如需先查看，请从 'list' 开始。"
 
@@ -2030,6 +2039,9 @@ msgstr "重要：此模块是本地预处理流程，本身不会向任何云端
 
 msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "重要：remove_duplicate 和 replace_duplicate 是不可逆操作。"
+
+msgid "Input: {0}. The task is waiting for its files and the quote."
+msgstr "输入：{0}。任务正在等待文件和报价。"
 
 msgid "IP Address"
 msgstr "IP 地址"
@@ -2385,6 +2397,12 @@ msgstr "不会显示。留空则保留已保存的密码。"
 msgid "New account request"
 msgstr "新账户申请"
 
+msgid "New cloud service task"
+msgstr "新的云服务任务"
+
+msgid "New cloud service task: {0}"
+msgstr "新的云服务任务：{0}"
+
 msgid "New here?"
 msgstr "初次使用？"
 
@@ -2582,6 +2600,9 @@ msgstr "打开 CSV 选择器"
 
 msgid "Open Help"
 msgstr "打开帮助"
+
+msgid "Open in the Administration Panel"
+msgstr "在管理面板中打开"
 
 msgid "Open PhotoMigrator"
 msgstr "打开 PhotoMigrator"
@@ -4533,6 +4554,9 @@ msgstr "上传完成，但有警告"
 msgid "Upload Failed"
 msgstr "上传失败"
 
+msgid "upload from the browser"
+msgstr "从浏览器上传"
+
 msgid "Upload Here"
 msgstr "上传到此处"
 
@@ -5289,11 +5313,17 @@ msgstr "{0} 个功能"
 msgid "{0} finished"
 msgstr "{0} 已完成"
 
+msgid "{0} hour"
+msgstr "{0} 小时"
+
 msgid "{0} hours"
 msgstr "{0} 小时"
 
 msgid "{0} is active"
 msgstr "{0} 处于活跃状态"
+
+msgid "{0} minutes"
+msgstr "{0} 分钟"
 
 msgid "{0} must change the password"
 msgstr "{0} 必须更改密码"

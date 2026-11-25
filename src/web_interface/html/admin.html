@@ -7,7 +7,7 @@
     <title>{{ tool_name }} Admin</title>
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
     <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
-    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-service">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-service2">
 </head>
 <body class="admin-page">
 <main class="admin-wrapper">
@@ -1662,6 +1662,7 @@
             status.textContent = String(error.message || error);
         }
     }
+    let svcHighlightTask = "";
     function renderServiceTasks() {
         const filter = document.getElementById("svc-filter").value;
         const rows = svcTasks.filter((task) => !filter
@@ -1698,6 +1699,10 @@
             }
             tr.append(userTd, taskTd, sizeTd, paidTd, stateTd, dateTd, actionsTd);
             tbody.appendChild(tr);
+            if (svcHighlightTask && task.id === svcHighlightTask) {
+                tr.classList.add("is-highlighted");
+                window.requestAnimationFrame(() => tr.scrollIntoView({ block: "center" }));
+            }
         });
         document.getElementById("svc-empty").hidden = rows.length > 0;
     }
@@ -1852,6 +1857,9 @@
         await Promise.allSettled([loadUsers(), loadMailSettings()]);
         let initial = "users";
         try { initial = sessionStorage.getItem("pm_admin_tab") || initial; } catch (error) { /* storage unavailable */ }
+        const linkParams = new URLSearchParams(window.location.search);
+        if (linkParams.get("tab")) initial = linkParams.get("tab");
+        svcHighlightTask = linkParams.get("task") || "";
         showAdminTab(document.querySelector(`[data-admin-tab="${initial}"]`) ? initial : "users");
         setInterval(() => {
             if (!document.hidden && !document.querySelector("dialog[open]") && !document.activeElement?.closest?.("#users-table")) loadUsers().catch(() => {});

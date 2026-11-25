@@ -102,6 +102,9 @@ msgstr "<b>{0}</b> ({1}) heeft een PhotoMigrator-account aangevraagd."
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr "<b>{0}</b> ({1}) heeft een PhotoMigrator-account aangevraagd.<br>Bericht: <i>{2}</i>"
 
+msgid "<b>{0}</b> ({1}) created the task <b>{2}</b>."
+msgstr "<b>{0}</b> ({1}) heeft de taak <b>{2}</b> aangemaakt."
+
 msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
 msgstr "Er wordt een kopie versleuteld die alleen voor deze taak geldt en die wordt verwijderd zodra de taak eindigt. Je opgeslagen account wordt niet gewijzigd."
 
@@ -2013,6 +2016,12 @@ msgstr "Ik accepteer de"
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 of IMMICH_API_KEY_USER_2 moeten in Config.ini aanwezig zijn."
 
+msgid "import from Dropbox"
+msgstr "import uit Dropbox"
+
+msgid "import from OneDrive"
+msgstr "import uit OneDrive"
+
 msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "BELANGRIJK: 'move' en 'remove' wijzigen bestanden; begin met 'list' als je eerst wilt controleren."
 
@@ -2030,6 +2039,9 @@ msgstr "BELANGRIJK: Deze module is een lokale voorverwerkingspijplijn. Ze stuurt
 
 msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "BELANGRIJK: remove_duplicate en replace_duplicate zijn onomkeerbare bewerkingen."
+
+msgid "Input: {0}. The task is waiting for its files and the quote."
+msgstr "Invoer: {0}. De taak wacht op de bestanden en de offerte."
 
 msgid "IP Address"
 msgstr "IP-adres"
@@ -2385,6 +2397,12 @@ msgstr "Wordt nooit getoond. Laat leeg om het opgeslagen wachtwoord te behouden.
 msgid "New account request"
 msgstr "Nieuwe accountaanvraag"
 
+msgid "New cloud service task"
+msgstr "Nieuwe taak van de clouddienst"
+
+msgid "New cloud service task: {0}"
+msgstr "Nieuwe taak van de clouddienst: {0}"
+
 msgid "New here?"
 msgstr "Nieuw hier?"
 
@@ -2582,6 +2600,9 @@ msgstr "CSV-kiezer openen"
 
 msgid "Open Help"
 msgstr "Help openen"
+
+msgid "Open in the Administration Panel"
+msgstr "Openen in het beheerpaneel"
 
 msgid "Open PhotoMigrator"
 msgstr "PhotoMigrator openen"
@@ -4533,6 +4554,9 @@ msgstr "Upload voltooid met waarschuwingen"
 msgid "Upload Failed"
 msgstr "Upload mislukt"
 
+msgid "upload from the browser"
+msgstr "upload vanuit de browser"
+
 msgid "Upload Here"
 msgstr "Hier uploaden"
 
@@ -5289,11 +5313,17 @@ msgstr "{0} functies"
 msgid "{0} finished"
 msgstr "{0} voltooid"
 
+msgid "{0} hour"
+msgstr "{0} uur"
+
 msgid "{0} hours"
 msgstr "{0} uur"
 
 msgid "{0} is active"
 msgstr "{0} is actief"
+
+msgid "{0} minutes"
+msgstr "{0} minuten"
 
 msgid "{0} must change the password"
 msgstr "{0} moet het wachtwoord wijzigen"
