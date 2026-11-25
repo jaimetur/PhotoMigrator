@@ -7,7 +7,7 @@
     <title>PhotoMigrator</title>
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
     <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
-    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-settings">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-service">
 </head>
 {% set is_home_view = active_page == 'features' and request.query_params.get('view') == 'home' %}
 <body data-theme="{{ initial_theme }}" data-page="{{ active_page }}" class="app-body{% if is_home_view %} is-home-view{% endif %}">
@@ -26,6 +26,14 @@
                 <span class="side-link__icon"><span class="ico" data-icon="home"></span></span>
                 <span class="side-link__label">Home</span>
             </a>
+            {% if service_enabled %}
+            <div class="side-nav__label">Cloud service</div>
+            <a href="/service?manual_navigation=1" class="side-link side-link--service{% if active_page == 'service' %} side-link--active{% endif %}" aria-current="{% if active_page == 'service' %}page{% else %}false{% endif %}">
+                <span class="side-link__icon tone-svc"><span class="ico" data-icon="cloud"></span></span>
+                <span class="side-link__label">My tasks</span>
+                <span id="nav-service-badge" class="side-link__badge hidden" data-no-i18n></span>
+            </a>
+            {% endif %}
             <div id="module-tabs" class="side-nav__modules"></div>
             <div class="side-nav__label">Workspace</div>
             <a href="/output?manual_navigation=1" class="side-link{% if active_page == 'output' %} side-link--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
@@ -66,7 +74,7 @@
             <button type="button" class="icon-btn topbar__menu" id="sidebar-open" aria-label="Open menu"><span class="ico" data-icon="menu"></span></button>
             <div class="topbar__heading">
                 <span class="topbar__eyebrow" id="topbar-eyebrow">PhotoMigrator</span>
-                <span class="topbar__title" id="topbar-title">{% if active_page == 'output' %}Activity{% elif active_page == 'configuration' %}Settings{% elif is_home_view %}Home{% else %}&nbsp;{% endif %}</span>
+                <span class="topbar__title" id="topbar-title">{% if active_page == 'output' %}Activity{% elif active_page == 'configuration' %}Settings{% elif active_page == 'service' %}Cloud service{% elif is_home_view %}Home{% else %}&nbsp;{% endif %}</span>
             </div>
             <a href="/output?manual_navigation=1" id="topbar-status" class="status-pill status-pill--idle" title="Open Activity">
                 <span class="status-pill__dot"></span><span id="topbar-status-text">No job running</span>
@@ -143,6 +151,10 @@
                     </div>
                 </div>
             </section>
+        </div>
+
+        <div class="panel-shell{% if active_page != 'service' %} page-panel-hidden{% endif %}">
+            <section class="panel service-panel" id="service-root" aria-live="polite"></section>
         </div>
 
         <div class="panel-shell{% if active_page != 'output' %} page-panel-hidden{% endif %}">
@@ -464,7 +476,8 @@
         eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
         refresh: '<path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/>',
         link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
-        calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'
+        calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+        plus: '<path d="M12 5v14M5 12h14"/>'
     };
 
     function iconSvg(name, extraClass = "") {
@@ -5368,7 +5381,10 @@
             document.title = "Activity · PhotoMigrator";
         } else if (CURRENT_PAGE === "configuration") {
             if (topEyebrow) topEyebrow.textContent = "Workspace";
-            document.title = "Settings · PhotoMigrator";
+            document.title = "Settings · PhotoMigrator";        } else if (CURRENT_PAGE === "service") {
+            if (topEyebrow) topEyebrow.textContent = "PhotoMigrator";
+            document.body.dataset.tone = "svc";
+            document.title = "Cloud service · PhotoMigrator";
         }
     }
 
@@ -7951,5 +7967,6 @@
 
     boot();
 </script>
+{% if active_page == 'service' %}<script src="/static/service.js?v=20261125-v5-service"></script>{% endif %}
 </body>
 </html>

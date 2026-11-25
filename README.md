@@ -188,6 +188,7 @@ Main characteristics:
 - A colour per feature (sidebar icon, header, steps and `Run` button), cards that are easy to tell apart, a visual action picker, option cards with plain-language labels, inline help and the CLI flag of every field, and a run panel that sits next to the options on wide screens.
 - `Activity` page with the job status, live dashboard, log and answers to the questions a job asks.
 - `Settings` with `Service credentials`, `General arguments` (shared by all features) and `App settings` (theme, time zone and language).
+- Optional **Cloud service** (`My tasks`): users without Docker or disk space can run a Takeout migration, a Takeout processing or a cloud-to-cloud migration on the server, with resumable uploads or Dropbox/OneDrive import, a quote, Stripe payments (5 € minimum + 5 cents per GB, full refund if a task fails) and automatic deletion of the task data and credentials. See [Cloud service](help/13-cloud-service.md).
 - Automatic Migration and Local Photos Folder workflows support exclusion filters for unwanted folders/files such as `@eaDir`, `.@__thumb`, `@Recycle`, `SYNOFILE_THUMB*`, `SYNOPHOTO_THUMB*`, `SYNOVIDEO_THUMB*`, `SYNOPHOTO_FILM*`, `Thumbs.db`, `ehthumbs.db`, `.DS_Store`, or `._*`.
 - Real command preview + execution output in the browser.
 - Multi-user accounts with email: sign in with your username or email, `Request an account` from the login page (an admin approves it), and optional emails for account notices and finished tasks (`Email me when it finishes`) through your own SMTP server.
@@ -325,6 +326,7 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [Other Features](help/10-other-features.md)  
 - [GPTH Tool Pipeline Description](help/11-GPTH-complete-pipeline.md)
 - [Docker Deployment Documentation](help/12-docker-deployment.md)
+- [Cloud Service Documentation](help/13-cloud-service.md)
 
 ## 📘 Docker Deployments Documentation Links
 - [Deploy Web Interface from Docker](help/docker-deployments/deploy-web-interface-from-docker.md)

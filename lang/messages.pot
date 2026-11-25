@@ -8,6 +8,9 @@ msgstr ""
 msgid "'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr ""
 
+msgid "(\"we\"). You can contact us at"
+msgstr ""
+
 msgid "(Makes your output portable but requires more HDD space)."
 msgstr ""
 
@@ -36,6 +39,12 @@ msgid "+ Add"
 msgstr ""
 
 msgid "+ Add row"
+msgstr ""
+
+msgid ". PhotoMigrator itself is free, open-source software that you can also run on your own computer at no cost."
+msgstr ""
+
+msgid ". You can also complain to the Spanish Data Protection Agency (aepd.es) or to the authority of your country."
 msgstr ""
 
 msgid "1) Clean Takeout folder"
@@ -86,13 +95,25 @@ msgstr ""
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr ""
 
+msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
+msgstr ""
+
 msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
+msgstr ""
+
+msgid "A processed Takeout can be downloaded for {0} days, in ZIP parts of up to {1} GB. After that it is deleted."
 msgstr ""
 
 msgid "A whole folder, albums included"
 msgstr ""
 
 msgid "ALL_PHOTOS Folder Name"
+msgstr ""
+
+msgid "API key"
+msgstr ""
+
+msgid "API key (optional)"
 msgstr ""
 
 msgid "API key admin"
@@ -170,6 +191,15 @@ msgstr ""
 msgid "About {0}"
 msgstr ""
 
+msgid "About {0} days"
+msgstr ""
+
+msgid "About {0} hours"
+msgstr ""
+
+msgid "Accept the terms of service and the privacy policy to continue."
+msgstr ""
+
 msgid "Access logs"
 msgstr ""
 
@@ -183,6 +213,9 @@ msgid "Account"
 msgstr ""
 
 msgid "Account ID"
+msgstr ""
+
+msgid "Account of Settings > Service credentials"
 msgstr ""
 
 msgid "Account request from {0}"
@@ -201,6 +234,12 @@ msgid "Account {0}: Your password for Immich Photos (mandatory if not API_KEY is
 msgstr ""
 
 msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr ""
+
+msgid "Account:"
+msgstr ""
+
+msgid "Account: until you ask us to delete it."
 msgstr ""
 
 msgid "Accounts"
@@ -230,6 +269,9 @@ msgstr ""
 msgid "Activity · PhotoMigrator"
 msgstr ""
 
+msgid "Add Takeout files"
+msgstr ""
+
 msgid "Add row"
 msgstr ""
 
@@ -237,6 +279,12 @@ msgid "Add the URL and credentials of each account in"
 msgstr ""
 
 msgid "Add them in Settings"
+msgstr ""
+
+msgid "Add your Takeout files"
+msgstr ""
+
+msgid "Added to the queue."
 msgstr ""
 
 msgid "Admin"
@@ -335,6 +383,9 @@ msgstr ""
 msgid "All roles"
 msgstr ""
 
+msgid "All states"
+msgstr ""
+
 msgid "All users"
 msgstr ""
 
@@ -357,6 +408,9 @@ msgid "An email with the username and the password is sent to the new user."
 msgstr ""
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
+msgstr ""
+
+msgid "App password"
 msgstr ""
 
 msgid "App settings"
@@ -473,6 +527,9 @@ msgstr ""
 msgid "Before a restore"
 msgstr ""
 
+msgid "Before a task starts we measure your data and test your destination, and we send you a quote with the price, the estimated start and the estimated duration. The price is 5.00 € minimum, then 0.05 € per GB of data to process, VAT included. A quote is valid for 7 days. Estimates of start and duration are not guaranteed."
+msgstr ""
+
 msgid "Blue palette"
 msgstr ""
 
@@ -497,10 +554,31 @@ msgstr ""
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr ""
 
+msgid "Calculate VAT with Stripe Tax (prices include VAT)"
+msgstr ""
+
 msgid "Can sign in right away"
 msgstr ""
 
 msgid "Cancel"
+msgstr ""
+
+msgid "Cancel and delete"
+msgstr ""
+
+msgid "Cancel refunds tasks that have not started. A running task can be canceled with or without a refund."
+msgstr ""
+
+msgid "Cancel task"
+msgstr ""
+
+msgid "Cancel the task of {0} and delete its data? This cannot be undone."
+msgstr ""
+
+msgid "Cancel this task and delete its data? You get the full amount back."
+msgstr ""
+
+msgid "Canceled"
 msgstr ""
 
 msgid "Cannot change role of the last active admin."
@@ -545,7 +623,25 @@ msgstr ""
 msgid "Changes your library"
 msgstr ""
 
+msgid "Check again"
+msgstr ""
+
+msgid "Check and get a quote"
+msgstr ""
+
+msgid "Check the accounts"
+msgstr ""
+
 msgid "Check the command, press Run and watch it live in"
+msgstr ""
+
+msgid "Checking"
+msgstr ""
+
+msgid "Checking your task"
+msgstr ""
+
+msgid "Checking..."
 msgstr ""
 
 msgid "Choose a subfolder inside one of your assigned roots."
@@ -560,13 +656,25 @@ msgstr ""
 msgid "Choose an action"
 msgstr ""
 
+msgid "Choose the folder with your Takeout"
+msgstr ""
+
 msgid "Choose the retained asset for '--remove-duplicates-assets'."
 msgstr ""
 
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr ""
 
+msgid "Choose your Takeout folder"
+msgstr ""
+
+msgid "Chosen folder: {0}"
+msgstr ""
+
 msgid "City"
+msgstr ""
+
+msgid "Clean my Takeout and upload it to my photo service."
 msgstr ""
 
 msgid "Clean up"
@@ -590,6 +698,18 @@ msgstr ""
 msgid "Close without creating"
 msgstr ""
 
+msgid "Cloud service"
+msgstr ""
+
+msgid "Cloud service terms"
+msgstr ""
+
+msgid "Cloud service · PhotoMigrator"
+msgstr ""
+
+msgid "Cloud → cloud"
+msgstr ""
+
 msgid "Collapse panel"
 msgstr ""
 
@@ -606,6 +726,9 @@ msgid "Command"
 msgstr ""
 
 msgid "Command copied"
+msgstr ""
+
+msgid "Completed"
 msgstr ""
 
 msgid "Config status: auto-save failed ({0})"
@@ -692,6 +815,15 @@ msgstr ""
 msgid "Connect your services"
 msgstr ""
 
+msgid "Connect {0}"
+msgstr ""
+
+msgid "Connect {0} with read-only access and choose the folder where Takeout saved the files."
+msgstr ""
+
+msgid "Connections use HTTPS, and the servers are in the European Union."
+msgstr ""
+
 msgid "Consolidate Albums Names"
 msgstr ""
 
@@ -701,6 +833,21 @@ msgstr ""
 msgid "Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets."
 msgstr ""
 
+msgid "Contact email"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Continue upload"
+msgstr ""
+
+msgid "Copied"
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
 msgid "Copy album files instead of symlinks"
 msgstr ""
 
@@ -708,6 +855,9 @@ msgid "Copy command"
 msgstr ""
 
 msgid "Copy failed"
+msgstr ""
+
+msgid "Copy link"
 msgstr ""
 
 msgid "Copy log"
@@ -737,6 +887,9 @@ msgstr ""
 msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date. By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided. Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy. Example: --organize-local-folder-by-date ./UnsortedLibrary"
 msgstr ""
 
+msgid "Create a task to migrate a Takeout to your photo service, fix a Takeout or move a library between services."
+msgstr ""
+
 msgid "Create failed: {0}"
 msgstr ""
 
@@ -747,6 +900,9 @@ msgid "Create the Google Photos refresh token of '--account-id' (default 1) and 
 msgstr ""
 
 msgid "Create user"
+msgstr ""
+
+msgid "Created"
 msgstr ""
 
 msgid "Created From"
@@ -762,6 +918,12 @@ msgid "Creating…"
 msgstr ""
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
+msgstr ""
+
+msgid "Credentials are encrypted with a key that exists only for that task, and both are destroyed when it ends."
+msgstr ""
+
+msgid "Credentials encrypted with a key for this task only"
 msgstr ""
 
 msgid "Credentials for account {0} found in Settings"
@@ -797,7 +959,28 @@ msgstr ""
 msgid "Dashboard"
 msgstr ""
 
+msgid "Data and credentials deleted from our server on {0}."
+msgstr ""
+
+msgid "Data and credentials deleted from our server."
+msgstr ""
+
+msgid "Data and credentials deleted on {0}"
+msgstr ""
+
+msgid "Data and credentials deleted when it ends"
+msgstr ""
+
+msgid "Data deleted on {0}"
+msgstr ""
+
 msgid "Data folder"
+msgstr ""
+
+msgid "Data measured: {0}"
+msgstr ""
+
+msgid "Data to move"
 msgstr ""
 
 msgid "Database"
@@ -869,6 +1052,9 @@ msgstr ""
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr ""
 
+msgid "Delete now"
+msgstr ""
+
 msgid "Delete row"
 msgstr ""
 
@@ -878,6 +1064,9 @@ msgstr ""
 msgid "Delete the {0} selected users? This action cannot be undone."
 msgstr ""
 
+msgid "Delete this task and its data?"
+msgstr ""
+
 msgid "Delete user"
 msgstr ""
 
@@ -885,6 +1074,12 @@ msgid "Delete user {0}? This action cannot be undone."
 msgstr ""
 
 msgid "Delete {0}"
+msgstr ""
+
+msgid "Deleted on"
+msgstr ""
+
+msgid "Deleted on {0}"
 msgstr ""
 
 msgid "Demo"
@@ -899,10 +1094,19 @@ msgstr ""
 msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
 msgstr ""
 
+msgid "Destination"
+msgstr ""
+
 msgid "Destination Required"
 msgstr ""
 
+msgid "Destination checked: it can receive uploads."
+msgstr ""
+
 msgid "Destination folder"
+msgstr ""
+
+msgid "Destination service"
 msgstr ""
 
 msgid "Details"
@@ -935,13 +1139,34 @@ msgstr ""
 msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened). - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure. Example: --download-all ./MyLibrary"
 msgstr ""
 
+msgid "Download days"
+msgstr ""
+
+msgid "Download ready."
+msgstr ""
+
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
 msgstr ""
 
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder). - Use 'ALL' to download ALL albums. - Use patterns: e.g. --download-albums 'dron*' - Multiple albums can be separated by comma or space and quoted. Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
 msgstr ""
 
+msgid "Download speed (Mbps)"
+msgstr ""
+
 msgid "Drag from bottom edge or bottom corners to resize the log panel"
+msgstr ""
+
+msgid "Drop your Takeout ZIP files here"
+msgstr ""
+
+msgid "Dropbox App key"
+msgstr ""
+
+msgid "Dropbox App secret"
+msgstr ""
+
+msgid "Dropbox redirect URI"
 msgstr ""
 
 msgid "Dup asset keeper"
@@ -974,6 +1199,9 @@ msgstr ""
 msgid "Duplicates, folders"
 msgstr ""
 
+msgid "Duration"
+msgstr ""
+
 msgid "Duration: <b>{0}</b>. Last lines of the log:"
 msgstr ""
 
@@ -981,6 +1209,12 @@ msgid "During upload, treat equivalent existing album names as one family and me
 msgstr ""
 
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
+msgstr ""
+
+msgid "Each task can use up to 10.0 TB of working space on our server, enough for a Takeout of about a third of that size. Tasks run in order of payment."
+msgstr ""
+
+msgid "Each task runs in its own isolated folder that no other user can reach."
 msgstr ""
 
 msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
@@ -999,6 +1233,9 @@ msgid "Email"
 msgstr ""
 
 msgid "Email (SMTP)"
+msgstr ""
+
+msgid "Email (optional)"
 msgstr ""
 
 msgid "Email check"
@@ -1061,6 +1298,12 @@ msgstr ""
 msgid "Enabled by default; use '--no-preview-album-actions' to disable it."
 msgstr ""
 
+msgid "Enabled · free"
+msgstr ""
+
+msgid "Enabled · paid"
+msgstr ""
+
 msgid "Encryption"
 msgstr ""
 
@@ -1068,6 +1311,9 @@ msgid "End"
 msgstr ""
 
 msgid "Enter a folder name, or an absolute path inside"
+msgstr ""
+
+msgid "Enter them for this task only"
 msgstr ""
 
 msgid "Env override"
@@ -1080,6 +1326,12 @@ msgid "Error: {0}"
 msgstr ""
 
 msgid "Estimated End"
+msgstr ""
+
+msgid "Estimated start"
+msgstr ""
+
+msgid "Estimated start: {0}. Estimated duration: {1}."
 msgstr ""
 
 msgid "Event"
@@ -1253,6 +1505,9 @@ msgstr ""
 msgid "Expand/collapse section"
 msgstr ""
 
+msgid "Expired"
+msgstr ""
+
 msgid "Export Config"
 msgstr ""
 
@@ -1271,10 +1526,16 @@ msgstr ""
 msgid "Extracted ZIPs: {0}\\n"
 msgstr ""
 
+msgid "Failed"
+msgstr ""
+
 msgid "Failed sign in"
 msgstr ""
 
 msgid "Failed: {0}"
+msgstr ""
+
+msgid "Files and credentials deleted when it ends"
 msgstr ""
 
 msgid "Fill at least one value."
@@ -1331,6 +1592,9 @@ msgstr ""
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr ""
 
+msgid "Finished"
+msgstr ""
+
 msgid "First page"
 msgstr ""
 
@@ -1347,6 +1611,12 @@ msgid "Fix an Apple export"
 msgstr ""
 
 msgid "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."
+msgstr ""
+
+msgid "Fix my Takeout"
+msgstr ""
+
+msgid "Fix the problem shown above and check again, or delete the task and create it again with other credentials."
 msgstr ""
 
 msgid "Folder"
@@ -1391,7 +1661,13 @@ msgstr ""
 msgid "Folders to scan"
 msgstr ""
 
+msgid "Follow it"
+msgstr ""
+
 msgid "Follow its live progress and log in Activity."
+msgstr ""
+
+msgid "Follow the live dashboard and the log in Activity. A task that has started is not refunded if you stop it."
 msgstr ""
 
 msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: 3). Only used when '--try-small-albums-grouping' is enabled."
@@ -1448,13 +1724,22 @@ msgstr ""
 msgid "For Remove Albums, only match albums created on or before <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
 msgstr ""
 
+msgid "Free"
+msgstr ""
+
 msgid "Free disk space"
+msgstr ""
+
+msgid "Free for your account"
 msgstr ""
 
 msgid "Friday"
 msgstr ""
 
 msgid "From"
+msgstr ""
+
+msgid "Full refund if a task fails"
 msgstr ""
 
 msgid "GPTH messages"
@@ -1514,6 +1799,12 @@ msgstr ""
 msgid "Google Takeout · PhotoMigrator"
 msgstr ""
 
+msgid "Google Takeout → Download"
+msgstr ""
+
+msgid "Google Takeout → Immich Photos"
+msgstr ""
+
 msgid "Green palette"
 msgstr ""
 
@@ -1532,6 +1823,9 @@ msgstr ""
 msgid "Hide password"
 msgstr ""
 
+msgid "History"
+msgstr ""
+
 msgid "Home"
 msgstr ""
 
@@ -1545,6 +1839,12 @@ msgid "Hourly"
 msgstr ""
 
 msgid "How to migrate"
+msgstr ""
+
+msgid "How we protect your data"
+msgstr ""
+
+msgid "I accept the"
 msgstr ""
 
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
@@ -1578,6 +1878,12 @@ msgid "If"
 msgstr ""
 
 msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
+msgstr ""
+
+msgid "If a task fails, we refund the full amount automatically. If you cancel a task before it starts, we refund the full amount. Once a task has started, it can be stopped but it is not refunded. Refunds reach your card in {0} to {1} days."
+msgstr ""
+
+msgid "If a task fails, you get the full amount back. If you cancel before it starts, too."
 msgstr ""
 
 msgid "If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input."
@@ -1640,7 +1946,22 @@ msgstr ""
 msgid "Import Google Takeout person labels into Immich when a Takeout people map is available. Only applies to an Immich destination or Immich Upload All/Upload Albums. (default: True)."
 msgstr ""
 
+msgid "Import from Dropbox"
+msgstr ""
+
+msgid "Import from OneDrive"
+msgstr ""
+
 msgid "Import people"
+msgstr ""
+
+msgid "Imports · Dropbox and OneDrive"
+msgstr ""
+
+msgid "In short"
+msgstr ""
+
+msgid "In the queue"
 msgstr ""
 
 msgid "Inactive"
@@ -1721,6 +2042,9 @@ msgstr ""
 msgid "Last {0} hours"
 msgstr ""
 
+msgid "Legal"
+msgstr ""
+
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr ""
 
@@ -1734,6 +2058,9 @@ msgid "List only, move the duplicates to a folder, or delete them."
 msgstr ""
 
 msgid "List, move or remove duplicates"
+msgstr ""
+
+msgid "Live mode"
 msgstr ""
 
 msgid "Local Photos Folder"
@@ -1796,6 +2123,12 @@ msgstr ""
 msgid "Migrate"
 msgstr ""
 
+msgid "Migrations and Takeout processing that remote users run on this server, with Stripe payments. Administrators never see the files or credentials of a task."
+msgstr ""
+
+msgid "Minimum price (€)"
+msgstr ""
+
 msgid "Missing Required Arguments"
 msgstr ""
 
@@ -1823,6 +2156,9 @@ msgstr ""
 msgid "Move mode is on"
 msgstr ""
 
+msgid "Move my library from one service to another."
+msgstr ""
+
 msgid "Move the original folder into the processed output instead of copying it first."
 msgstr ""
 
@@ -1836,6 +2172,9 @@ msgid "Multiple albums can be separated by comma or space and quoted."
 msgstr ""
 
 msgid "Must change password"
+msgstr ""
+
+msgid "My tasks"
 msgstr ""
 
 msgid "Names of the folders that PhotoMigrator creates."
@@ -1865,6 +2204,9 @@ msgstr ""
 msgid "New password for {0}"
 msgstr ""
 
+msgid "New task"
+msgstr ""
+
 msgid "New user"
 msgstr ""
 
@@ -1884,6 +2226,9 @@ msgid "NextCloud Photos · PhotoMigrator"
 msgstr ""
 
 msgid "No"
+msgstr ""
+
+msgid "No Takeout files here"
 msgstr ""
 
 msgid "No additional help for this field."
@@ -1913,6 +2258,18 @@ msgstr ""
 msgid "No log file"
 msgstr ""
 
+msgid "No other user and no person on our side looks at your photos."
+msgstr ""
+
+msgid "No other user or person can see them"
+msgstr ""
+
+msgid "No tasks yet"
+msgstr ""
+
+msgid "No tasks yet."
+msgstr ""
+
 msgid "No users match the current filters."
 msgstr ""
 
@@ -1935,6 +2292,18 @@ msgid "Not set"
 msgstr ""
 
 msgid "Notice"
+msgstr ""
+
+msgid "Number"
+msgstr ""
+
+msgid "Number {0} in the queue · starts about {1}"
+msgstr ""
+
+msgid "OAuth client ID"
+msgstr ""
+
+msgid "OAuth client secret"
 msgstr ""
 
 msgid "Ocean"
@@ -1970,6 +2339,15 @@ msgstr ""
 msgid "One value per line or comma-separated"
 msgstr ""
 
+msgid "OneDrive Client ID"
+msgstr ""
+
+msgid "OneDrive Client secret"
+msgstr ""
+
+msgid "OneDrive redirect URI"
+msgstr ""
+
 msgid "Online now"
 msgstr ""
 
@@ -1980,6 +2358,12 @@ msgid "Only assets taken between these dates. Leave a side empty for no limit."
 msgstr ""
 
 msgid "Only assets taken in this country or city, or where this person appears."
+msgstr ""
+
+msgid "Only to provide the service you request: to quote, run and deliver your tasks, to send you emails about them and to keep the accounting records the law requires. The legal basis is the contract you accept when you create a task, and our legal obligations for payment records."
+msgstr ""
+
+msgid "Open"
 msgstr ""
 
 msgid "Open Activity"
@@ -2009,7 +2393,13 @@ msgstr ""
 msgid "Open folder selector"
 msgstr ""
 
+msgid "Open in Activity"
+msgstr ""
+
 msgid "Open menu"
+msgstr ""
+
+msgid "Operator name"
 msgstr ""
 
 msgid "Optional"
@@ -2120,6 +2510,9 @@ msgstr ""
 msgid "Page {0} of {1}"
 msgstr ""
 
+msgid "Paid"
+msgstr ""
+
 msgid "Parallel Migration"
 msgstr ""
 
@@ -2129,6 +2522,9 @@ msgstr ""
 msgid "Password (at least {0} characters)"
 msgstr ""
 
+msgid "Password (optional)"
+msgstr ""
+
 msgid "Password of {0} changed"
 msgstr ""
 
@@ -2136,6 +2532,39 @@ msgid "Password reset"
 msgstr ""
 
 msgid "Pattern and replacement"
+msgstr ""
+
+msgid "Pay"
+msgstr ""
+
+msgid "Pay <b>{0}</b> to download it. You have {1} days; after that the result is deleted."
+msgstr ""
+
+msgid "Pay and download"
+msgstr ""
+
+msgid "Pay {0} and start"
+msgstr ""
+
+msgid "Payment page opened."
+msgstr ""
+
+msgid "Payment received"
+msgstr ""
+
+msgid "Payment received."
+msgstr ""
+
+msgid "Payment refunded."
+msgstr ""
+
+msgid "Payments are made through Stripe. We never see or store your card details. Migrations are paid when you accept the quote. Takeout processing is paid when the result is ready, and the payment is required to download it."
+msgstr ""
+
+msgid "Payments · Stripe"
+msgstr ""
+
+msgid "Payments:"
 msgstr ""
 
 msgid "Pending access requests"
@@ -2156,6 +2585,12 @@ msgstr ""
 msgid "PhotoMigrator Admin"
 msgstr ""
 
+msgid "PhotoMigrator Cloud is provided by"
+msgstr ""
+
+msgid "PhotoMigrator Cloud · version 2026-11-25"
+msgstr ""
+
 msgid "PhotoMigrator Login"
 msgstr ""
 
@@ -2165,10 +2600,19 @@ msgstr ""
 msgid "PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
 msgstr ""
 
+msgid "PhotoMigrator is open source, so anyone can check what it does."
+msgstr ""
+
+msgid "PhotoMigrator is working on your task."
+msgstr ""
+
 msgid "PhotoMigrator website"
 msgstr ""
 
 msgid "Photos"
+msgstr ""
+
+msgid "Photos folder"
 msgstr ""
 
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
@@ -2195,6 +2639,9 @@ msgstr ""
 msgid "Port"
 msgstr ""
 
+msgid "Position"
+msgstr ""
+
 msgid "Possible values:"
 msgstr ""
 
@@ -2214,6 +2661,15 @@ msgid "Preferences for how the Web Interface looks and behaves for your user. Th
 msgstr ""
 
 msgid "Prefix album folders with their dates"
+msgstr ""
+
+msgid "Preparing download"
+msgstr ""
+
+msgid "Preparing the download"
+msgstr ""
+
+msgid "Preparing your download"
 msgstr ""
 
 msgid "Preview Album Actions"
@@ -2237,7 +2693,34 @@ msgstr ""
 msgid "Previous page"
 msgstr ""
 
+msgid "Price"
+msgstr ""
+
+msgid "Price per GB (€)"
+msgstr ""
+
+msgid "Price {0} · starts about {1}"
+msgstr ""
+
+msgid "Price · VAT incl."
+msgstr ""
+
+msgid "Price: <b>{0}</b> (VAT included)."
+msgstr ""
+
+msgid "Price: <b>{0}</b>. This task is free for your account."
+msgstr ""
+
 msgid "Primary-key values are protected"
+msgstr ""
+
+msgid "Privacy"
+msgstr ""
+
+msgid "Privacy policy"
+msgstr ""
+
+msgid "Privacy policy · PhotoMigrator Cloud"
 msgstr ""
 
 msgid "Process Duplicates"
@@ -2279,6 +2762,9 @@ msgstr ""
 msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets. If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr ""
 
+msgid "Process it and let me download the result."
+msgstr ""
+
 msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it."
 msgstr ""
 
@@ -2291,7 +2777,28 @@ msgstr ""
 msgid "Push Asset Max Size (MB)"
 msgstr ""
 
+msgid "Queue"
+msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "Queued again after a server restart."
+msgstr ""
+
 msgid "Quick tools"
+msgstr ""
+
+msgid "Quote ready"
+msgstr ""
+
+msgid "Quote sent"
+msgstr ""
+
+msgid "Quote sent to your email."
+msgstr ""
+
+msgid "Quote valid for (days)"
 msgstr ""
 
 msgid "Range separator"
@@ -2303,10 +2810,22 @@ msgstr ""
 msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
 msgstr ""
 
+msgid "Read-only access. In Google Takeout choose “Add to Dropbox” or “Add to OneDrive”, then connect it in the next step."
+msgstr ""
+
 msgid "Readme"
 msgstr ""
 
+msgid "Ready to download"
+msgstr ""
+
 msgid "Ready to run"
+msgstr ""
+
+msgid "Ready · pay to download"
+msgstr ""
+
+msgid "Ready · unpaid"
 msgstr ""
 
 msgid "Reason: {0}"
@@ -2321,10 +2840,31 @@ msgstr ""
 msgid "Refresh"
 msgstr ""
 
+msgid "Refresh token"
+msgstr ""
+
+msgid "Refund"
+msgstr ""
+
+msgid "Refund and cancel"
+msgstr ""
+
+msgid "Refund {0} to {1} as well? Choose Cancel to stop the task without a refund."
+msgstr ""
+
+msgid "Refund {0} to {1}? Stripe keeps its fee."
+msgstr ""
+
+msgid "Refunded"
+msgstr ""
+
 msgid "Reject request"
 msgstr ""
 
 msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
+msgstr ""
+
+msgid "Rejected: too large."
 msgstr ""
 
 msgid "Release Notes"
@@ -2486,10 +3026,28 @@ msgstr ""
 msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
 msgstr ""
 
+msgid "Restricted key"
+msgstr ""
+
+msgid "Result"
+msgstr ""
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr ""
 
+msgid "Revenue"
+msgstr ""
+
+msgid "Review and pay"
+msgstr ""
+
+msgid "Review and start"
+msgstr ""
+
 msgid "Review the request"
+msgstr ""
+
+msgid "Review the task"
 msgstr ""
 
 msgid "Roadmap"
@@ -2549,6 +3107,9 @@ msgstr ""
 msgid "Save app settings"
 msgstr ""
 
+msgid "Save cloud service settings"
+msgstr ""
+
 msgid "Save config"
 msgstr ""
 
@@ -2577,6 +3138,12 @@ msgid "Saved automatically."
 msgstr ""
 
 msgid "Saved · leave empty to keep it"
+msgstr ""
+
+msgid "Saved."
+msgstr ""
+
+msgid "Saved. Leave it empty to keep it."
 msgstr ""
 
 msgid "Saving..."
@@ -2616,6 +3183,9 @@ msgid "Search users"
 msgstr ""
 
 msgid "Search users by username or email"
+msgstr ""
+
+msgid "Secure payment with Stripe. Valid for {0} days. If the task fails you get the full amount back."
 msgstr ""
 
 msgid "Segoe UI"
@@ -2705,10 +3275,19 @@ msgstr ""
 msgid "Server"
 msgstr ""
 
+msgid "Server address"
+msgstr ""
+
+msgid "Service"
+msgstr ""
+
 msgid "Service credentials"
 msgstr ""
 
 msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
+msgstr ""
+
+msgid "Set by an environment variable"
 msgstr ""
 
 msgid "Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1)."
@@ -2765,6 +3344,9 @@ msgstr ""
 msgid "Showing the first {0} matching values. Search to narrow them."
 msgstr ""
 
+msgid "Shown in the"
+msgstr ""
+
 msgid "Sign in"
 msgstr ""
 
@@ -2775,6 +3357,9 @@ msgid "Sign-in"
 msgstr ""
 
 msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
+msgstr ""
+
+msgid "Size"
 msgstr ""
 
 msgid "Skip GPTH tool (not recommended)"
@@ -2847,6 +3432,9 @@ msgid "Source service"
 msgstr ""
 
 msgid "Source to target"
+msgstr ""
+
+msgid "Space per task (TB)"
 msgstr ""
 
 msgid "Specify Date Separator used by feature `Auto-Rename Albums Content Based`."
@@ -2969,6 +3557,9 @@ msgstr ""
 msgid "Start"
 msgstr ""
 
+msgid "Start (you pay when it is ready)"
+msgstr ""
+
 msgid "Start Time: -"
 msgstr ""
 
@@ -2979,6 +3570,12 @@ msgid "Start a migration"
 msgstr ""
 
 msgid "Start here"
+msgstr ""
+
+msgid "Starting"
+msgstr ""
+
+msgid "State"
 msgstr ""
 
 msgid "Status: authenticating..."
@@ -3038,7 +3635,22 @@ msgstr ""
 msgid "Stop Running Module?"
 msgstr ""
 
+msgid "Stop this task and delete its data? A task that has started is not refunded."
+msgstr ""
+
+msgid "Storage connected (read-only)."
+msgstr ""
+
 msgid "Stored backups"
+msgstr ""
+
+msgid "Stripe (payments), the destination and source services you choose, and Dropbox or Microsoft OneDrive only if you connect them to import your Takeout (read-only). We do not sell your data or use it for advertising."
+msgstr ""
+
+msgid "Stripe answered correctly ({0} mode)."
+msgstr ""
+
+msgid "Summary"
 msgstr ""
 
 msgid "Sunday"
@@ -3056,6 +3668,9 @@ msgstr ""
 msgid "Synology Photos · PhotoMigrator"
 msgstr ""
 
+msgid "Synology Photos → Immich Photos"
+msgstr ""
+
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr ""
 
@@ -3065,10 +3680,19 @@ msgstr ""
 msgid "Takeout"
 msgstr ""
 
+msgid "Takeout files imported."
+msgstr ""
+
 msgid "Takeout folder"
 msgstr ""
 
 msgid "Takeout input and output"
+msgstr ""
+
+msgid "Takeout type"
+msgstr ""
+
+msgid "Takeout → my cloud"
 msgstr ""
 
 msgid "Target"
@@ -3083,6 +3707,57 @@ msgstr ""
 msgid "Target service"
 msgstr ""
 
+msgid "Task"
+msgstr ""
+
+msgid "Task canceled."
+msgstr ""
+
+msgid "Task completed."
+msgstr ""
+
+msgid "Task created. Terms of service accepted."
+msgstr ""
+
+msgid "Task data:"
+msgstr ""
+
+msgid "Task failed."
+msgstr ""
+
+msgid "Task files and credentials are not included in our backups."
+msgstr ""
+
+msgid "Task files and credentials: until the task ends, fails or is canceled, or until the end of the download period ({0} days)."
+msgstr ""
+
+msgid "Task records and payments: as long as tax and accounting laws require."
+msgstr ""
+
+msgid "Task records:"
+msgstr ""
+
+msgid "Task started."
+msgstr ""
+
+msgid "Tasks and queue"
+msgstr ""
+
+msgid "Tasks at a time"
+msgstr ""
+
+msgid "Tasks run on this server"
+msgstr ""
+
+msgid "Terms of service"
+msgstr ""
+
+msgid "Terms of service · PhotoMigrator Cloud"
+msgstr ""
+
+msgid "Test connection"
+msgstr ""
+
 msgid "Test email"
 msgstr ""
 
@@ -3092,10 +3767,25 @@ msgstr ""
 msgid "Test email sent to {0}."
 msgstr ""
 
+msgid "Test mode"
+msgstr ""
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr ""
 
 msgid "The changes could not be saved. Try again."
+msgstr ""
+
+msgid "The check failed."
+msgstr ""
+
+msgid "The cloud service is not enabled on this server."
+msgstr ""
+
+msgid "The data and credentials of the task have been deleted from our server."
+msgstr ""
+
+msgid "The data and credentials of your task <b>{0}</b> were deleted from our server on {1}."
 msgstr ""
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
@@ -3104,10 +3794,19 @@ msgstr ""
 msgid "The demo role cannot {0} configuration directly."
 msgstr ""
 
+msgid "The exact price comes with the quote, after we measure the data and test the destination with a tiny upload. Nothing is charged until you accept it."
+msgstr ""
+
+msgid "The files and credentials of a task are deleted when the task ends, fails, is canceled or its download period ends. We email you when it happens. See the"
+msgstr ""
+
 msgid "The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr ""
 
 msgid "The password needs at least {0} characters."
+msgstr ""
+
+msgid "The payment was canceled. You can pay whenever you are ready."
 msgstr ""
 
 msgid "The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'."
@@ -3116,13 +3815,34 @@ msgstr ""
 msgid "The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr ""
 
+msgid "The quote is valid for {0} days. After that the task and its data are deleted."
+msgstr ""
+
+msgid "The refund failed; we will review it."
+msgstr ""
+
+msgid "The result of your task <b>{0}</b> is deleted on {1}. Download it before then."
+msgstr ""
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
+msgstr ""
+
+msgid "The server must be reachable from the internet."
+msgstr ""
+
+msgid "The task failed"
+msgstr ""
+
+msgid "The task is too large"
 msgstr ""
 
 msgid "The temporary password was emailed to {0}."
 msgstr ""
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
+msgstr ""
+
+msgid "The upload could not continue. Add the file again."
 msgstr ""
 
 msgid "Theme"
@@ -3132,6 +3852,9 @@ msgid "Theme used by the PhotoMigrator web interface."
 msgstr ""
 
 msgid "There are no changed values in this row."
+msgstr ""
+
+msgid "These terms are governed by the laws of Spain and the European Union, without prejudice to the consumer protection rules of your country of residence."
 msgstr ""
 
 msgid "This argument is mandatory to run the Google Takeout Processor feature."
@@ -3335,6 +4058,15 @@ msgstr ""
 msgid "TimeZone"
 msgstr ""
 
+msgid "Tip: create an API key just for this task in Immich (Account settings → API keys) and delete it when the task ends."
+msgstr ""
+
+msgid "Tip: use an account without two-step verification, ideally one created only for this task."
+msgstr ""
+
+msgid "Tip: use an app password (Personal settings → Security) and revoke it when the task ends."
+msgstr ""
+
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr ""
 
@@ -3342,6 +4074,9 @@ msgid "Today"
 msgstr ""
 
 msgid "Toggle {0}"
+msgstr ""
+
+msgid "Too large"
 msgstr ""
 
 msgid "Tools"
@@ -3407,6 +4142,12 @@ msgstr ""
 msgid "Unable to stop job"
 msgstr ""
 
+msgid "Up"
+msgstr ""
+
+msgid "Up to {0} in total."
+msgstr ""
+
 msgid "Upload Albums"
 msgstr ""
 
@@ -3455,6 +4196,9 @@ msgstr ""
 msgid "Upload behavior: ZIP extraction follows the \"Extract ZIPs on upload\" option (Yes/No) in Upload to Server."
 msgstr ""
 
+msgid "Upload from this browser"
+msgstr ""
+
 msgid "Upload from this computer"
 msgstr ""
 
@@ -3482,6 +4226,9 @@ msgstr ""
 msgid "Upload to Server · PhotoMigrator"
 msgstr ""
 
+msgid "Upload your Takeout files"
+msgstr ""
+
 msgid "Upload, download, organize and clean up albums and assets in your Google Photos library."
 msgstr ""
 
@@ -3494,7 +4241,16 @@ msgstr ""
 msgid "Upload, download, organize and clean up albums and assets in your Synology Photos library."
 msgstr ""
 
+msgid "Uploaded"
+msgstr ""
+
 msgid "Uploaded: {0}\\n"
+msgstr ""
+
+msgid "Uploading"
+msgstr ""
+
+msgid "Uploads resume if the connection drops: add the same file again to continue."
 msgstr ""
 
 msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
@@ -3524,13 +4280,22 @@ msgstr ""
 msgid "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
 msgstr ""
 
+msgid "Use my saved account"
+msgstr ""
+
 msgid "Use patterns: e.g. --download-albums 'dron*'"
+msgstr ""
+
+msgid "Use the client ID, client secret and refresh token of your own Google OAuth client (see the Google Photos help)."
 msgstr ""
 
 msgid "Use the password your administrator gave you."
 msgstr ""
 
 msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
+msgstr ""
+
+msgid "Use this folder ({0} files)"
 msgstr ""
 
 msgid "Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
@@ -3602,6 +4367,9 @@ msgstr ""
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr ""
 
+msgid "Valid for {0} days."
+msgstr ""
+
 msgid "Values come from the whole table, not just this page."
 msgstr ""
 
@@ -3614,16 +4382,64 @@ msgstr ""
 msgid "Volumes folder"
 msgstr ""
 
+msgid "Waiting for data"
+msgstr ""
+
+msgid "Waiting for payment"
+msgstr ""
+
+msgid "Waiting for your data"
+msgstr ""
+
 msgid "Warm palette"
 msgstr ""
 
+msgid "We checked your task <b>{0}</b>: {1} of photos and videos."
+msgstr ""
+
+msgid "We do our best to keep your albums, dates and locations, but we cannot guarantee that every file is supported by the destination service. PhotoMigrator only reads your source and never deletes it, so keep your originals until you have checked the result. To the extent permitted by law, our liability is limited to the amount you paid for the task."
+msgstr ""
+
+msgid "We email you when it starts and when it ends. You can cancel it until then with a full refund."
+msgstr ""
+
+msgid "We may update these terms. The version you accepted is recorded with each task and applies to it."
+msgstr ""
+
+msgid "We measure your data and test the destination with a tiny upload that we delete right away. It takes a few minutes."
+msgstr ""
+
+msgid "We never delete anything in your source"
+msgstr ""
+
 msgid "We received your account request"
+msgstr ""
+
+msgid "We received your payment of <b>{0}</b>. Your task <b>{1}</b> is number {2} in the queue."
+msgstr ""
+
+msgid "We refunded the full amount of <b>{0}</b>. It reaches your card in 5 to 10 days."
+msgstr ""
+
+msgid "We run PhotoMigrator on our server for you: we process Google or iCloud Takeout exports and upload them to the photo service you choose, we let you download a processed Takeout, or we move a library from one photo service to another."
+msgstr ""
+
+msgid "We run your migration or Takeout processing on our server. You pay only for tasks that work."
+msgstr ""
+
+msgid "We use one cookie to keep you signed in and one to remember your language. No advertising or tracking cookies."
 msgstr ""
 
 msgid "Web Interface"
 msgstr ""
 
 msgid "Web database"
+msgstr ""
+
+msgid "Webhook URL"
+msgstr ""
+
+msgid "Webhook signing secret"
 msgstr ""
 
 msgid "Website"
@@ -3633,6 +4449,9 @@ msgid "Wednesday"
 msgstr ""
 
 msgid "Weekly"
+msgstr ""
+
+msgid "What do you want to do?"
 msgstr ""
 
 msgid "What do you want to move today?"
@@ -3701,6 +4520,12 @@ msgstr ""
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr ""
 
+msgid "Without Stripe keys every task is free. Administrators never pay. {0} Mbps means no download limit."
+msgstr ""
+
+msgid "Working on it"
+msgstr ""
+
 msgid "Workspace"
 msgstr ""
 
@@ -3711,6 +4536,15 @@ msgid "Yesterday"
 msgstr ""
 
 msgid "You"
+msgstr ""
+
+msgid "You add the files in the next step. Uploads resume if the connection drops, so you can close the page and continue later."
+msgstr ""
+
+msgid "You can ask for access to your data, its correction or deletion, limit or object to its processing, and ask for a copy of it, by writing to"
+msgstr ""
+
+msgid "You can download it until {0}. After that it is deleted from our server."
 msgstr ""
 
 msgid "You cannot deactivate your own account"
@@ -3725,7 +4559,16 @@ msgstr ""
 msgid "You cannot delete your own user."
 msgstr ""
 
+msgid "You have not been charged."
+msgstr ""
+
 msgid "You need"
+msgstr ""
+
+msgid "You need a PhotoMigrator account. You may only send us photos, videos and credentials that you own or are allowed to use. You must not send content that is illegal. You are responsible for the credentials you give us; we recommend creating keys or app passwords just for the task and revoking them when it ends."
+msgstr ""
+
+msgid "You pay one price per task: 5.00 € minimum, then 0.05 € per GB, VAT included."
 msgstr ""
 
 msgid "You will be asked to confirm before it runs."
@@ -3735,6 +4578,12 @@ msgid "Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your
 msgstr ""
 
 msgid "Your PhotoMigrator account"
+msgstr ""
+
+msgid "Your PhotoMigrator quote"
+msgstr ""
+
+msgid "Your Takeout"
 msgstr ""
 
 msgid "Your account has been disabled"
@@ -3749,6 +4598,21 @@ msgstr ""
 msgid "Your account request"
 msgstr ""
 
+msgid "Your card details go to Stripe, never to us."
+msgstr ""
+
+msgid "Your download expires soon"
+msgstr ""
+
+msgid "Your files and credentials are deleted when the task ends. We never delete anything in your source."
+msgstr ""
+
+msgid "Your migration is complete"
+msgstr ""
+
+msgid "Your name or company"
+msgstr ""
+
 msgid "Your own library"
 msgstr ""
 
@@ -3756,6 +4620,51 @@ msgid "Your password was changed"
 msgstr ""
 
 msgid "Your password was reset"
+msgstr ""
+
+msgid "Your photos and credentials are used only to run your task, and are deleted when it ends."
+msgstr ""
+
+msgid "Your processed Takeout is ready"
+msgstr ""
+
+msgid "Your quote"
+msgstr ""
+
+msgid "Your quote is ready"
+msgstr ""
+
+msgid "Your task <b>{0}</b> failed: {1}"
+msgstr ""
+
+msgid "Your task <b>{0}</b> finished successfully. The result takes {1}."
+msgstr ""
+
+msgid "Your task <b>{0}</b> finished successfully: {1} of photos and videos were moved."
+msgstr ""
+
+msgid "Your task <b>{0}</b> has started. You can follow it in Activity."
+msgstr ""
+
+msgid "Your task <b>{0}</b> is number {1} in the queue."
+msgstr ""
+
+msgid "Your task <b>{0}</b> was canceled and its data deleted."
+msgstr ""
+
+msgid "Your task could not be completed"
+msgstr ""
+
+msgid "Your task data has been deleted"
+msgstr ""
+
+msgid "Your task has started"
+msgstr ""
+
+msgid "Your task is in the queue"
+msgstr ""
+
+msgid "Your task was canceled"
 msgstr ""
 
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
@@ -3779,16 +4688,25 @@ msgstr ""
 msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
 msgstr ""
 
+msgid "and the"
+msgstr ""
+
 msgid "created"
 msgstr ""
 
 msgid "e.g. photos-2026 or /app/data/photos-2026"
 msgstr ""
 
+msgid "empty = sender address of Email (SMTP)"
+msgstr ""
+
 msgid "environment variables."
 msgstr ""
 
 msgid "failed"
+msgstr ""
+
+msgid "failed or canceled tasks"
 msgstr ""
 
 msgid "iCloud Takeout"
@@ -3801,6 +4719,9 @@ msgid "immich-photos-1 -> immich-photos-1"
 msgstr ""
 
 msgid "in the backup folder"
+msgstr ""
+
+msgid "is responsible for the personal data processed by PhotoMigrator Cloud. Contact:"
 msgstr ""
 
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
@@ -3824,6 +4745,15 @@ msgstr ""
 msgid "on the backup volume"
 msgstr ""
 
+msgid "paid and not refunded"
+msgstr ""
+
+msgid "privacy policy"
+msgstr ""
+
+msgid "refunded"
+msgstr ""
+
 msgid "remove_duplicate and replace_duplicate are irreversible operations."
 msgstr ""
 
@@ -3839,6 +4769,18 @@ msgstr ""
 msgid "synology-photos-1 -> synology-photos-1"
 msgstr ""
 
+msgid "tasks waiting"
+msgstr ""
+
+msgid "terms of service"
+msgstr ""
+
+msgid "the Takeout files you upload or import, the files PhotoMigrator creates from them, and the credentials of the services you choose."
+msgstr ""
+
+msgid "the amount and the Stripe identifiers of the payment. Stripe processes your card details."
+msgstr ""
+
 msgid "the password of your PhotoMigrator account <b>{0}</b> was changed. If it was not you, contact your administrator right away."
 msgstr ""
 
@@ -3846,6 +4788,12 @@ msgid "the password you chose"
 msgstr ""
 
 msgid "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can send account notices (requests, activations and password changes) and the emails of finished tasks."
+msgstr ""
+
+msgid "type of task, size, price, dates and the history of each task (without its files or credentials)."
+msgstr ""
+
+msgid "username, email address, language and the date of your last sign-in."
 msgstr ""
 
 msgid "v5.0.0 · 2026-12-01"
@@ -3899,6 +4847,9 @@ msgstr ""
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr ""
 
+msgid "{0} days"
+msgstr ""
+
 msgid "{0} days ago"
 msgstr ""
 
@@ -3918,6 +4869,9 @@ msgid "{0} features"
 msgstr ""
 
 msgid "{0} finished"
+msgstr ""
+
+msgid "{0} hours"
 msgstr ""
 
 msgid "{0} is active"
@@ -3957,6 +4911,69 @@ msgid "{0} users changed"
 msgstr ""
 
 msgid "{0} will change the password at the next sign-in"
+msgstr ""
+
+msgid "{0}. Applicable law"
+msgstr ""
+
+msgid "{0}. Changes"
+msgstr ""
+
+msgid "{0}. Cookies"
+msgstr ""
+
+msgid "{0}. Deletion of your data"
+msgstr ""
+
+msgid "{0}. Downloads"
+msgstr ""
+
+msgid "{0}. How long we keep it"
+msgstr ""
+
+msgid "{0}. How we protect it"
+msgstr ""
+
+msgid "{0}. Liability"
+msgstr ""
+
+msgid "{0}. Limits"
+msgstr ""
+
+msgid "{0}. Payment"
+msgstr ""
+
+msgid "{0}. Quotes and prices"
+msgstr ""
+
+msgid "{0}. Refunds and cancellation"
+msgstr ""
+
+msgid "{0}. What data we process"
+msgstr ""
+
+msgid "{0}. What the service does"
+msgstr ""
+
+msgid "{0}. Who is responsible"
+msgstr ""
+
+msgid "{0}. Who provides the service"
+msgstr ""
+
+msgid "{0}. Who receives it"
+msgstr ""
+
+msgid "{0}. Why we process it"
+msgstr ""
+
+msgid "{0}. Your account and your data"
+msgstr ""
+
+msgid "{0}. Your rights"
+msgstr ""
+
+msgid "← My tasks"
 msgstr ""
 
 msgid "⏱️ Delayed Recovered"

@@ -268,6 +268,23 @@ PHOTOMIGRATOR_WEB_ACCOUNT_REQUESTS=true
 - `PHOTOMIGRATOR_WEB_PUBLIC_URL`: address used in the links of the emails. If it is empty, links use the address the browser used to open the Web Interface.
 - `PHOTOMIGRATOR_WEB_ACCOUNT_REQUESTS`: shows **Request an account** on the login page (default `true`; set `false` to hide it). Requested accounts stay inactive until an admin activates them.
 
+### Optional cloud service (tasks run on the server for remote users)
+The cloud service is off by default. Turn it on and configure it in `Administration Panel > Cloud service`, or with these variables:
+
+```env
+PHOTOMIGRATOR_SERVICE_ENABLED=true
+PHOTOMIGRATOR_SERVICE_WORK_DIR=/app/data/.service-work
+PHOTOMIGRATOR_STRIPE_SECRET_KEY=
+PHOTOMIGRATOR_STRIPE_WEBHOOK_SECRET=
+PHOTOMIGRATOR_DROPBOX_APP_KEY=
+PHOTOMIGRATOR_DROPBOX_APP_SECRET=
+PHOTOMIGRATOR_ONEDRIVE_CLIENT_ID=
+PHOTOMIGRATOR_ONEDRIVE_CLIENT_SECRET=
+```
+
+- Without Stripe keys every task is free. The task folders are created inside `PHOTOMIGRATOR_SERVICE_WORK_DIR` and deleted when each task ends; the volume needs free space for the largest task you accept (10 TB per task by default).
+- Step-by-step setup of Stripe, Dropbox and OneDrive: [Cloud service](../13-cloud-service.md).
+
 ### Backups of the Web Interface database
 
 The **Backups** section of the Administration Panel backs up the web database (users, settings, saved credentials and email settings), restores a backup, and schedules recurring backups. Optional defaults in `.env`:

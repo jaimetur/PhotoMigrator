@@ -9,6 +9,9 @@ msgstr ""
 msgid "'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "'move' i 'remove' modifiquen fitxers; comença amb 'list' si vols revisar abans."
 
+msgid "(\"we\"). You can contact us at"
+msgstr "(«nosaltres»). Pots contactar amb nosaltres a"
+
 msgid "(Makes your output portable but requires more HDD space)."
 msgstr "(Fa que la sortida sigui portable, però requereix més espai de disc)."
 
@@ -38,6 +41,12 @@ msgstr "+ Afegeix"
 
 msgid "+ Add row"
 msgstr "+ Afegeix una fila"
+
+msgid ". PhotoMigrator itself is free, open-source software that you can also run on your own computer at no cost."
+msgstr ". PhotoMigrator en si és programari lliure i de codi obert que també pots executar al teu propi ordinador sense cap cost."
+
+msgid ". You can also complain to the Spanish Data Protection Agency (aepd.es) or to the authority of your country."
+msgstr ". També pots presentar una reclamació davant l'Agència Espanyola de Protecció de Dades (aepd.es) o davant l'autoritat del teu país."
 
 msgid "/app/data subpath"
 msgstr "Subruta de /app/data"
@@ -93,17 +102,29 @@ msgstr "<b>{0}</b> ({1}) ha sol·licitat un compte de PhotoMigrator."
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr "<b>{0}</b> ({1}) ha sol·licitat un compte de PhotoMigrator.<br>Missatge: <i>{2}</i>"
 
+msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
+msgstr "Es xifra una còpia només per a aquesta tasca i s'elimina quan acaba. El teu compte desat no es modifica."
+
 msgid "A job${lastMeta ?"
 msgstr "A job${lastMeta ?"
 
 msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
 msgstr "Es crearà un àlbum nou per cada subcarpeta trobada a la subcarpeta 'Albums'."
 
+msgid "A processed Takeout can be downloaded for {0} days, in ZIP parts of up to {1} GB. After that it is deleted."
+msgstr "Un Takeout processat es pot baixar durant {0} dies, en parts ZIP de fins a {1} GB. Després s'elimina."
+
 msgid "A whole folder, albums included"
 msgstr "Una carpeta sencera, àlbums inclosos"
 
 msgid "ALL_PHOTOS Folder Name"
 msgstr "Nom de la carpeta ALL_PHOTOS"
+
+msgid "API key"
+msgstr "Clau API"
+
+msgid "API key (optional)"
+msgstr "Clau API (opcional)"
 
 msgid "API key admin"
 msgstr "API key d'administrador"
@@ -180,6 +201,15 @@ msgstr "Quant a iCloud Takeout"
 msgid "About {0}"
 msgstr "Quant a {0}"
 
+msgid "About {0} days"
+msgstr "Uns {0} dies"
+
+msgid "About {0} hours"
+msgstr "Unes {0} hores"
+
+msgid "Accept the terms of service and the privacy policy to continue."
+msgstr "Accepta els termes del servei i la política de privadesa per continuar."
+
 msgid "Access Logs"
 msgstr "Registres d'accés"
 
@@ -210,6 +240,9 @@ msgstr "ID del compte"
 msgid "Account name"
 msgstr "Nom del compte"
 
+msgid "Account of Settings > Service credentials"
+msgstr "Compte de Configuració > Credencials del servei"
+
 msgid "Account request"
 msgstr "Sol·licitud de compte"
 
@@ -230,6 +263,12 @@ msgstr "Compte {0}: la teva contrasenya d'Immich Photos (obligatòria si no s'in
 
 msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
 msgstr "Compte {0}: el teu nom d'usuari d'Immich Photos (obligatori si no s'indica una API_KEY)"
+
+msgid "Account:"
+msgstr "Compte:"
+
+msgid "Account: until you ask us to delete it."
+msgstr "Compte: fins que ens demanis eliminar-lo."
 
 msgid "Accounts"
 msgstr "Comptes"
@@ -258,6 +297,9 @@ msgstr "Activitat"
 msgid "Activity · PhotoMigrator"
 msgstr "Activitat · PhotoMigrator"
 
+msgid "Add Takeout files"
+msgstr "Afegeix fitxers de Takeout"
+
 msgid "Add row"
 msgstr "Afegeix una fila"
 
@@ -266,6 +308,12 @@ msgstr "Afegiu l'URL i les credencials de cada compte a"
 
 msgid "Add them in Settings"
 msgstr "Afegiu-los a Configuració"
+
+msgid "Add your Takeout files"
+msgstr "Afegeix els teus fitxers de Takeout"
+
+msgid "Added to the queue."
+msgstr "Afegida a la cua."
 
 msgid "Admin"
 msgstr "Admin"
@@ -366,6 +414,9 @@ msgstr "Estructura de la carpeta de totes les fotos"
 msgid "All roles"
 msgstr "Tots els rols"
 
+msgid "All states"
+msgstr "Tots els estats"
+
 msgid "All users"
 msgstr "Tots els usuaris"
 
@@ -389,6 +440,9 @@ msgstr "S'envia un correu electrònic amb el nom d'usuari i la contrasenya al no
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
 msgstr "Qualsevol valor desat aquí es conserva a la base de dades, però s'ignora mentre aquesta substitució continuï definida."
+
+msgid "App password"
+msgstr "Contrasenya d'aplicació"
 
 msgid "App settings"
 msgstr "Configuració de l'aplicació"
@@ -531,6 +585,9 @@ msgstr "Programador de còpies de seguretat"
 msgid "Before a restore"
 msgstr "Abans d'una restauració"
 
+msgid "Before a task starts we measure your data and test your destination, and we send you a quote with the price, the estimated start and the estimated duration. The price is 5.00 € minimum, then 0.05 € per GB of data to process, VAT included. A quote is valid for 7 days. Estimates of start and duration are not guaranteed."
+msgstr "Abans que s'iniciï una tasca mesurem les teves dades i provem el teu destí, i t'enviem un pressupost amb el preu, l'inici estimat i la durada estimada. El preu és de 5,00 € com a mínim, més 0,05 € per GB de dades a processar, IVA inclòs. El pressupost és vàlid durant 7 dies. Les estimacions d'inici i durada no estan garantides."
+
 msgid "Blue palette"
 msgstr "Paleta blava"
 
@@ -555,11 +612,32 @@ msgstr "PRECAUCIÓ: NO RECOMANAT (nucli del procés de Google Takeout). Utilitza
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "El punt final CSV no està disponible al backend. Reinicieu o actualitzeu el backend web."
 
+msgid "Calculate VAT with Stripe Tax (prices include VAT)"
+msgstr "Calcula l'IVA amb Stripe Tax (els preus inclouen l'IVA)"
+
 msgid "Can sign in right away"
 msgstr "Pot iniciar sessió immediatament"
 
 msgid "Cancel"
 msgstr "Cancel·la"
+
+msgid "Cancel and delete"
+msgstr "Cancel·la i elimina"
+
+msgid "Cancel refunds tasks that have not started. A running task can be canceled with or without a refund."
+msgstr "En cancel·lar es reemborsen les tasques que no han començat. Una tasca en execució es pot cancel·lar amb reemborsament o sense."
+
+msgid "Cancel task"
+msgstr "Cancel·la la tasca"
+
+msgid "Cancel the task of {0} and delete its data? This cannot be undone."
+msgstr "Vols cancel·lar la tasca de {0} i eliminar-ne les dades? Aquesta acció no es pot desfer."
+
+msgid "Cancel this task and delete its data? You get the full amount back."
+msgstr "Vols cancel·lar aquesta tasca i eliminar-ne les dades? Se't reemborsa l'import complet."
+
+msgid "Canceled"
+msgstr "Cancel·lada"
 
 msgid "Cannot change role of the last active admin."
 msgstr "No es pot canviar el rol de l'últim administrador actiu."
@@ -609,11 +687,29 @@ msgstr "Els canvis s'apliquen i es desen automàticament."
 msgid "Changes your library"
 msgstr "Modifica la vostra biblioteca"
 
+msgid "Check again"
+msgstr "Torna a comprovar"
+
+msgid "Check and get a quote"
+msgstr "Comprova i obtén un pressupost"
+
+msgid "Check the accounts"
+msgstr "Revisa els comptes"
+
 msgid "Check the command preview, press Run and watch it live in"
 msgstr "Reviseu la previsualització de l'ordre, premeu Executa i seguiu-la en directe a"
 
 msgid "Check the command, press Run and watch it live in"
 msgstr "Revisa l'ordre, prem Run i segueix-la en directe a"
+
+msgid "Checking"
+msgstr "Comprovant"
+
+msgid "Checking your task"
+msgstr "Comprovant la teva tasca"
+
+msgid "Checking..."
+msgstr "Comprovant..."
 
 msgid "Choose a subfolder inside one of your assigned roots."
 msgstr "Trieu una subcarpeta dins d'una de les vostres arrels assignades."
@@ -627,14 +723,26 @@ msgstr "Trieu una eina"
 msgid "Choose an action"
 msgstr "Trieu una acció"
 
+msgid "Choose the folder with your Takeout"
+msgstr "Tria la carpeta amb el teu Takeout"
+
 msgid "Choose the retained asset for '--remove-duplicates-assets'."
 msgstr "Trieu el recurs que es conserva per a '--remove-duplicates-assets'."
 
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr "Trieu el recurs que es conserva per a '--remove-duplicates-assets'. Les estratègies more-people/tags conserven el recurs amb més persones diferents, després etiquetes, i després apliquen el seu criteri de desempat. 'better-quality' utilitza el suggeriment natiu d'Immich; 'oldest' i 'newest' utilitzen la data de pujada (per defecte: more-people/tags-then-better-quality per a l'algorisme natiu de duplicats d'Immich o more-people/tags-then-oldest per a l'algorisme de duplicats de PhotoMigrator)."
 
+msgid "Choose your Takeout folder"
+msgstr "Tria la teva carpeta de Takeout"
+
+msgid "Chosen folder: {0}"
+msgstr "Carpeta triada: {0}"
+
 msgid "City"
 msgstr "Ciutat"
+
+msgid "Clean my Takeout and upload it to my photo service."
+msgstr "Neteja el meu Takeout i puja'l al meu servei de fotos."
 
 msgid "Clean up"
 msgstr "Neteja"
@@ -663,6 +771,18 @@ msgstr "Tanca sense afegir"
 msgid "Close without creating"
 msgstr "Tanca sense crear"
 
+msgid "Cloud service"
+msgstr "Servei al núvol"
+
+msgid "Cloud service terms"
+msgstr "Termes del servei al núvol"
+
+msgid "Cloud service · PhotoMigrator"
+msgstr "Servei al núvol · PhotoMigrator"
+
+msgid "Cloud → cloud"
+msgstr "Núvol → núvol"
+
 msgid "Collapse panel"
 msgstr "Replega el tauler"
 
@@ -680,6 +800,9 @@ msgstr "Ordre"
 
 msgid "Command copied"
 msgstr "Ordre copiada"
+
+msgid "Completed"
+msgstr "Completada"
 
 msgid "Config status: auto-save failed ({0})"
 msgstr "Estat de la configuració: ha fallat el desat automàtic ({0})"
@@ -771,8 +894,17 @@ msgstr "Confirmacions i eines externes utilitzades durant una execució."
 msgid "Connect your services"
 msgstr "Connecteu els vostres serveis"
 
+msgid "Connect {0}"
+msgstr "Connecta {0}"
+
+msgid "Connect {0} with read-only access and choose the folder where Takeout saved the files."
+msgstr "Connecta {0} amb accés de només lectura i tria la carpeta on Takeout ha desat els fitxers."
+
 msgid "Connection security"
 msgstr "Seguretat de la connexió"
+
+msgid "Connections use HTTPS, and the servers are in the European Union."
+msgstr "Les connexions utilitzen HTTPS i els servidors són a la Unió Europea."
 
 msgid "Consolidate Albums Names"
 msgstr "Consolida els noms dels àlbums"
@@ -783,6 +915,21 @@ msgstr "Consolida àlbums similars"
 msgid "Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets."
 msgstr "Consolida les famílies de noms d'àlbum equivalents ja existents al núvol directament al servei de destinació, sense pujar recursos nous."
 
+msgid "Contact email"
+msgstr "Correu electrònic de contacte"
+
+msgid "Continue"
+msgstr "Continua"
+
+msgid "Continue upload"
+msgstr "Continua la pujada"
+
+msgid "Copied"
+msgstr "Copiat"
+
+msgid "Copy"
+msgstr "Copia"
+
 msgid "Copy album files instead of symlinks"
 msgstr "Copia els fitxers dels àlbums en lloc d'enllaços simbòlics"
 
@@ -791,6 +938,9 @@ msgstr "Copia l'ordre"
 
 msgid "Copy failed"
 msgstr "Ha fallat la còpia"
+
+msgid "Copy link"
+msgstr "Copia l'enllaç"
 
 msgid "Copy log"
 msgstr "Copia el registre"
@@ -825,6 +975,9 @@ msgstr "Crea una còpia processada (o un clon mogut) de <INPUT_FOLDER> i n'organ
 msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date. By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided. Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy. Example: --organize-local-folder-by-date ./UnsortedLibrary"
 msgstr "Crea una còpia processada (o un clon mogut) de <INPUT_FOLDER> i n'organitza els fitxers per data. Per defecte, la sortida utilitza l'estructura 'year/month' i es desa a '<INPUT_FOLDER>_processed_<TIMESTAMP>' tret que s'indiqui '-o/--output-folder'. Useu '--organize-folder-structure' per canviar la disposició, '--organize-output-folder-suffix' per canviar el sufix generat quan no s'indica cap carpeta de sortida explícita, i '--move-original-files' per moure en lloc de copiar. Exemple: --organize-local-folder-by-date ./UnsortedLibrary"
 
+msgid "Create a task to migrate a Takeout to your photo service, fix a Takeout or move a library between services."
+msgstr "Crea una tasca per migrar un Takeout al teu servei de fotos, arreglar un Takeout o moure una biblioteca entre serveis."
+
 msgid "Create failed: {0}"
 msgstr "Ha fallat la creació: {0}"
 
@@ -836,6 +989,9 @@ msgstr "Crea el refresh token de Google Photos de '--account-id' (per defecte 1)
 
 msgid "Create user"
 msgstr "Crea l'usuari"
+
+msgid "Created"
+msgstr "Creada"
 
 msgid "Created From"
 msgstr "Creat des de"
@@ -851,6 +1007,12 @@ msgstr "Creant…"
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
 msgstr "Les credencials i la configuració dels serveis es desen per usuari a la base de dades web. Els valors sensibles es mantenen xifrats i s'utilitzen en totes les funcions."
+
+msgid "Credentials are encrypted with a key that exists only for that task, and both are destroyed when it ends."
+msgstr "Les credencials es xifren amb una clau que només existeix per a aquesta tasca, i ambdues es destrueixen quan acaba."
+
+msgid "Credentials encrypted with a key for this task only"
+msgstr "Credencials xifrades amb una clau només per a aquesta tasca"
 
 msgid "Credentials for account {0} found in Settings"
 msgstr "Credencials del compte {0} trobades a Configuració"
@@ -894,8 +1056,29 @@ msgstr "Paleta fosca de la interfície"
 msgid "Dashboard"
 msgstr "Tauler"
 
+msgid "Data and credentials deleted from our server on {0}."
+msgstr "Dades i credencials eliminades del nostre servidor el {0}."
+
+msgid "Data and credentials deleted from our server."
+msgstr "Dades i credencials eliminades del nostre servidor."
+
+msgid "Data and credentials deleted on {0}"
+msgstr "Dades i credencials eliminades el {0}"
+
+msgid "Data and credentials deleted when it ends"
+msgstr "Dades i credencials eliminades en acabar"
+
+msgid "Data deleted on {0}"
+msgstr "Dades eliminades el {0}"
+
 msgid "Data folder"
 msgstr "Carpeta de dades"
+
+msgid "Data measured: {0}"
+msgstr "Dades mesurades: {0}"
+
+msgid "Data to move"
+msgstr "Dades a moure"
 
 msgid "Database"
 msgstr "Base de dades"
@@ -978,6 +1161,9 @@ msgstr "Elimina la fila de la base de dades"
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr "El punt final d'eliminació no està disponible. Reinicieu el backend de la interfície web i torneu-ho a provar."
 
+msgid "Delete now"
+msgstr "Elimina ara"
+
 msgid "Delete row"
 msgstr "Elimina la fila"
 
@@ -990,6 +1176,9 @@ msgstr "Vols eliminar la còpia de seguretat {0}? Aquesta acció no es pot desfe
 msgid "Delete the {0} selected users? This action cannot be undone."
 msgstr "Vols eliminar els {0} usuaris seleccionats? Aquesta acció no es pot desfer."
 
+msgid "Delete this task and its data?"
+msgstr "Vols eliminar aquesta tasca i les seves dades?"
+
 msgid "Delete user"
 msgstr "Elimina l'usuari"
 
@@ -998,6 +1187,12 @@ msgstr "Vols eliminar l'usuari {0}? Aquesta acció no es pot desfer."
 
 msgid "Delete {0}"
 msgstr "Elimina {0}"
+
+msgid "Deleted on"
+msgstr "Eliminada el"
+
+msgid "Deleted on {0}"
+msgstr "Eliminada el {0}"
 
 msgid "Demo"
 msgstr "Demostració"
@@ -1011,11 +1206,20 @@ msgstr "Rol de demostració restringit"
 msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
 msgstr "El rol de demostració no pot fer aquesta acció de configuració directament. Introduïu el nom d'usuari i la contrasenya d'un administrador actiu."
 
+msgid "Destination"
+msgstr "Destí"
+
 msgid "Destination Required"
 msgstr "Cal una destinació"
 
+msgid "Destination checked: it can receive uploads."
+msgstr "Destí comprovat: pot rebre pujades."
+
 msgid "Destination folder"
 msgstr "Carpeta de destinació"
+
+msgid "Destination service"
+msgstr "Servei de destí"
 
 msgid "Details"
 msgstr "Detalls"
@@ -1047,14 +1251,35 @@ msgstr "Descarrega tots els àlbums i tots els recursos que no són en cap àlbu
 msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened). - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure. Example: --download-all ./MyLibrary"
 msgstr "Descarrega tots els àlbums i tots els recursos que no són en cap àlbum a <OUTPUT_FOLDER>. - Els àlbums es descarreguen a <OUTPUT_FOLDER>/Albums/<AlbumName> (sense subcarpetes). - Els recursos que no són en cap àlbum van a <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ amb estructura year/month. Exemple: --download-all ./MyLibrary"
 
+msgid "Download days"
+msgstr "Dies de baixada"
+
+msgid "Download ready."
+msgstr "Baixada llesta."
+
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
 msgstr "Descarrega àlbums concrets a <OUTPUT_FOLDER> (obligatori: -o/--output-folder)."
 
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder). - Use 'ALL' to download ALL albums. - Use patterns: e.g. --download-albums 'dron*' - Multiple albums can be separated by comma or space and quoted. Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
 msgstr "Descarrega àlbums concrets a <OUTPUT_FOLDER> (obligatori: -o/--output-folder). - Useu 'ALL' per descarregar TOTS els àlbums. - Useu patrons: p. ex. --download-albums 'dron*' - Es poden indicar diversos àlbums separats per coma o espai i entre cometes. Exemple: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
 
+msgid "Download speed (Mbps)"
+msgstr "Velocitat de baixada (Mbps)"
+
 msgid "Drag from bottom edge or bottom corners to resize the log panel"
 msgstr "Arrossegueu des de la vora inferior o les cantonades inferiors per canviar la mida del tauler de registre"
+
+msgid "Drop your Takeout ZIP files here"
+msgstr "Deixa anar aquí els teus fitxers ZIP de Takeout"
+
+msgid "Dropbox App key"
+msgstr "App key de Dropbox"
+
+msgid "Dropbox App secret"
+msgstr "App secret de Dropbox"
+
+msgid "Dropbox redirect URI"
+msgstr "URI de redirecció de Dropbox"
 
 msgid "Dup asset keeper"
 msgstr "Conservació de recursos duplicats"
@@ -1086,6 +1311,9 @@ msgstr "CSV de duplicats"
 msgid "Duplicates, folders"
 msgstr "Duplicats, carpetes"
 
+msgid "Duration"
+msgstr "Durada"
+
 msgid "Duration: <b>{0}</b>. Last lines of the log:"
 msgstr "Durada: <b>{0}</b>. Darreres línies del registre:"
 
@@ -1094,6 +1322,12 @@ msgstr "Durant la pujada, tracta els noms d'àlbum existents equivalents com una
 
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
 msgstr "Durant la pujada, tracta els noms d'àlbum existents equivalents com una sola família i en fusiona els recursos a l'àlbum canònic que es conserva. Els àlbums redundants només s'eliminen quan el servei admet l'eliminació d'àlbums."
+
+msgid "Each task can use up to 10.0 TB of working space on our server, enough for a Takeout of about a third of that size. Tasks run in order of payment."
+msgstr "Cada tasca pot utilitzar fins a 10,0 TB d'espai de treball al nostre servidor, prou per a un Takeout d'aproximadament un terç d'aquesta mida. Les tasques s'executen per ordre de pagament."
+
+msgid "Each task runs in its own isolated folder that no other user can reach."
+msgstr "Cada tasca s'executa a la seva pròpia carpeta aïllada, a la qual cap altre usuari no pot accedir."
 
 msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
 msgstr "Edita un valor i prem ✓ per desar aquesta fila. Les claus estan protegides. {0} files per pàgina."
@@ -1112,6 +1346,9 @@ msgstr "Correu electrònic"
 
 msgid "Email (SMTP)"
 msgstr "Correu electrònic (SMTP)"
+
+msgid "Email (optional)"
+msgstr "Correu electrònic (opcional)"
 
 msgid "Email check"
 msgstr "Comprovació del correu electrònic"
@@ -1191,6 +1428,12 @@ msgstr "Activat"
 msgid "Enabled by default; use '--no-preview-album-actions' to disable it."
 msgstr "Activat per defecte; utilitza '--no-preview-album-actions' per desactivar-lo."
 
+msgid "Enabled · free"
+msgstr "Activat · gratuït"
+
+msgid "Enabled · paid"
+msgstr "Activat · de pagament"
+
 msgid "Encryption"
 msgstr "Xifratge"
 
@@ -1199,6 +1442,9 @@ msgstr "Fi"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "Introduïu un nom de carpeta o una ruta absoluta dins de"
+
+msgid "Enter them for this task only"
+msgstr "Introdueix-les només per a aquesta tasca"
 
 msgid "Env override"
 msgstr "Substitució per variable d'entorn"
@@ -1211,6 +1457,12 @@ msgstr "Error: {0}"
 
 msgid "Estimated End"
 msgstr "Final estimat"
+
+msgid "Estimated start"
+msgstr "Inici estimat"
+
+msgid "Estimated start: {0}. Estimated duration: {1}."
+msgstr "Inici estimat: {0}. Durada estimada: {1}."
 
 msgid "Event"
 msgstr "Esdeveniment"
@@ -1392,6 +1644,9 @@ msgstr "Desplega el tauler"
 msgid "Expand/collapse section"
 msgstr "Desplega o replega la secció"
 
+msgid "Expired"
+msgstr "Caducada"
+
 msgid "Export Config"
 msgstr "Exporta la configuració"
 
@@ -1410,11 +1665,17 @@ msgstr "ZIP extrets: {0} ({1} fitxers) |"
 msgid "Extracted ZIPs: {0}\\n"
 msgstr "ZIP extrets: {0}\\n"
 
+msgid "Failed"
+msgstr "Fallida"
+
 msgid "Failed sign in"
 msgstr "Inici de sessió fallit"
 
 msgid "Failed: {0}"
 msgstr "Ha fallat: {0}"
+
+msgid "Files and credentials deleted when it ends"
+msgstr "Fitxers i credencials eliminats en acabar"
 
 msgid "Fill at least one value."
 msgstr "Omple almenys un valor."
@@ -1470,6 +1731,9 @@ msgstr "Cercar duplicats"
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr "Cerca duplicats en una o més carpetes mitjançant la mida del fitxer i comprovacions de contingut."
 
+msgid "Finished"
+msgstr "Finalitzada"
+
 msgid "First page"
 msgstr "Primera pàgina"
 
@@ -1491,8 +1755,14 @@ msgstr "Repareu una exportació de Google o Apple"
 msgid "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."
 msgstr "Repara les dates i metadades d'una exportació de Google Photos Takeout i reconstrueix-ne els àlbums en una biblioteca neta."
 
+msgid "Fix my Takeout"
+msgstr "Arregla el meu Takeout"
+
 msgid "Fix symlinks · Rename folders · Organize by date · Duplicates"
 msgstr "Repara enllaços simbòlics · Canvia el nom de carpetes · Organitza per data · Duplicats"
+
+msgid "Fix the problem shown above and check again, or delete the task and create it again with other credentials."
+msgstr "Corregeix el problema indicat a dalt i torna a comprovar-ho, o elimina la tasca i crea-la de nou amb altres credencials."
 
 msgid "Folder"
 msgstr "Carpeta"
@@ -1536,8 +1806,14 @@ msgstr "Carpetes de {0} canviades"
 msgid "Folders to scan"
 msgstr "Carpetes que s'han d'analitzar"
 
+msgid "Follow it"
+msgstr "Segueix-la"
+
 msgid "Follow its live progress and log in Activity."
 msgstr "Segueix-ne el progrés i el registre en directe a Activitat."
+
+msgid "Follow the live dashboard and the log in Activity. A task that has started is not refunded if you stop it."
+msgstr "Segueix el tauler en directe i el registre a Activitat. Una tasca que ja ha començat no es reemborsa si l'atures."
 
 msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: 3). Only used when '--try-small-albums-grouping' is enabled."
 msgstr "Per a Consolidar noms d'àlbums, defineix el nombre màxim d'elements perquè un àlbum es consideri petit (per defecte: 3). Només s'utilitza si '--try-small-albums-grouping' està activat."
@@ -1599,14 +1875,23 @@ msgstr "Força el canvi de contrasenya"
 msgid "Force password change on first login"
 msgstr "Força el canvi de contrasenya en el primer inici de sessió"
 
+msgid "Free"
+msgstr "Gratuït"
+
 msgid "Free disk space"
 msgstr "Espai lliure al disc"
+
+msgid "Free for your account"
+msgstr "Gratuït per al teu compte"
 
 msgid "Friday"
 msgstr "Divendres"
 
 msgid "From"
 msgstr "Remitent"
+
+msgid "Full refund if a task fails"
+msgstr "Reemborsament complet si una tasca falla"
 
 msgid "GPTH messages"
 msgstr "Missatges de GPTH"
@@ -1671,6 +1956,12 @@ msgstr "Google Takeout"
 msgid "Google Takeout · PhotoMigrator"
 msgstr "Google Takeout · PhotoMigrator"
 
+msgid "Google Takeout → Download"
+msgstr "Google Takeout → Baixada"
+
+msgid "Google Takeout → Immich Photos"
+msgstr "Google Takeout → Immich Photos"
+
 msgid "Green palette"
 msgstr "Paleta verda"
 
@@ -1689,6 +1980,9 @@ msgstr "Hola, {0},"
 msgid "Hide password"
 msgstr "Amaga la contrasenya"
 
+msgid "History"
+msgstr "Historial"
+
 msgid "Home"
 msgstr "Inici"
 
@@ -1703,6 +1997,12 @@ msgstr "Cada hora"
 
 msgid "How to migrate"
 msgstr "Com migrar"
+
+msgid "How we protect your data"
+msgstr "Com protegim les teves dades"
+
+msgid "I accept the"
+msgstr "Accepto els"
 
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "Han d'existir a Config.ini les entrades IMMICH_USERNAME_2/IMMICH_PASSWORD_2 o IMMICH_API_KEY_USER_2."
@@ -1739,6 +2039,12 @@ msgstr "Si"
 
 msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
 msgstr "Si també s'indica '-AlbFolder, --albums-folders <ALBUMS_FOLDER>', també es crearan àlbums per a aquestes carpetes."
+
+msgid "If a task fails, we refund the full amount automatically. If you cancel a task before it starts, we refund the full amount. Once a task has started, it can be stopped but it is not refunded. Refunds reach your card in {0} to {1} days."
+msgstr "Si una tasca falla, reemborsem l'import complet automàticament. Si cancel·les una tasca abans que comenci, reemborsem l'import complet. Quan una tasca ja ha començat, es pot aturar però no es reemborsa. Els reemborsaments arriben a la teva targeta entre {0} i {1} dies."
+
+msgid "If a task fails, you get the full amount back. If you cancel before it starts, too."
+msgstr "Si una tasca falla, se't reemborsa l'import complet. Si cancel·les abans que comenci, també."
 
 msgid "If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input."
 msgstr "Si s'hi troba algun fitxer ZIP, els ZIP s'extrauran primer a '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>' i aquesta carpeta s'utilitzarà com a entrada."
@@ -1803,8 +2109,23 @@ msgstr "Importa a Immich les etiquetes de persones de Google Takeout quan hi ha 
 msgid "Import Google Takeout person labels into Immich when a Takeout people map is available. Only applies to an Immich destination or Immich Upload All/Upload Albums. (default: True)."
 msgstr "Importa a Immich les etiquetes de persones de Google Takeout quan hi ha un mapa de persones de Takeout disponible. Només s'aplica a una destinació Immich o a Puja-ho tot/Puja àlbums d'Immich. (per defecte: True)."
 
+msgid "Import from Dropbox"
+msgstr "Importa des de Dropbox"
+
+msgid "Import from OneDrive"
+msgstr "Importa des d'OneDrive"
+
 msgid "Import people"
 msgstr "Importa persones"
+
+msgid "Imports · Dropbox and OneDrive"
+msgstr "Importacions · Dropbox i OneDrive"
+
+msgid "In short"
+msgstr "En resum"
+
+msgid "In the queue"
+msgstr "A la cua"
 
 msgid "Inactive"
 msgstr "Inactiu"
@@ -1893,6 +2214,9 @@ msgstr "Últims {0} dies"
 msgid "Last {0} hours"
 msgstr "Últimes {0} hores"
 
+msgid "Legal"
+msgstr "Legal"
+
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr "Lletres, números, punts, guions o guions baixos"
 
@@ -1907,6 +2231,9 @@ msgstr "Només llista, mou els duplicats a una carpeta o elimina'ls."
 
 msgid "List, move or remove duplicates"
 msgstr "Llista, mou o elimina duplicats"
+
+msgid "Live mode"
+msgstr "Mode real"
 
 msgid "Load Table"
 msgstr "Carrega la taula"
@@ -1980,6 +2307,12 @@ msgstr "Missatge: {0}"
 msgid "Migrate"
 msgstr "Migra"
 
+msgid "Migrations and Takeout processing that remote users run on this server, with Stripe payments. Administrators never see the files or credentials of a task."
+msgstr "Migracions i processament de Takeout que els usuaris remots executen en aquest servidor, amb pagaments mitjançant Stripe. Els administradors mai no veuen els fitxers ni les credencials d'una tasca."
+
+msgid "Minimum price (€)"
+msgstr "Preu mínim (€)"
+
 msgid "Missing Required Arguments"
 msgstr "Falten arguments obligatoris"
 
@@ -2007,6 +2340,9 @@ msgstr "Mou una biblioteca sencera d'un cop"
 msgid "Move mode is on"
 msgstr "El mode de moviment està activat"
 
+msgid "Move my library from one service to another."
+msgstr "Mou la meva biblioteca d'un servei a un altre."
+
 msgid "Move the original folder into the processed output instead of copying it first."
 msgstr "Mou la carpeta original a la sortida processada en lloc de copiar-la primer."
 
@@ -2024,6 +2360,9 @@ msgstr "Es poden indicar diversos àlbums separats per coma o espai i entre come
 
 msgid "Must change password"
 msgstr "Ha de canviar la contrasenya"
+
+msgid "My tasks"
+msgstr "Les meves tasques"
 
 msgid "Names of the folders that PhotoMigrator creates."
 msgstr "Noms de les carpetes que crea PhotoMigrator."
@@ -2052,6 +2391,9 @@ msgstr "Contrasenya nova"
 msgid "New password for {0}"
 msgstr "Nova contrasenya de {0}"
 
+msgid "New task"
+msgstr "Tasca nova"
+
 msgid "New user"
 msgstr "Nou usuari"
 
@@ -2072,6 +2414,9 @@ msgstr "NextCloud Photos · PhotoMigrator"
 
 msgid "No"
 msgstr "No"
+
+msgid "No Takeout files here"
+msgstr "Aquí no hi ha fitxers de Takeout"
 
 msgid "No additional help for this field."
 msgstr "No hi ha cap ajuda addicional per a aquest camp."
@@ -2103,6 +2448,18 @@ msgstr "Cap tasca en execució"
 msgid "No log file"
 msgstr "Sense fitxer de registre"
 
+msgid "No other user and no person on our side looks at your photos."
+msgstr "Cap altre usuari ni cap persona del nostre equip mira les teves fotos."
+
+msgid "No other user or person can see them"
+msgstr "Cap altre usuari ni persona no les pot veure"
+
+msgid "No tasks yet"
+msgstr "Encara no hi ha tasques"
+
+msgid "No tasks yet."
+msgstr "Encara no hi ha tasques."
+
 msgid "No users match the current filters."
 msgstr "Cap usuari coincideix amb els filtres actuals."
 
@@ -2127,6 +2484,12 @@ msgstr "Sense definir"
 msgid "Notice"
 msgstr "Avís"
 
+msgid "Number"
+msgstr "Número"
+
+msgid "Number {0} in the queue · starts about {1}"
+msgstr "Número {0} a la cua · comença cap a {1}"
+
 msgid "OAuth Client ID for Google Photos account {0}"
 msgstr "ID de client OAuth del compte {0} de Google Photos"
 
@@ -2135,6 +2498,12 @@ msgstr "Secret de client OAuth del compte {0} de Google Photos"
 
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Testimoni d'actualització OAuth del compte {0} de Google Photos"
+
+msgid "OAuth client ID"
+msgstr "ID de client OAuth"
+
+msgid "OAuth client secret"
+msgstr "Secret de client OAuth"
 
 msgid "Ocean"
 msgstr "Oceà"
@@ -2169,6 +2538,15 @@ msgstr "Contrasenya d'un sol ús"
 msgid "One value per line or comma-separated"
 msgstr "Un valor per línia o separats per comes"
 
+msgid "OneDrive Client ID"
+msgstr "Client ID d'OneDrive"
+
+msgid "OneDrive Client secret"
+msgstr "Client secret d'OneDrive"
+
+msgid "OneDrive redirect URI"
+msgstr "URI de redirecció d'OneDrive"
+
 msgid "Online now"
 msgstr "En línia ara"
 
@@ -2180,6 +2558,12 @@ msgstr "Només els elements presos entre aquestes dates. Deixa un costat buit pe
 
 msgid "Only assets taken in this country or city, or where this person appears."
 msgstr "Només els elements presos en aquest país o ciutat, o on apareix aquesta persona."
+
+msgid "Only to provide the service you request: to quote, run and deliver your tasks, to send you emails about them and to keep the accounting records the law requires. The legal basis is the contract you accept when you create a task, and our legal obligations for payment records."
+msgstr "Només per prestar el servei que sol·licites: pressupostar, executar i lliurar les teves tasques, enviar-te correus electrònics sobre elles i conservar els registres comptables que exigeix la llei. La base jurídica és el contracte que acceptes en crear una tasca i les nostres obligacions legals en matèria de registres de pagaments."
+
+msgid "Open"
+msgstr "Obre"
 
 msgid "Open Activity"
 msgstr "Obre Activitat"
@@ -2208,8 +2592,14 @@ msgstr "Obre el full de ruta"
 msgid "Open folder selector"
 msgstr "Obre el selector de carpetes"
 
+msgid "Open in Activity"
+msgstr "Obre a Activitat"
+
 msgid "Open menu"
 msgstr "Obre el menú"
+
+msgid "Operator name"
+msgstr "Nom de l'operador"
 
 msgid "Optional"
 msgstr "Opcional"
@@ -2322,6 +2712,9 @@ msgstr "Voleu sobreescriure la configuració?"
 msgid "Page {0} of {1}"
 msgstr "Pàgina {0} de {1}"
 
+msgid "Paid"
+msgstr "Pagada"
+
 msgid "Parallel Migration"
 msgstr "Migració en paral·lel"
 
@@ -2331,6 +2724,9 @@ msgstr "Contrasenya"
 msgid "Password (at least {0} characters)"
 msgstr "Contrasenya (almenys {0} caràcters)"
 
+msgid "Password (optional)"
+msgstr "Contrasenya (opcional)"
+
 msgid "Password of {0} changed"
 msgstr "Contrasenya de {0} canviada"
 
@@ -2339,6 +2735,39 @@ msgstr "Restabliment de contrasenya"
 
 msgid "Pattern and replacement"
 msgstr "Patró i reemplaçament"
+
+msgid "Pay"
+msgstr "Paga"
+
+msgid "Pay <b>{0}</b> to download it. You have {1} days; after that the result is deleted."
+msgstr "Paga <b>{0}</b> per baixar-lo. Tens {1} dies; després el resultat s'elimina."
+
+msgid "Pay and download"
+msgstr "Paga i baixa"
+
+msgid "Pay {0} and start"
+msgstr "Paga {0} i inicia"
+
+msgid "Payment page opened."
+msgstr "Pàgina de pagament oberta."
+
+msgid "Payment received"
+msgstr "Pagament rebut"
+
+msgid "Payment received."
+msgstr "Pagament rebut."
+
+msgid "Payment refunded."
+msgstr "Pagament reemborsat."
+
+msgid "Payments are made through Stripe. We never see or store your card details. Migrations are paid when you accept the quote. Takeout processing is paid when the result is ready, and the payment is required to download it."
+msgstr "Els pagaments es fan mitjançant Stripe. Mai no veiem ni emmagatzemem les dades de la teva targeta. Les migracions es paguen en acceptar el pressupost. El processament de Takeout es paga quan el resultat és llest, i cal pagar per baixar-lo."
+
+msgid "Payments · Stripe"
+msgstr "Pagaments · Stripe"
+
+msgid "Payments:"
+msgstr "Pagaments:"
 
 msgid "Pending access requests"
 msgstr "Sol·licituds d'accés pendents"
@@ -2358,6 +2787,12 @@ msgstr "PhotoMigrator"
 msgid "PhotoMigrator Admin"
 msgstr "Administració de PhotoMigrator"
 
+msgid "PhotoMigrator Cloud is provided by"
+msgstr "PhotoMigrator Cloud el presta"
+
+msgid "PhotoMigrator Cloud · version 2026-11-25"
+msgstr "PhotoMigrator Cloud · versió 2026-11-25"
+
 msgid "PhotoMigrator Login"
 msgstr "Inici de sessió de PhotoMigrator"
 
@@ -2367,11 +2802,20 @@ msgstr "PhotoMigrator inclou una versió integrada d'EXIF Tool, però si vols ut
 msgid "PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
 msgstr "PhotoMigrator inclou una versió integrada de GPTH Tool, però si vols utilitzar una altra versió, pots utilitzar aquest argument."
 
+msgid "PhotoMigrator is open source, so anyone can check what it does."
+msgstr "PhotoMigrator és de codi obert, de manera que qualsevol pot comprovar què fa."
+
+msgid "PhotoMigrator is working on your task."
+msgstr "PhotoMigrator està treballant en la teva tasca."
+
 msgid "PhotoMigrator website"
 msgstr "Lloc web de PhotoMigrator"
 
 msgid "Photos"
 msgstr "Fotos"
+
+msgid "Photos folder"
+msgstr "Carpeta de fotos"
 
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
 msgstr "Fotos, vídeos i àlbums d'un origen a una destinació, amb un tauler en directe."
@@ -2403,6 +2847,9 @@ msgstr "Port"
 msgid "Port ({0}, {1} or {2})"
 msgstr "Port ({0}, {1} o {2})"
 
+msgid "Position"
+msgstr "Posició"
+
 msgid "Possible values:"
 msgstr "Valors possibles:"
 
@@ -2423,6 +2870,15 @@ msgstr "Preferències sobre l'aspecte i el comportament de la interfície web pe
 
 msgid "Prefix album folders with their dates"
 msgstr "Afegeix la data com a prefix de les carpetes d'àlbums"
+
+msgid "Preparing download"
+msgstr "Preparant la baixada"
+
+msgid "Preparing the download"
+msgstr "Preparant la baixada"
+
+msgid "Preparing your download"
+msgstr "Preparant la teva baixada"
 
 msgid "Preview Album Actions"
 msgstr "Previsualitza les accions sobre àlbums"
@@ -2445,8 +2901,35 @@ msgstr "Previsualització no disponible: {0}"
 msgid "Previous page"
 msgstr "Pàgina anterior"
 
+msgid "Price"
+msgstr "Preu"
+
+msgid "Price per GB (€)"
+msgstr "Preu per GB (€)"
+
+msgid "Price {0} · starts about {1}"
+msgstr "Preu {0} · comença cap a {1}"
+
+msgid "Price · VAT incl."
+msgstr "Preu · IVA incl."
+
+msgid "Price: <b>{0}</b> (VAT included)."
+msgstr "Preu: <b>{0}</b> (IVA inclòs)."
+
+msgid "Price: <b>{0}</b>. This task is free for your account."
+msgstr "Preu: <b>{0}</b>. Aquesta tasca és gratuïta per al teu compte."
+
 msgid "Primary-key values are protected"
 msgstr "Els valors de clau primària estan protegits"
+
+msgid "Privacy"
+msgstr "Privadesa"
+
+msgid "Privacy policy"
+msgstr "Política de privadesa"
+
+msgid "Privacy policy · PhotoMigrator Cloud"
+msgstr "Política de privadesa · PhotoMigrator Cloud"
 
 msgid "Process Duplicates"
 msgstr "Processa duplicats"
@@ -2487,6 +2970,9 @@ msgstr "Processa una carpeta d'exportació d'Apple iCloud Photos <ICLOUD_EXPORT_
 msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets. If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "Processa una carpeta d'exportació d'Apple iCloud Photos <ICLOUD_EXPORT_FOLDER> per recuperar les dates dels fitxers 'Photo Details.csv', assignar-les als fitxers multimèdia i organitzar els recursos. Si s'hi troba algun fitxer ZIP, primer s'extrauran a '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>' i aquesta carpeta s'utilitzarà com a entrada. L'exportació processada es desarà a la carpeta '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 
+msgid "Process it and let me download the result."
+msgstr "Processa'l i deixa'm baixar el resultat."
+
 msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it."
 msgstr "Processa la carpeta de Takeout <TAKEOUT_FOLDER> per reparar totes les metadades i organitzar-ne els recursos."
 
@@ -2502,8 +2988,29 @@ msgstr "Proporcioneu els valors JSON que cal inserir."
 msgid "Push Asset Max Size (MB)"
 msgstr "Mida màxima dels recursos enviats (MB)"
 
+msgid "Queue"
+msgstr "Cua"
+
+msgid "Queued"
+msgstr "En cua"
+
+msgid "Queued again after a server restart."
+msgstr "Tornada a la cua després d'un reinici del servidor."
+
 msgid "Quick tools"
 msgstr "Eines ràpides"
+
+msgid "Quote ready"
+msgstr "Pressupost llest"
+
+msgid "Quote sent"
+msgstr "Pressupost enviat"
+
+msgid "Quote sent to your email."
+msgstr "Pressupost enviat al teu correu electrònic."
+
+msgid "Quote valid for (days)"
+msgstr "Validesa del pressupost (dies)"
 
 msgid "Range separator"
 msgstr "Separador d'interval"
@@ -2514,11 +3021,23 @@ msgstr "Llegeix les etiquetes de persones de Google Takeout dels fitxers JSON au
 msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
 msgstr "Llegeix les etiquetes de persones de Google Takeout dels fitxers JSON auxiliars i desa el mapa de persones a la sortida processada. (per defecte: True)."
 
+msgid "Read-only access. In Google Takeout choose “Add to Dropbox” or “Add to OneDrive”, then connect it in the next step."
+msgstr "Accés de només lectura. A Google Takeout tria «Afegeix a Dropbox» o «Afegeix a OneDrive» i després connecta'l al pas següent."
+
 msgid "Readme"
 msgstr "Readme"
 
+msgid "Ready to download"
+msgstr "Llest per baixar"
+
 msgid "Ready to run"
 msgstr "A punt per executar"
+
+msgid "Ready · pay to download"
+msgstr "Llest · paga per baixar"
+
+msgid "Ready · unpaid"
+msgstr "Llest · sense pagar"
 
 msgid "Reason: {0}"
 msgstr "Motiu: {0}"
@@ -2541,6 +3060,21 @@ msgstr "Actualitza les taules"
 msgid "Refresh token"
 msgstr "Testimoni d'actualització"
 
+msgid "Refund"
+msgstr "Reemborsament"
+
+msgid "Refund and cancel"
+msgstr "Reemborsa i cancel·la"
+
+msgid "Refund {0} to {1} as well? Choose Cancel to stop the task without a refund."
+msgstr "Vols reemborsar també {0} a {1}? Tria Cancel·la per aturar la tasca sense reemborsament."
+
+msgid "Refund {0} to {1}? Stripe keeps its fee."
+msgstr "Vols reemborsar {0} a {1}? Stripe es queda la seva comissió."
+
+msgid "Refunded"
+msgstr "Reemborsada"
+
 msgid "Reject Account Request"
 msgstr "Rebutja la sol·licitud de compte"
 
@@ -2552,6 +3086,9 @@ msgstr "Rebutja la sol·licitud"
 
 msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
 msgstr "Vols rebutjar la sol·licitud d'accés de {0}? S'elimina el compte i l'usuari rep un correu electrònic."
+
+msgid "Rejected: too large."
+msgstr "Rebutjada: massa gran."
 
 msgid "Release Notes"
 msgstr "Notes de la versió"
@@ -2727,11 +3264,29 @@ msgstr "Restableix els valors per defecte dels camps d'aquesta funció"
 msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
 msgstr "Vols restaurar {0}? Els usuaris, la configuració i les credencials se substitueixen pels de la còpia de seguretat. Abans es desen les dades actuals en una còpia prèvia a la restauració i potser hauràs de tornar a iniciar sessió."
 
+msgid "Restricted key"
+msgstr "Clau restringida"
+
+msgid "Result"
+msgstr "Resultat"
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "El resultat s'exporta a un CSV per revisar els duplicats i l'acció seleccionada per a cada element."
 
+msgid "Revenue"
+msgstr "Ingressos"
+
+msgid "Review and pay"
+msgstr "Revisa i paga"
+
+msgid "Review and start"
+msgstr "Revisa i inicia"
+
 msgid "Review the request"
 msgstr "Reviseu la sol·licitud"
+
+msgid "Review the task"
+msgstr "Revisa la tasca"
 
 msgid "Roadmap"
 msgstr "Full de ruta"
@@ -2817,6 +3372,9 @@ msgstr "Desa la programació"
 msgid "Save app settings"
 msgstr "Desa la configuració de l'aplicació"
 
+msgid "Save cloud service settings"
+msgstr "Desa la configuració del servei al núvol"
+
 msgid "Save config"
 msgstr "Desa la configuració"
 
@@ -2846,6 +3404,12 @@ msgstr "Desat automàticament."
 
 msgid "Saved · leave empty to keep it"
 msgstr "Desat · deixa'l buit per conservar-lo"
+
+msgid "Saved."
+msgstr "Desat."
+
+msgid "Saved. Leave it empty to keep it."
+msgstr "Desat. Deixa-ho buit per conservar-lo."
 
 msgid "Saving..."
 msgstr "Desant..."
@@ -2885,6 +3449,9 @@ msgstr "Cerca usuaris"
 
 msgid "Search users by username or email"
 msgstr "Cerca usuaris per nom d'usuari o correu electrònic"
+
+msgid "Secure payment with Stripe. Valid for {0} days. If the task fails you get the full amount back."
+msgstr "Pagament segur amb Stripe. Vàlid durant {0} dies. Si la tasca falla, se't reemborsa l'import complet."
 
 msgid "Segoe UI"
 msgstr "Segoe UI"
@@ -2994,6 +3561,12 @@ msgstr "Enviant…"
 msgid "Server"
 msgstr "Servidor"
 
+msgid "Server address"
+msgstr "Adreça del servidor"
+
+msgid "Service"
+msgstr "Servei"
+
 msgid "Service credentials"
 msgstr "Credencials dels serveis"
 
@@ -3002,6 +3575,9 @@ msgstr "Definiu una contrasenya nova i confirmeu-la."
 
 msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
 msgstr "Vols definir una contrasenya temporal per a {0}? L'usuari es desconnecta de tots els navegadors i ha d'escollir una contrasenya nova en el proper inici de sessió."
+
+msgid "Set by an environment variable"
+msgstr "Definit per una variable d'entorn"
 
 msgid "Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1)."
 msgstr "Defineix l'ID de compte de Synology Photos, Immich Photos, NextCloud Photos o Google Photos (per defecte: 1)."
@@ -3063,6 +3639,9 @@ msgstr "Mostra {0}"
 msgid "Showing the first {0} matching values. Search to narrow them."
 msgstr "Es mostren els primers {0} valors coincidents. Cerca per acotar-los."
 
+msgid "Shown in the"
+msgstr "Es mostra als"
+
 msgid "Sign in"
 msgstr "Inicia la sessió"
 
@@ -3074,6 +3653,9 @@ msgstr "Inici de sessió"
 
 msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
 msgstr "Inicis de sessió i canvis del Tauler d'administració: qui ha fet què, quan i des d'on."
+
+msgid "Size"
+msgstr "Mida"
 
 msgid "Skip GPTH tool (not recommended)"
 msgstr "Omet l'eina GPTH (no recomanat)"
@@ -3146,6 +3728,9 @@ msgstr "Servei d'origen"
 
 msgid "Source to target"
 msgstr "D'origen a destinació"
+
+msgid "Space per task (TB)"
+msgstr "Espai per tasca (TB)"
 
 msgid "Specify Date Separator used by feature `Auto-Rename Albums Content Based`."
 msgstr "Especifica el separador de data utilitzat per la funció `Auto-Rename Albums Content Based`."
@@ -3267,6 +3852,9 @@ msgstr "Especifica el sufix de la carpeta de sortida. Per defecte: 'processed'. 
 msgid "Start"
 msgstr "Inici"
 
+msgid "Start (you pay when it is ready)"
+msgstr "Inicia (pagues quan estigui llesta)"
+
 msgid "Start Time: -"
 msgstr "Hora d'inici: -"
 
@@ -3281,6 +3869,12 @@ msgstr "Inicia una migració{0}"
 
 msgid "Start here"
 msgstr "Comença aquí"
+
+msgid "Starting"
+msgstr "Iniciant"
+
+msgid "State"
+msgstr "Estat"
 
 msgid "Status: authenticating..."
 msgstr "Estat: autenticant..."
@@ -3357,8 +3951,23 @@ msgstr "Atura"
 msgid "Stop Running Module?"
 msgstr "Voleu aturar el mòdul en execució?"
 
+msgid "Stop this task and delete its data? A task that has started is not refunded."
+msgstr "Vols aturar aquesta tasca i eliminar-ne les dades? Una tasca que ja ha començat no es reemborsa."
+
+msgid "Storage connected (read-only)."
+msgstr "Emmagatzematge connectat (només lectura)."
+
 msgid "Stored backups"
 msgstr "Còpies desades"
+
+msgid "Stripe (payments), the destination and source services you choose, and Dropbox or Microsoft OneDrive only if you connect them to import your Takeout (read-only). We do not sell your data or use it for advertising."
+msgstr "Stripe (pagaments), els serveis de destí i d'origen que triïs, i Dropbox o Microsoft OneDrive només si els connectes per importar el teu Takeout (només lectura). No venem les teves dades ni les fem servir per a publicitat."
+
+msgid "Stripe answered correctly ({0} mode)."
+msgstr "Stripe ha respost correctament (mode {0})."
+
+msgid "Summary"
+msgstr "Resum"
 
 msgid "Sunday"
 msgstr "Diumenge"
@@ -3374,6 +3983,9 @@ msgstr "Synology Photos"
 
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Synology Photos → Immich Photos"
+msgstr "Synology Photos → Immich Photos"
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "CONSELL: si <TAKEOUT_FOLDER> conté els fitxers zip originals, es conservaran igualment."
@@ -3414,11 +4026,20 @@ msgstr "Estat de la taula: {0}"
 msgid "Takeout"
 msgstr "Takeout"
 
+msgid "Takeout files imported."
+msgstr "Fitxers de Takeout importats."
+
 msgid "Takeout folder"
 msgstr "Carpeta de Takeout"
 
 msgid "Takeout input and output"
 msgstr "Entrada i sortida de Takeout"
+
+msgid "Takeout type"
+msgstr "Tipus de Takeout"
+
+msgid "Takeout → my cloud"
+msgstr "Takeout → el meu núvol"
 
 msgid "Target"
 msgstr "Destinació"
@@ -3432,6 +4053,57 @@ msgstr "Punt final de destinació o carpeta local on migrar."
 msgid "Target service"
 msgstr "Servei de destinació"
 
+msgid "Task"
+msgstr "Tasca"
+
+msgid "Task canceled."
+msgstr "Tasca cancel·lada."
+
+msgid "Task completed."
+msgstr "Tasca completada."
+
+msgid "Task created. Terms of service accepted."
+msgstr "Tasca creada. Termes del servei acceptats."
+
+msgid "Task data:"
+msgstr "Dades de la tasca:"
+
+msgid "Task failed."
+msgstr "La tasca ha fallat."
+
+msgid "Task files and credentials are not included in our backups."
+msgstr "Els fitxers i les credencials de les tasques no s'inclouen a les nostres còpies de seguretat."
+
+msgid "Task files and credentials: until the task ends, fails or is canceled, or until the end of the download period ({0} days)."
+msgstr "Fitxers i credencials de la tasca: fins que la tasca acabi, falli o es cancel·li, o fins al final del període de baixada ({0} dies)."
+
+msgid "Task records and payments: as long as tax and accounting laws require."
+msgstr "Registres de tasques i pagaments: durant el temps que exigeixin les lleis fiscals i comptables."
+
+msgid "Task records:"
+msgstr "Registres de tasques:"
+
+msgid "Task started."
+msgstr "Tasca iniciada."
+
+msgid "Tasks and queue"
+msgstr "Tasques i cua"
+
+msgid "Tasks at a time"
+msgstr "Tasques alhora"
+
+msgid "Tasks run on this server"
+msgstr "Tasques que s'executen en aquest servidor"
+
+msgid "Terms of service"
+msgstr "Termes del servei"
+
+msgid "Terms of service · PhotoMigrator Cloud"
+msgstr "Termes del servei · PhotoMigrator Cloud"
+
+msgid "Test connection"
+msgstr "Prova la connexió"
+
 msgid "Test email"
 msgstr "Correu de prova"
 
@@ -3441,11 +4113,26 @@ msgstr "Error en el correu de prova:"
 msgid "Test email sent to {0}."
 msgstr "Correu de prova enviat a {0}."
 
+msgid "Test mode"
+msgstr "Mode de prova"
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr "El compte encara no està actiu. Us enviarem un correu quan ho estigui."
 
 msgid "The changes could not be saved. Try again."
 msgstr "No s'han pogut desar els canvis. Torna-ho a provar."
+
+msgid "The check failed."
+msgstr "La comprovació ha fallat."
+
+msgid "The cloud service is not enabled on this server."
+msgstr "El servei al núvol no està activat en aquest servidor."
+
+msgid "The data and credentials of the task have been deleted from our server."
+msgstr "Les dades i les credencials de la tasca s'han eliminat del nostre servidor."
+
+msgid "The data and credentials of your task <b>{0}</b> were deleted from our server on {1}."
+msgstr "Les dades i les credencials de la teva tasca <b>{0}</b> es van eliminar del nostre servidor el {1}."
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
 msgstr "El rol de demostració no pot desar canvis de configuració excepte TimeZone i Theme."
@@ -3453,11 +4140,20 @@ msgstr "El rol de demostració no pot desar canvis de configuració excepte Time
 msgid "The demo role cannot {0} configuration directly."
 msgstr "El rol de demostració no pot fer {0} a la configuració directament."
 
+msgid "The exact price comes with the quote, after we measure the data and test the destination with a tiny upload. Nothing is charged until you accept it."
+msgstr "El preu exacte arriba amb el pressupost, després de mesurar les dades i provar el destí amb una pujada minúscula. No es cobra res fins que l'acceptis."
+
+msgid "The files and credentials of a task are deleted when the task ends, fails, is canceled or its download period ends. We email you when it happens. See the"
+msgstr "Els fitxers i les credencials d'una tasca s'eliminen quan la tasca acaba, falla, es cancel·la o finalitza el seu període de baixada. T'enviem un correu electrònic quan passa. Consulta la"
+
 msgid "The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr "La carpeta de sortida tindrà el mateix nom que la carpeta d'entrada seguit d'aquest sufix i de la marca de temps de l'execució."
 
 msgid "The password needs at least {0} characters."
 msgstr "La contrasenya necessita almenys {0} caràcters."
+
+msgid "The payment was canceled. You can pay whenever you are ready."
+msgstr "El pagament s'ha cancel·lat. Pots pagar quan vulguis."
 
 msgid "The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "El Takeout processat es desarà a la carpeta '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'."
@@ -3465,14 +4161,35 @@ msgstr "El Takeout processat es desarà a la carpeta '<TAKEOUT_FOLDER>_processed
 msgid "The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "L'exportació processada es desarà a la carpeta '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 
+msgid "The quote is valid for {0} days. After that the task and its data are deleted."
+msgstr "El pressupost és vàlid durant {0} dies. Després, la tasca i les seves dades s'eliminen."
+
+msgid "The refund failed; we will review it."
+msgstr "El reemborsament ha fallat; el revisarem."
+
+msgid "The result of your task <b>{0}</b> is deleted on {1}. Download it before then."
+msgstr "El resultat de la teva tasca <b>{0}</b> s'elimina el {1}. Baixa'l abans."
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "La ruta seleccionada conté '{0}', que està reservat com a nom de carpeta especial de Google.\\n\\n"
+
+msgid "The server must be reachable from the internet."
+msgstr "El servidor ha de ser accessible des d'internet."
+
+msgid "The task failed"
+msgstr "La tasca ha fallat"
+
+msgid "The task is too large"
+msgstr "La tasca és massa gran"
 
 msgid "The temporary password was emailed to {0}."
 msgstr "La contrasenya temporal s'ha enviat per correu electrònic a {0}."
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
 msgstr "L'eina cerca fitxers de destinació vàlids dins del mateix arbre de carpetes i, si pot, torna a enllaçar."
+
+msgid "The upload could not continue. Add the file again."
+msgstr "La pujada no ha pogut continuar. Torna a afegir el fitxer."
 
 msgid "The user can sign in with this email and receives account and task notices there."
 msgstr "L'usuari pot iniciar la sessió amb aquest correu electrònic i hi rep els avisos del compte i de les tasques."
@@ -3485,6 +4202,9 @@ msgstr "Tema que utilitza la interfície web de PhotoMigrator."
 
 msgid "There are no changed values in this row."
 msgstr "No hi ha valors canviats en aquesta fila."
+
+msgid "These terms are governed by the laws of Spain and the European Union, without prejudice to the consumer protection rules of your country of residence."
+msgstr "Aquests termes es regeixen per les lleis d'Espanya i de la Unió Europea, sense perjudici de les normes de protecció dels consumidors del teu país de residència."
 
 msgid "This argument is mandatory to run the Google Takeout Processor feature."
 msgstr "Aquest argument és obligatori per executar la funció Google Takeout Processor."
@@ -3696,6 +4416,15 @@ msgstr "TimeZone"
 msgid "Timestamp ▼"
 msgstr "Marca de temps ▼"
 
+msgid "Tip: create an API key just for this task in Immich (Account settings → API keys) and delete it when the task ends."
+msgstr "Consell: crea a Immich una clau API només per a aquesta tasca (Configuració del compte → Claus API) i elimina-la quan la tasca acabi."
+
+msgid "Tip: use an account without two-step verification, ideally one created only for this task."
+msgstr "Consell: fes servir un compte sense verificació en dos passos, preferiblement creat només per a aquesta tasca."
+
+msgid "Tip: use an app password (Personal settings → Security) and revoke it when the task ends."
+msgstr "Consell: fes servir una contrasenya d'aplicació (Configuració personal → Seguretat) i revoca-la quan la tasca acabi."
+
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr "Per desar qualsevol altre camp de configuració, introduïu les credencials d'un administrador actiu."
 
@@ -3704,6 +4433,9 @@ msgstr "Avui"
 
 msgid "Toggle {0}"
 msgstr "Commuta {0}"
+
+msgid "Too large"
+msgstr "Massa gran"
 
 msgid "Tools"
 msgstr "Eines"
@@ -3771,6 +4503,12 @@ msgstr "No s'ha pogut enviar la sol·licitud"
 msgid "Unable to stop job"
 msgstr "No s'ha pogut aturar la tasca"
 
+msgid "Up"
+msgstr "Amunt"
+
+msgid "Up to {0} in total."
+msgstr "Fins a {0} en total."
+
 msgid "Upload Albums"
 msgstr "Puja àlbums"
 
@@ -3819,6 +4557,9 @@ msgstr "Puja tots els recursos de <INPUT_FOLDER> al client seleccionat. - Es cre
 msgid "Upload behavior: ZIP extraction follows the \"Extract ZIPs on upload\" option (Yes/No) in Upload to Server."
 msgstr "Comportament de la pujada: l'extracció de ZIP segueix l'opció \"Extreu els ZIP en pujar\" (Sí/No) de Puja al servidor."
 
+msgid "Upload from this browser"
+msgstr "Puja des d'aquest navegador"
+
 msgid "Upload from this computer"
 msgstr "Puja des d'aquest ordinador"
 
@@ -3846,6 +4587,9 @@ msgstr "Puja al servidor"
 msgid "Upload to Server · PhotoMigrator"
 msgstr "Puja al servidor · PhotoMigrator"
 
+msgid "Upload your Takeout files"
+msgstr "Puja els teus fitxers de Takeout"
+
 msgid "Upload, download, organize and clean up albums and assets in your Google Photos library."
 msgstr "Pugeu, descarregueu, organitzeu i netegeu àlbums i recursos de la vostra biblioteca de Google Photos."
 
@@ -3861,8 +4605,17 @@ msgstr "Pugeu, descarregueu, organitzeu i netegeu àlbums i recursos de la vostr
 msgid "Upload, download, rename, clean up and deduplicate albums and assets."
 msgstr "Pugeu, descarregueu, canvieu el nom, netegeu i desduplicueu àlbums i recursos."
 
+msgid "Uploaded"
+msgstr "Pujat"
+
 msgid "Uploaded: {0}\\n"
 msgstr "Pujats: {0}\\n"
+
+msgid "Uploading"
+msgstr "Pujant"
+
+msgid "Uploads resume if the connection drops: add the same file again to continue."
+msgstr "Les pujades es reprenen si es talla la connexió: afegeix de nou el mateix fitxer per continuar."
 
 msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
 msgstr "Useu '--organize-folder-structure' per canviar la disposició, '--organize-output-folder-suffix' per canviar el sufix generat quan no s'indica cap carpeta de sortida explícita, i '--move-original-files' per moure en lloc de copiar."
@@ -3891,14 +4644,23 @@ msgstr "Utilitza la selecció"
 msgid "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
 msgstr "Useu Puja una carpeta local o Puja un ZIP local al tauler Puja al servidor."
 
+msgid "Use my saved account"
+msgstr "Utilitza el meu compte desat"
+
 msgid "Use patterns: e.g. --download-albums 'dron*'"
 msgstr "Useu patrons: p. ex. --download-albums 'dron*'"
+
+msgid "Use the client ID, client secret and refresh token of your own Google OAuth client (see the Google Photos help)."
+msgstr "Utilitza el client ID, el client secret i el refresh token del teu propi client OAuth de Google (consulta l'ajuda de Google Photos)."
 
 msgid "Use the password your administrator gave you."
 msgstr "Useu la contrasenya que us ha donat l'administrador."
 
 msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
 msgstr "Utilitzeu-ho després de '--find-duplicates' per aplicar les decisions manuals del CSV revisat."
+
+msgid "Use this folder ({0} files)"
+msgstr "Utilitza aquesta carpeta ({0} fitxers)"
 
 msgid "Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
 msgstr "Utilitza'l amb '--remove-albums'; els formats acceptats inclouen YYYY, YYYY-MM i YYYY-MM-DD."
@@ -3969,6 +4731,9 @@ msgstr "S'utilitzen els valors per defecte de Configuració"
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "Accions vàlides: restore_duplicate / remove_duplicate / replace_duplicate."
 
+msgid "Valid for {0} days."
+msgstr "Vàlid durant {0} dies."
+
 msgid "Values come from the whole table, not just this page."
 msgstr "Els valors provenen de tota la taula, no només d'aquesta pàgina."
 
@@ -3981,17 +4746,65 @@ msgstr "Vídeos"
 msgid "Volumes folder"
 msgstr "Carpeta de volums"
 
+msgid "Waiting for data"
+msgstr "Esperant dades"
+
+msgid "Waiting for payment"
+msgstr "Esperant el pagament"
+
+msgid "Waiting for your data"
+msgstr "Esperant les teves dades"
+
 msgid "Warm palette"
 msgstr "Paleta càlida"
 
+msgid "We checked your task <b>{0}</b>: {1} of photos and videos."
+msgstr "Hem comprovat la teva tasca <b>{0}</b>: {1} de fotos i vídeos."
+
+msgid "We do our best to keep your albums, dates and locations, but we cannot guarantee that every file is supported by the destination service. PhotoMigrator only reads your source and never deletes it, so keep your originals until you have checked the result. To the extent permitted by law, our liability is limited to the amount you paid for the task."
+msgstr "Fem tot el possible per conservar els teus àlbums, dates i ubicacions, però no podem garantir que el servei de destí admeti tots els fitxers. PhotoMigrator només llegeix el teu origen i mai no l'elimina, així que conserva els teus originals fins que hagis comprovat el resultat. En la mesura permesa per la llei, la nostra responsabilitat es limita a l'import que vas pagar per la tasca."
+
+msgid "We email you when it starts and when it ends. You can cancel it until then with a full refund."
+msgstr "T'enviem un correu electrònic quan comença i quan acaba. Pots cancel·lar-la fins aleshores amb reemborsament complet."
+
+msgid "We may update these terms. The version you accepted is recorded with each task and applies to it."
+msgstr "Podem actualitzar aquests termes. La versió que has acceptat es registra amb cada tasca i s'hi aplica."
+
+msgid "We measure your data and test the destination with a tiny upload that we delete right away. It takes a few minutes."
+msgstr "Mesurem les teves dades i provem el destí amb una pujada minúscula que eliminem tot seguit. Triga uns minuts."
+
+msgid "We never delete anything in your source"
+msgstr "Mai no eliminem res del teu origen"
+
 msgid "We received your account request"
 msgstr "Hem rebut la vostra sol·licitud de compte"
+
+msgid "We received your payment of <b>{0}</b>. Your task <b>{1}</b> is number {2} in the queue."
+msgstr "Hem rebut el teu pagament de <b>{0}</b>. La teva tasca <b>{1}</b> és el número {2} de la cua."
+
+msgid "We refunded the full amount of <b>{0}</b>. It reaches your card in 5 to 10 days."
+msgstr "Hem reemborsat l'import complet de <b>{0}</b>. Arriba a la teva targeta en 5 a 10 dies."
+
+msgid "We run PhotoMigrator on our server for you: we process Google or iCloud Takeout exports and upload them to the photo service you choose, we let you download a processed Takeout, or we move a library from one photo service to another."
+msgstr "Executem PhotoMigrator al nostre servidor per tu: processem exportacions de Google o iCloud Takeout i les pugem al servei de fotos que triïs, et deixem baixar un Takeout processat o movem una biblioteca d'un servei de fotos a un altre."
+
+msgid "We run your migration or Takeout processing on our server. You pay only for tasks that work."
+msgstr "Executem la teva migració o el processament de Takeout al nostre servidor. Només pagues les tasques que funcionen."
+
+msgid "We use one cookie to keep you signed in and one to remember your language. No advertising or tracking cookies."
+msgstr "Fem servir una cookie per mantenir la teva sessió iniciada i una altra per recordar el teu idioma. Cap cookie de publicitat ni de seguiment."
 
 msgid "Web Interface"
 msgstr "Interfície web"
 
 msgid "Web database"
 msgstr "Base de dades web"
+
+msgid "Webhook URL"
+msgstr "URL del webhook"
+
+msgid "Webhook signing secret"
+msgstr "Secret de signatura del webhook"
 
 msgid "Website"
 msgstr "Lloc web"
@@ -4007,6 +4820,9 @@ msgstr "Us donem la benvinguda de nou, admin"
 
 msgid "Welcome back, {0}"
 msgstr "Us donem la benvinguda de nou, {0}"
+
+msgid "What do you want to do?"
+msgstr "Què vols fer?"
 
 msgid "What do you want to move today?"
 msgstr "Què vols moure avui?"
@@ -4077,6 +4893,12 @@ msgstr "Quines fotos i vídeos processa cada funció."
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "Amb aquesta opció activada, es normalitzen variants inofensives com guions baixos davant d'espais i sufixos numèrics finals que semblen duplicats"
 
+msgid "Without Stripe keys every task is free. Administrators never pay. {0} Mbps means no download limit."
+msgstr "Sense claus de Stripe, totes les tasques són gratuïtes. Els administradors mai no paguen. {0} Mbps vol dir sense límit de baixada."
+
+msgid "Working on it"
+msgstr "En curs"
+
 msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
 msgstr "Funciona amb Google Photos, Synology Photos, Immich Photos, NextCloud Photos i carpetes locals, en qualsevol direcció."
 
@@ -4091,6 +4913,15 @@ msgstr "Ahir"
 
 msgid "You"
 msgstr "Tu"
+
+msgid "You add the files in the next step. Uploads resume if the connection drops, so you can close the page and continue later."
+msgstr "Afegeixes els fitxers al pas següent. Les pujades es reprenen si es talla la connexió, de manera que pots tancar la pàgina i continuar més tard."
+
+msgid "You can ask for access to your data, its correction or deletion, limit or object to its processing, and ask for a copy of it, by writing to"
+msgstr "Pots sol·licitar l'accés a les teves dades, la seva rectificació o supressió, limitar-ne o oposar-te'n al tractament i demanar-ne una còpia escrivint a"
+
+msgid "You can download it until {0}. After that it is deleted from our server."
+msgstr "Pots baixar-lo fins al {0}. Després s'elimina del nostre servidor."
 
 msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
 msgstr "Podeu editar les cel·les i fer clic a Desa la fila, o a Elimina la fila. Les insercions utilitzen la sintaxi d'objecte JSON."
@@ -4107,8 +4938,17 @@ msgstr "No pots eliminar el teu propi usuari"
 msgid "You cannot delete your own user."
 msgstr "No pots eliminar el teu propi usuari."
 
+msgid "You have not been charged."
+msgstr "No se t'ha cobrat res."
+
 msgid "You need"
 msgstr "Necessites"
+
+msgid "You need a PhotoMigrator account. You may only send us photos, videos and credentials that you own or are allowed to use. You must not send content that is illegal. You are responsible for the credentials you give us; we recommend creating keys or app passwords just for the task and revoking them when it ends."
+msgstr "Necessites un compte de PhotoMigrator. Només pots enviar-nos fotos, vídeos i credencials que siguin teus o que tinguis permís per utilitzar. No has d'enviar contingut il·legal. Ets responsable de les credencials que ens proporcionis; recomanem crear claus o contrasenyes d'aplicació només per a la tasca i revocar-les quan acabi."
+
+msgid "You pay one price per task: 5.00 € minimum, then 0.05 € per GB, VAT included."
+msgstr "Pagues un preu per tasca: 5,00 € com a mínim, més 0,05 € per GB, IVA inclòs."
 
 msgid "You will be asked to confirm before it runs."
 msgstr "Se us demanarà confirmació abans que s'executi."
@@ -4118,6 +4958,12 @@ msgstr "La teva ADMIN_API_KEY d'Immich Photos (pots crear una API_KEY a Configur
 
 msgid "Your PhotoMigrator account"
 msgstr "El vostre compte de PhotoMigrator"
+
+msgid "Your PhotoMigrator quote"
+msgstr "El teu pressupost de PhotoMigrator"
+
+msgid "Your Takeout"
+msgstr "El teu Takeout"
 
 msgid "Your account has been disabled"
 msgstr "El vostre compte s'ha desactivat"
@@ -4131,6 +4977,21 @@ msgstr "El vostre compte està actiu"
 msgid "Your account request"
 msgstr "La vostra sol·licitud de compte"
 
+msgid "Your card details go to Stripe, never to us."
+msgstr "Les dades de la teva targeta van a Stripe, mai a nosaltres."
+
+msgid "Your download expires soon"
+msgstr "La teva baixada caduca aviat"
+
+msgid "Your files and credentials are deleted when the task ends. We never delete anything in your source."
+msgstr "Els teus fitxers i credencials s'eliminen quan la tasca acaba. Mai no eliminem res del teu origen."
+
+msgid "Your migration is complete"
+msgstr "La teva migració s'ha completat"
+
+msgid "Your name or company"
+msgstr "El teu nom o empresa"
+
 msgid "Your own library"
 msgstr "La teva pròpia biblioteca"
 
@@ -4139,6 +5000,51 @@ msgstr "S'ha canviat la vostra contrasenya"
 
 msgid "Your password was reset"
 msgstr "S'ha restablert la teva contrasenya"
+
+msgid "Your photos and credentials are used only to run your task, and are deleted when it ends."
+msgstr "Les teves fotos i credencials només s'utilitzen per executar la teva tasca i s'eliminen quan acaba."
+
+msgid "Your processed Takeout is ready"
+msgstr "El teu Takeout processat és llest"
+
+msgid "Your quote"
+msgstr "El teu pressupost"
+
+msgid "Your quote is ready"
+msgstr "El teu pressupost és llest"
+
+msgid "Your task <b>{0}</b> failed: {1}"
+msgstr "La teva tasca <b>{0}</b> ha fallat: {1}"
+
+msgid "Your task <b>{0}</b> finished successfully. The result takes {1}."
+msgstr "La teva tasca <b>{0}</b> ha acabat correctament. El resultat ocupa {1}."
+
+msgid "Your task <b>{0}</b> finished successfully: {1} of photos and videos were moved."
+msgstr "La teva tasca <b>{0}</b> ha acabat correctament: s'han mogut {1} de fotos i vídeos."
+
+msgid "Your task <b>{0}</b> has started. You can follow it in Activity."
+msgstr "La teva tasca <b>{0}</b> ha començat. Pots seguir-la a Activitat."
+
+msgid "Your task <b>{0}</b> is number {1} in the queue."
+msgstr "La teva tasca <b>{0}</b> és el número {1} de la cua."
+
+msgid "Your task <b>{0}</b> was canceled and its data deleted."
+msgstr "La teva tasca <b>{0}</b> s'ha cancel·lat i les seves dades s'han eliminat."
+
+msgid "Your task could not be completed"
+msgstr "No s'ha pogut completar la teva tasca"
+
+msgid "Your task data has been deleted"
+msgstr "Les dades de la teva tasca s'han eliminat"
+
+msgid "Your task has started"
+msgstr "La teva tasca ha començat"
+
+msgid "Your task is in the queue"
+msgstr "La teva tasca és a la cua"
+
+msgid "Your task was canceled"
+msgstr "La teva tasca s'ha cancel·lat"
 
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "La vostra contrasenya temporal és <b>{0}</b>. Triareu la vostra contrasenya la primera vegada que inicieu la sessió."
@@ -4164,6 +5070,9 @@ msgstr "un administrador ha desactivat el vostre compte de PhotoMigrator <b>{0}<
 msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
 msgstr "un administrador ha restablert la contrasenya del teu compte de PhotoMigrator <b>{0}</b>."
 
+msgid "and the"
+msgstr "i els"
+
 msgid "backup_schedules ({0})"
 msgstr "backup_schedules ({0})"
 
@@ -4176,11 +5085,17 @@ msgstr "subruta de data (per defecte, el nom d'usuari)"
 msgid "e.g. photos-2026 or /app/data/photos-2026"
 msgstr "p. ex. photos-2026 o /app/data/photos-2026"
 
+msgid "empty = sender address of Email (SMTP)"
+msgstr "buit = adreça del remitent del correu electrònic (SMTP)"
+
 msgid "environment variables."
 msgstr "variables d'entorn."
 
 msgid "failed"
 msgstr "fallit"
+
+msgid "failed or canceled tasks"
+msgstr "tasques fallides o cancel·lades"
 
 msgid "iCloud Takeout"
 msgstr "iCloud Takeout"
@@ -4193,6 +5108,9 @@ msgstr "immich-photos-1 -> immich-photos-1"
 
 msgid "in the backup folder"
 msgstr "a la carpeta de còpies de seguretat"
+
+msgid "is responsible for the personal data processed by PhotoMigrator Cloud. Contact:"
+msgstr "és responsable de les dades personals tractades per PhotoMigrator Cloud. Contacte:"
 
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
 msgstr "està establert a Sí, els fitxers .zip pujats s'extreuen al servidor i se n'elimina el fitxer .zip. Si s'estableix a No, els fitxers .zip es conserven tal com s'han pujat."
@@ -4215,6 +5133,15 @@ msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 msgid "on the backup volume"
 msgstr "al volum de còpies de seguretat"
 
+msgid "paid and not refunded"
+msgstr "pagades i no reemborsades"
+
+msgid "privacy policy"
+msgstr "política de privadesa"
+
+msgid "refunded"
+msgstr "reemborsades"
+
 msgid "remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "remove_duplicate i replace_duplicate són operacions irreversibles."
 
@@ -4233,6 +5160,18 @@ msgstr "synology-photos-1 -> immich-photos-1"
 msgid "synology-photos-1 -> synology-photos-1"
 msgstr "synology-photos-1 -> synology-photos-1"
 
+msgid "tasks waiting"
+msgstr "tasques en espera"
+
+msgid "terms of service"
+msgstr "termes del servei"
+
+msgid "the Takeout files you upload or import, the files PhotoMigrator creates from them, and the credentials of the services you choose."
+msgstr "els fitxers de Takeout que puges o importes, els fitxers que PhotoMigrator crea a partir d'ells i les credencials dels serveis que triïs."
+
+msgid "the amount and the Stripe identifiers of the payment. Stripe processes your card details."
+msgstr "l'import i els identificadors de Stripe del pagament. Stripe processa les dades de la teva targeta."
+
 msgid "the password of your PhotoMigrator account <b>{0}</b> was changed. If it was not you, contact your administrator right away."
 msgstr "s'ha canviat la contrasenya del vostre compte de PhotoMigrator <b>{0}</b>. Si no heu estat vosaltres, contacteu amb l'administrador immediatament."
 
@@ -4242,11 +5181,17 @@ msgstr "la contrasenya que vau triar"
 msgid "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can send account notices (requests, activations and password changes) and the emails of finished tasks."
 msgstr "aquest és el correu de prova que vau demanar des del tauler d'administració. Si l'heu rebut, PhotoMigrator pot enviar avisos del compte (sol·licituds, activacions i canvis de contrasenya) i els correus de tasques finalitzades."
 
+msgid "type of task, size, price, dates and the history of each task (without its files or credentials)."
+msgstr "tipus de tasca, mida, preu, dates i historial de cada tasca (sense els seus fitxers ni credencials)."
+
 msgid "user_configs ({0})"
 msgstr "user_configs ({0})"
 
 msgid "user_states ({0})"
 msgstr "user_states ({0})"
+
+msgid "username, email address, language and the date of your last sign-in."
+msgstr "nom d'usuari, adreça de correu electrònic, idioma i data de la teva última sessió."
 
 msgid "users ({0})"
 msgstr "users ({0})"
@@ -4308,6 +5253,9 @@ msgstr "{0} creat"
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr "{0} us ha creat un compte de PhotoMigrator. Inicieu la sessió amb el nom d'usuari <b>{1}</b> o amb aquesta adreça electrònica."
 
+msgid "{0} days"
+msgstr "{0} dies"
+
 msgid "{0} days ago"
 msgstr "Fa {0} dies"
 
@@ -4328,6 +5276,9 @@ msgstr "{0} funcions"
 
 msgid "{0} finished"
 msgstr "{0} ha acabat"
+
+msgid "{0} hours"
+msgstr "{0} hores"
 
 msgid "{0} is active"
 msgstr "{0} està actiu"
@@ -4367,6 +5318,69 @@ msgstr "{0} usuaris canviats"
 
 msgid "{0} will change the password at the next sign-in"
 msgstr "{0} canviarà la contrasenya en el proper inici de sessió"
+
+msgid "{0}. Applicable law"
+msgstr "{0}. Llei aplicable"
+
+msgid "{0}. Changes"
+msgstr "{0}. Canvis"
+
+msgid "{0}. Cookies"
+msgstr "{0}. Cookies"
+
+msgid "{0}. Deletion of your data"
+msgstr "{0}. Eliminació de les teves dades"
+
+msgid "{0}. Downloads"
+msgstr "{0}. Baixades"
+
+msgid "{0}. How long we keep it"
+msgstr "{0}. Quant de temps les conservem"
+
+msgid "{0}. How we protect it"
+msgstr "{0}. Com les protegim"
+
+msgid "{0}. Liability"
+msgstr "{0}. Responsabilitat"
+
+msgid "{0}. Limits"
+msgstr "{0}. Límits"
+
+msgid "{0}. Payment"
+msgstr "{0}. Pagament"
+
+msgid "{0}. Quotes and prices"
+msgstr "{0}. Pressupostos i preus"
+
+msgid "{0}. Refunds and cancellation"
+msgstr "{0}. Reemborsaments i cancel·lació"
+
+msgid "{0}. What data we process"
+msgstr "{0}. Quines dades tractem"
+
+msgid "{0}. What the service does"
+msgstr "{0}. Què fa el servei"
+
+msgid "{0}. Who is responsible"
+msgstr "{0}. Qui n'és el responsable"
+
+msgid "{0}. Who provides the service"
+msgstr "{0}. Qui presta el servei"
+
+msgid "{0}. Who receives it"
+msgstr "{0}. Qui les rep"
+
+msgid "{0}. Why we process it"
+msgstr "{0}. Per què les tractem"
+
+msgid "{0}. Your account and your data"
+msgstr "{0}. El teu compte i les teves dades"
+
+msgid "{0}. Your rights"
+msgstr "{0}. Els teus drets"
+
+msgid "← My tasks"
+msgstr "← Les meves tasques"
 
 msgid "⏱️ Delayed Recovered"
 msgstr "⏱️ Recuperats amb retard"

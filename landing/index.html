@@ -160,6 +160,44 @@ section.sec{padding:110px 0;position:relative}
 footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--faint);font-size:14px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center}footer a{color:var(--muted);text-decoration:none}footer a:hover{color:var(--ink)}
 footer .sp{margin-left:auto}
+/* cloud service */
+.navnew{display:inline-flex;align-items:center;gap:6px;color:var(--ink)!important}.navnew i{font-style:normal;padding:1px 7px;border-radius:999px;background:var(--b);color:#04201d;font-size:11px;font-weight:700}
+.announce{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:18px 0 0;padding:12px 18px;border-radius:16px;background:linear-gradient(90deg,color-mix(in srgb,var(--b) 16%,transparent),color-mix(in srgb,var(--a) 16%,transparent));box-shadow:inset 0 0 0 1px #2b3d63;text-decoration:none;font-weight:600}
+.announce .tag{padding:3px 10px;border-radius:999px;background:var(--b);color:#04201d;font-size:12px;font-weight:700}.announce .go{margin-left:auto;color:#7fe7dc;font-weight:700}
+.cloud{position:relative;overflow:hidden}
+.cloud .chero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.95fr);gap:48px;align-items:center;margin-bottom:90px}
+.cloud .chero h2{font-size:clamp(40px,5.4vw,66px);margin:20px 0}.cloud .chero p.lead{font-size:20px;color:var(--muted);margin:0 0 28px;max-width:42ch}
+.btn.cl{background:linear-gradient(135deg,var(--b),var(--a));color:#04131a;box-shadow:0 12px 32px -10px color-mix(in srgb,var(--b) 70%,transparent)}.btn.cl:hover{transform:translateY(-2px)}
+.oks{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:26px;color:var(--muted);font-size:15px;font-weight:600}.oks span{display:flex;align-items:center;gap:8px}.oks svg{width:18px;height:18px;color:var(--good)}
+.livecard{border-radius:24px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line),0 30px 60px -30px rgba(0,0,0,.6);padding:22px}
+.livecard .hd{display:flex;align-items:center;gap:10px;font-weight:700}.livecard .hd i{width:10px;height:10px;border-radius:50%;background:var(--b)}.livecard .hd span{margin-left:auto;padding:3px 10px;border-radius:999px;background:rgba(52,211,153,.15);color:#6ee7b7;font-size:12px}
+.livecard .pb{margin:18px 0 8px;height:10px;border-radius:999px;background:#1d2742;overflow:hidden}.livecard .pb b{display:block;width:64%;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--b),var(--a));animation:fill 6s ease-in-out infinite alternate}
+@keyframes fill{from{width:38%}to{width:82%}}
+.livecard .row{display:flex;justify-content:space-between;color:var(--muted);font-size:14px}
+.livecard .st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}.livecard .st div{padding:12px;border-radius:14px;background:var(--card2)}.livecard .st small{display:block;font-size:12px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em}.livecard .st b{font:700 22px var(--display)}
+.livecard .lock{margin-top:16px;padding:12px 14px;border-radius:14px;background:rgba(34,211,197,.08);box-shadow:inset 0 0 0 1px rgba(34,211,197,.25);color:#7fe7dc;font-size:14px;display:flex;gap:10px;align-items:center}.livecard .lock svg{width:18px;height:18px;flex:none}
+.steps.four{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:90px}
+@media (max-width:1000px){.steps.four{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.steps.four{grid-template-columns:minmax(0,1fr)}}
+.offers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:90px}
+.offer{padding:28px;border-radius:24px;background:linear-gradient(160deg,color-mix(in srgb,var(--k) 15%,var(--card)),var(--card) 60%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--k) 30%,var(--line))}
+.offer .tg{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(255,255,255,.08);color:var(--ink)}.offer.pop .tg{background:var(--k);color:#04201d}
+.offer h3{font-size:25px;margin:14px 0 8px}.offer p{margin:0 0 14px;color:var(--muted);font-size:15.5px}.offer .when{color:var(--k);font-size:14px;font-weight:600;margin:0}
+.secure{border-radius:30px;padding:44px;background:var(--bg2);box-shadow:inset 0 0 0 1px var(--line);margin-bottom:90px}
+.secure .top2{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;margin-bottom:30px}.secure .top2>div{flex:1 1 420px}.secure .top2 h2{font-size:clamp(32px,3.8vw,46px)}.secure .top2 p{flex:1 1 340px;margin:0;color:var(--muted)}
+.guards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.guard{display:flex;gap:14px;padding:20px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.guard .ic{flex:none;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(52,211,153,.12);color:#6ee7b7}.guard .ic svg{width:22px;height:22px}
+.guard h3{font-size:17px;margin:0 0 4px;font-family:var(--body)}.guard p{margin:0;color:var(--muted);font-size:14.5px;line-height:1.5}
+.pricing{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:stretch}
+.pricing h2{font-size:clamp(32px,3.8vw,46px);margin-bottom:16px}.pricing p{color:var(--muted)}
+.pex{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:22px 0 14px}.pex div{padding:14px;border-radius:14px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}.pex small{display:block;color:var(--faint);font-size:13px;font-weight:700}.pex b{font:700 26px var(--display)}
+.calc{border-radius:26px;padding:30px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,var(--card)),var(--card) 60%);box-shadow:inset 0 0 0 1px #4a3d2a}
+.calc label{font-weight:700}.calc .gb{font:700 58px var(--display);margin:8px 0 2px}.calc input{width:100%;accent-color:var(--c)}
+.calc .ends{display:flex;justify-content:space-between;color:var(--faint);font-size:13px}
+.calc .res{margin-top:22px;padding:18px;border-radius:16px;background:var(--bg);display:flex;align-items:center;gap:16px;flex-wrap:wrap}.calc .res small{display:block;color:var(--muted);font-size:14px}.calc .res b{font:700 42px var(--display);color:#ffd28a}
+.calc .res .btn{margin-left:auto;background:linear-gradient(135deg,var(--c),var(--d));color:#241303}
+.calc .note{margin:12px 0 0;color:var(--faint);font-size:13px}
+@media (max-width:1000px){.cloud .chero,.pricing{grid-template-columns:minmax(0,1fr)}.offers,.guards{grid-template-columns:minmax(0,1fr)}.secure{padding:26px}}
 /* reveal on scroll */
 .rvjs .rv{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
 .rvjs .rv.in{opacity:1;transform:none}
@@ -169,13 +207,14 @@ footer .sp{margin-left:auto}
 <body>
 <header class="top" id="top"><div class="wrap">
   <a class="logo" href="#"><img src="media/logo.png?v=18" alt="">PhotoMigrator</a>
-  <nav aria-label="Sections"><a href="#services">Services</a><a href="#features">Features</a><a href="#interfaces">Interfaces</a><a href="#how">How it works</a><a href="#download">Download</a><a href="#faq">FAQ</a></nav>
+  <nav aria-label="Sections"><a class="navnew" href="#cloud">Cloud service <i>NEW</i></a><a href="#services">Services</a><a href="#features">Features</a><a href="#interfaces">Interfaces</a><a href="#how">How it works</a><a href="#download">Download</a><a href="#faq">FAQ</a></nav>
   <a class="btn sec gh" href="https://github.com/jaimetur/PhotoMigrator" rel="noopener">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
     GitHub</a>
 </div></header>
 
 <main>
+  <div class="wrap"><a class="announce" href="#cloud"><span class="tag">NEW</span><span>No Docker or no free disk space? Let us migrate your Takeout for you, from 5 €.</span><span class="go">See the cloud service →</span></a></div>
   <section class="hero">
     <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
     <div class="wrap">
@@ -215,6 +254,69 @@ footer .sp{margin-left:auto}
   <div class="strip"><div class="wrap">
     <span><b>Albums, dates and GPS</b> preserved</span><span><b>Runs on your own</b> computer or NAS</span><span><b>Windows, macOS, Linux</b> and Docker</span><span><b>GPL-3.0</b>, free forever</span>
   </div></div>
+
+  <section class="sec cloud" id="cloud"><div class="wrap">
+    <div class="chero rv">
+      <div>
+        <span class="eyebrow"><i></i>PhotoMigrator Cloud · runs on our servers</span>
+        <h2>No Docker. No free disk space.<br><span class="grad">We move it for you.</span></h2>
+        <p class="lead">Send us your Google or iCloud Takeout and PhotoMigrator fixes the dates, rebuilds the albums and uploads everything to Immich, Synology Photos, NextCloud or Google Photos. You only pay for a task that works.</p>
+        <div class="cta"><a class="btn cl" href="/service">Start a migration</a><a class="btn sec" href="#pricing">Calculate the price</a></div>
+        <div class="oks"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg>Failed? You pay nothing</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg>Data deleted when it ends</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg>Servers in the EU</span></div>
+      </div>
+      <div class="livecard" aria-hidden="true">
+        <div class="hd"><i></i>Google Takeout → Immich Photos<span>Running</span></div>
+        <div class="pb"><b></b></div>
+        <div class="row"><span>412 GB · 38,410 photos and videos</span><span>Uploading</span></div>
+        <div class="st"><div><small>Albums</small><b>146</b></div><div><small>Dates fixed</small><b>38,410</b></div><div><small>Price</small><b>20.60 €</b></div></div>
+        <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Your credentials are encrypted for this task only and destroyed when it ends.</div>
+      </div>
+    </div>
+
+    <div class="sh rv"><span class="kicker">How it works</span><h2>Four steps, and you only pay <span class="grad">for what works</span></h2></div>
+    <div class="steps four rv">
+      <div class="step" style="--k:var(--b)"><div class="n">1</div><h3>Send your Takeout</h3><p>Upload the ZIP files from your browser, or let Takeout save them to Dropbox or OneDrive and connect it.</p></div>
+      <div class="step" style="--k:var(--a)"><div class="n">2</div><h3>We check and quote</h3><p>We measure your data and test your destination with a tiny upload. You get the price and the start time by email.</p></div>
+      <div class="step" style="--k:var(--e)"><div class="n">3</div><h3>We do the work</h3><p>Dates fixed, albums rebuilt, everything uploaded. Follow it live and get an email at each step.</p></div>
+      <div class="step" style="--k:var(--c)"><div class="n">4</div><h3>Everything is deleted</h3><p>When the task ends, your files and credentials are erased from our server and we confirm it by email.</p></div>
+    </div>
+
+    <div class="offers rv">
+      <div class="offer pop" style="--k:var(--b)"><span class="tg">MOST POPULAR</span><h3>Takeout → your cloud</h3><p>Google or iCloud Takeout, cleaned and uploaded to Immich, Synology Photos, NextCloud or Google Photos.</p><p class="when">Paid after we check your destination works.</p></div>
+      <div class="offer" style="--k:var(--a)"><span class="tg">DOWNLOAD</span><h3>Fix my Takeout</h3><p>We process your Takeout and you download a tidy library with the right dates, in ZIP parts you can resume.</p><p class="when">Paid only when the result is ready. 7 days to download it.</p></div>
+      <div class="offer" style="--k:var(--e)"><span class="tg">CLOUD TO CLOUD</span><h3>Cloud → cloud</h3><p>From Immich, Synology Photos or NextCloud to any other service, with albums and dates.</p><p class="when">Paid after a test with your accounts.</p></div>
+    </div>
+
+    <div class="secure rv">
+      <div class="top2"><div><span class="kicker" style="--k:var(--good)">Your memories stay yours</span><h2>Built so you never have to <span class="grad">trust us blindly</span></h2></div><p>PhotoMigrator is open source: anyone can read exactly what the service does with your files and credentials.</p></div>
+      <div class="guards"><div class="guard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4"/></svg></div><div><h3>Encrypted, per task</h3><p>Your passwords and keys are encrypted with a key made only for your task. No other task can read them.</p></div></div><div class="guard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></div><div><h3>Destroyed when it ends</h3><p>Files, credentials and their key are erased as soon as the task ends, and we email you the confirmation.</p></div></div><div class="guard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6"/></svg></div><div><h3>Invisible to others</h3><p>Each task runs in its own isolated folder. No other user, and no person on our side, opens your photos.</p></div></div><div class="guard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg></div><div><h3>Never deletes the source</h3><p>We only read your Takeout or your library. Nothing is ever removed from where your photos come from.</p></div></div><div class="guard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3zM3 10h18"/></svg></div><div><h3>No card details here</h3><p>Payments go through Stripe: your card never touches our server. A task fails? Full refund, automatically.</p></div></div><div class="guard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div><div><h3>EU servers, open source</h3><p>Your data stays in the European Union, and the whole tool is open source on GitHub for anyone to audit.</p></div></div></div>
+    </div>
+
+    <div class="pricing rv" id="pricing">
+      <div>
+        <span class="kicker" style="--k:var(--c)">Simple pricing</span>
+        <h2>5 € minimum, then <span class="grad">5 cents per GB</span></h2>
+        <p>One payment per task, VAT included. No subscription, no hidden fees. If the task fails, you get every cent back automatically.</p>
+        <div class="pex"><div><small>100 GB</small><b>5 €</b></div><div><small>500 GB</small><b>25 €</b></div><div><small>1 TB</small><b>50 €</b></div></div>
+        <p style="font-size:15px;color:var(--faint)">Prefer to do it yourself? PhotoMigrator stays free and open source on your own computer or NAS.</p>
+      </div>
+      <div class="calc">
+        <label for="calc-gb">How big is your Takeout?</label>
+        <div class="gb" id="calc-gb-label">400 GB</div>
+        <input id="calc-gb" type="range" min="10" max="3000" step="10" value="400">
+        <div class="ends"><span>10 GB</span><span>3 TB</span></div>
+        <div class="res"><div><small>Your price</small><b id="calc-price">20.00 €</b></div><a class="btn" href="/service">Get started</a></div>
+        <p class="note">Takeouts of up to about 3 TB (10 TB of working space per task).</p>
+      </div>
+    </div>
+
+    <div class="faq rv" style="margin-top:80px">
+      <details><summary>What if the cloud service fails?</summary><p>We refund the full amount automatically and delete your data. You never pay for a task that did not finish.</p></details>
+      <details><summary>Can I cancel a cloud task?</summary><p>Yes. Before your task starts you get a full refund. Once it is running it can be stopped, but it is not refunded.</p></details>
+      <details><summary>Which credentials do I give the cloud service?</summary><p>Only the ones of your destination: an Immich API key, a NextCloud app password, a Synology account or a Google Photos token. Create them just for the task and revoke them when it ends.</p></details>
+      <details><summary>How do I get a processed Takeout?</summary><p>You download it in ZIP parts of up to 50 GB that you can resume. The link works for 7 days and you pay only when the result is ready.</p></details>
+    </div>
+  </div></section>
 
   <section class="sec" id="services"><div class="wrap">
     <div class="sh rv"><span class="kicker">One tool, every library</span><h2>Works with the services <span class="grad">you already use</span></h2><p>Connect up to three accounts per service and move your library in any direction, including between two accounts of the same service.</p></div>
@@ -348,11 +450,23 @@ docker compose up -d</div></div>
   <a href="https://github.com/jaimetur/PhotoMigrator/tree/main/help" rel="noopener">Documentation</a>
   <a href="https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md" rel="noopener">Release notes</a>
   <a href="https://discord.gg/wTJ62qh5UC" rel="noopener">Discord</a>
+  <a href="/terms">Cloud service terms</a>
+  <a href="/privacy">Privacy</a>
   <span class="sp">GPL-3.0 · © 2024-2026 Jaime Tur</span>
 </div></footer>
 
 <script>
 (() => {
+  const gb = document.getElementById("calc-gb");
+  if (gb) {
+    const update = () => {
+      const value = Number(gb.value);
+      document.getElementById("calc-gb-label").textContent = value >= 1000 ? `${(value / 1000).toFixed(2).replace(/\.?0+$/, "")} TB` : `${value} GB`;
+      document.getElementById("calc-price").textContent = `${(Math.max(500, Math.ceil(value * 5)) / 100).toFixed(2)} €`;
+    };
+    gb.addEventListener("input", update);
+    update();
+  }
   const top = document.getElementById("top");
   const onScroll = () => top.classList.toggle("sc", window.scrollY > 8);
   window.addEventListener("scroll", onScroll, {passive: true});

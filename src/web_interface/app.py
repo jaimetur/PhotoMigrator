@@ -34,6 +34,7 @@ from pydantic import BaseModel, Field
 from markupsafe import Markup
 
 from . import mailer
+from . import service as cloud_service
 
 if str(Path(__file__).resolve().parents[2]) not in sys.path:
     sys.path.append(str(Path(__file__).resolve().parents[2]))
@@ -793,6 +794,8 @@ def _normalize_subpath(value: str | None, username: str) -> str:
         raise HTTPException(status_code=400, detail="Subpath cannot contain '..'.")
     if not re.fullmatch(r"[A-Za-z0-9._/\-]+", raw):
         raise HTTPException(status_code=400, detail="Subpath contains invalid characters.")
+    if raw.split("/")[0].lower() == cloud_service.WORK_DIR_NAME:
+        raise HTTPException(status_code=400, detail=f"'{cloud_service.WORK_DIR_NAME}' is reserved for the cloud service.")
     return raw
 
 
@@ -1462,6 +1465,7 @@ def _init_web_db(template_schema: List[Dict[str, Any]]) -> None:
                 ),
             )
         conn.commit()
+        cloud_service.init_db(conn)
     finally:
         conn.close()
     _ensure_access_logs_table()
@@ -3565,6 +3569,7 @@ def _initialize_web_app_state() -> None:
     )
     _init_web_db(CONFIG_FORM_SCHEMA)
     _start_backup_scheduler()
+    cloud_service.start_worker()
 
 
 @asynccontextmanager
@@ -4702,7 +4707,7 @@ def _resolve_initial_web_theme(current_user: Dict[str, Any]) -> str:
 
 def _render_main_page(request: Request, current_user: Dict[str, Any], template_name: str) -> Response:
     manual_navigation = request.query_params.get("manual_navigation") == "1"
-    if template_name != "output.html" and not manual_navigation and _user_has_active_job(int(current_user["id"])):
+    if template_name not in {"output.html", "service.html"} and not manual_navigation and _user_has_active_job(int(current_user["id"])):
         return RedirectResponse(url="/output", status_code=302)
     response = templates.TemplateResponse(
         template_name,
@@ -4716,6 +4721,7 @@ def _render_main_page(request: Request, current_user: Dict[str, Any], template_n
             "role": str(current_user.get("role") or "user"),
             "is_admin": str(current_user.get("role") or "").strip().lower() == "admin",
             "initial_theme": _resolve_initial_web_theme(current_user),
+            "service_enabled": bool(cloud_service.load_settings().get("enabled")) and str(current_user.get("role") or "").lower() != "demo",
         },
     )
     return _html_no_store_response(response)
@@ -4769,6 +4775,23 @@ def configuration_page(request: Request, session_token: str | None = Cookie(defa
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
     return _render_main_page(request, current_user, "configuration.html")
+
+
+@app.get("/terms", response_class=HTMLResponse)
+@app.get("/privacy", response_class=HTMLResponse)
+def legal_page(request: Request) -> HTMLResponse:
+    doc = "terms" if request.url.path.rstrip("/").endswith("terms") else "privacy"
+    return templates.TemplateResponse("legal.html", {"request": request, "doc": doc, **cloud_service.legal_context()})
+
+
+@app.get("/service", response_class=HTMLResponse)
+def service_page(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
+    current_user = _user_from_session_token(session_token)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    if not cloud_service.load_settings().get("enabled"):
+        return RedirectResponse(url=WEB_APP_HOME_PATH, status_code=302)
+    return _render_main_page(request, current_user, "service.html")
 
 
 @app.get("/admin", response_class=HTMLResponse)
@@ -6301,6 +6324,76 @@ def admin_restore_backup(payload: BackupFileRequest, request: Request, current_u
     result = _restore_backup_file(path)
     _record_admin_event(request, current_user, "backup_restored", f"{result['restored']} · previous data saved as {result['safety_backup']}")
     return result
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Cloud service (service.py): tasks run on this server for remote users, with optional Stripe billing.
+# ----------------------------------------------------------------------------------------------------------------------
+def _service_launch_job(user: Dict[str, Any], command: List[str], env: Dict[str, str], cwd: Path, tab: str,
+                        dashboard_context: Dict[str, Any], display_command: str) -> str:
+    child_env = os.environ.copy()
+    child_env.update(env)
+    child_env["PHOTOMIGRATOR_ALLOW_STDIN_PIPE"] = "1"
+    child_env["PHOTOMIGRATOR_WEB_MODE"] = "1"
+    with JOBS_LOCK:
+        job_id = uuid.uuid4().hex
+        process = subprocess.Popen(
+            command,
+            cwd=str(cwd),
+            env=child_env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+        )
+        JOBS[job_id] = JobData(command=command, process=process, tab=tab, owner_user_id=int(user["id"]), dashboard_context=dashboard_context)
+        JOBS[job_id].command_string = display_command
+    threading.Thread(target=_run_job, args=(job_id, process), daemon=True).start()
+    return job_id
+
+
+def _service_job_state(job_id: str) -> Dict[str, Any]:
+    with JOBS_LOCK:
+        job = JOBS.get(job_id)
+        if job is None:
+            return {"status": "missing"}
+        return {"status": job.status, "return_code": job.return_code}
+
+
+def _service_stop_job(job_id: str) -> None:
+    with JOBS_LOCK:
+        job = JOBS.get(job_id)
+        if job is None or job.status not in {"running", "stopping"}:
+            return
+        job.stop_requested = True
+        job.status = "stopping"
+        process = job.process
+    try:
+        process.terminate()
+    except Exception:
+        pass
+    threading.Thread(target=_force_kill_job_process, args=(job_id, process), daemon=True).start()
+
+
+cloud_service.configure(
+    db_connect=_db_connect,
+    get_setting=_get_web_setting,
+    set_setting=_set_web_setting,
+    encrypt=_encrypt_value,
+    decrypt=_decrypt_value,
+    secret=WEB_SECRET,
+    public_base_url=_public_base_url,
+    get_user_config_values=_get_user_config_values,
+    get_user_by_session=_user_from_session_token,
+    launch_job=_service_launch_job,
+    job_state=_service_job_state,
+    stop_job=_service_stop_job,
+    cli_command=lambda: [sys.executable, str(CLI_ENTRYPOINT)],
+)
+app.include_router(cloud_service.build_router(_require_user, _require_admin, WEB_SESSION_COOKIE))
 
 
 @app.get("/healthz")

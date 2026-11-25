@@ -7,7 +7,7 @@
     <title>{{ tool_name }} Admin</title>
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
     <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
-    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-settings">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-service">
 </head>
 <body class="admin-page">
 <main class="admin-wrapper">
@@ -26,6 +26,7 @@
     <nav class="admin-tabs" id="admin-tabs" role="tablist" aria-label="Administration sections">
         <button type="button" role="tab" class="admin-tab tv-mig" data-admin-tab="users" aria-selected="true">Users<span id="tab-requests-badge" class="admin-tab__badge" hidden></span></button>
         <button type="button" role="tab" class="admin-tab tv-upl" data-admin-tab="email" aria-selected="false">Email (SMTP)</button>
+        <button type="button" role="tab" class="admin-tab tv-svc" data-admin-tab="service" aria-selected="false">Cloud service<span id="tab-service-badge" class="admin-tab__badge" hidden></span></button>
         <button type="button" role="tab" class="admin-tab tv-gph" data-admin-tab="database" aria-selected="false">Database</button>
         <button type="button" role="tab" class="admin-tab tv-ico" data-admin-tab="backups" aria-selected="false">Backups</button>
         <button type="button" role="tab" class="admin-tab tv-tool" data-admin-tab="logs" aria-selected="false">Access logs</button>
@@ -147,6 +148,96 @@
             <label class="adm-field">Send a test email to<input id="mail-test-to" class="adm-input" placeholder="name@example.com · empty = your own email" autocomplete="off" spellcheck="false" readonly data-guard-autofill></label>
             <button type="button" id="mail-test" class="adm-btn adm-btn--outline">Send test email</button>
             <span id="mail-test-status" class="adm-inline-status" aria-live="polite"></span>
+        </div>
+    </section>
+
+    <!-- Cloud service -->
+    <section class="adm-panel tv-svc" data-admin-section="service" hidden>
+        <div class="adm-panel__head">
+            <div class="adm-panel__title">
+                <span class="adm-eyebrow">Tasks run on this server</span>
+                <h2>Cloud service</h2>
+                <p>Migrations and Takeout processing that remote users run on this server, with Stripe payments. Administrators never see the files or credentials of a task.</p>
+            </div>
+            <div class="adm-pills"><span id="svc-state-pill" class="adm-pill adm-pill--muted">Disabled</span><span id="svc-mode-pill" class="adm-pill adm-pill--muted" hidden></span></div>
+        </div>
+        <div class="adm-stats">
+            <div class="adm-stat"><span>Queue</span><b id="svc-queued">-</b><small>tasks waiting</small></div>
+            <div class="adm-stat"><span>Running</span><b id="svc-active">-</b><small id="svc-active-detail"></small></div>
+            <div class="adm-stat"><span>Revenue</span><b id="svc-revenue">-</b><small>paid and not refunded</small></div>
+            <div class="adm-stat"><span>Refunded</span><b id="svc-refunded">-</b><small>failed or canceled tasks</small></div>
+            <div class="adm-stat"><span>Free disk space</span><b id="svc-free">-</b><small id="svc-workdir" class="adm-mono" data-no-i18n></small></div>
+        </div>
+        <div class="adm-svc-grid">
+            <div class="adm-card adm-svc-tasks">
+                <div class="adm-toolbar">
+                    <h3>Tasks and queue</h3>
+                    <span class="adm-spacer"></span>
+                    <select id="svc-filter" class="adm-select" aria-label="State">
+                        <option value="">All states</option>
+                        <option value="open">Open</option>
+                        <option value="paid">Paid</option>
+                        <option value="final">Finished</option>
+                    </select>
+                    <button type="button" id="svc-refresh" class="adm-btn adm-btn--outline"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4"/></svg>Refresh</button>
+                </div>
+                <div class="adm-table-wrap adm-table-wrap--scroll">
+                    <table class="adm-table" id="svc-table">
+                        <thead><tr><th>User</th><th>Task</th><th>Size</th><th>Paid</th><th>State</th><th>Created</th><th></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="svc-empty" class="adm-empty" hidden>No tasks yet.</div>
+                <p class="adm-help">Cancel refunds tasks that have not started. A running task can be canceled with or without a refund.</p>
+            </div>
+            <form id="svc-form" class="adm-svc-settings" autocomplete="off">
+                <div class="adm-card">
+                    <div class="adm-card__head adm-card__head--row"><h3>Service</h3><label class="adm-switch"><input id="svc-enabled" type="checkbox"><span>Enabled</span></label></div>
+                    <div class="adm-grid-3">
+                        <label class="adm-field">Minimum price (€)<input id="svc-price-min" class="adm-input" type="number" min="0" step="0.01"></label>
+                        <label class="adm-field">Price per GB (€)<input id="svc-price-gb" class="adm-input" type="number" min="0" step="0.01"></label>
+                        <label class="adm-field">Tasks at a time<input id="svc-concurrent" class="adm-input" type="number" min="1" max="8"></label>
+                        <label class="adm-field">Space per task (TB)<input id="svc-max-tb" class="adm-input" type="number" min="0.001" step="0.5"></label>
+                        <label class="adm-field">Download speed (Mbps)<input id="svc-mbps" class="adm-input" type="number" min="0"></label>
+                        <label class="adm-field">Download days<input id="svc-download-days" class="adm-input" type="number" min="1" max="60"></label>
+                        <label class="adm-field">Quote valid for (days)<input id="svc-quote-days" class="adm-input" type="number" min="1" max="60"></label>
+                    </div>
+                    <div class="adm-grid-2">
+                        <label class="adm-field">Operator name<input id="svc-operator" class="adm-input" autocomplete="off" placeholder="Your name or company"><span class="adm-help">Shown in the <a href="/terms" target="_blank" rel="noopener">terms</a> and the <a href="/privacy" target="_blank" rel="noopener">privacy policy</a>.</span></label>
+                        <label class="adm-field">Contact email<input id="svc-contact" class="adm-input" type="email" autocomplete="off" placeholder="empty = sender address of Email (SMTP)"></label>
+                    </div>
+                    <span class="adm-help">Without Stripe keys every task is free. Administrators never pay. 0 Mbps means no download limit.</span>
+                </div>
+                <div class="adm-card">
+                    <div class="adm-card__head adm-card__head--row"><h3>Payments · Stripe</h3><span id="svc-stripe-pill" class="adm-pill adm-pill--muted">Not configured</span></div>
+                    <div class="adm-grid-2">
+                        <label class="adm-field">Restricted key<input id="svc-stripe-key" class="adm-input adm-input--masked" type="text" autocomplete="new-password" spellcheck="false" readonly data-guard-autofill data-lpignore="true" data-1p-ignore="true" data-bwignore="true" placeholder="rk_test_…"><span id="svc-stripe-key-state" class="adm-help"></span></label>
+                        <label class="adm-field">Webhook signing secret<input id="svc-stripe-webhook" class="adm-input adm-input--masked" type="text" autocomplete="new-password" spellcheck="false" readonly data-guard-autofill data-lpignore="true" data-1p-ignore="true" data-bwignore="true" placeholder="whsec_…"><span id="svc-stripe-webhook-state" class="adm-help"></span></label>
+                    </div>
+                    <div class="adm-copy-row"><span>Webhook URL</span><code id="svc-webhook-url" data-no-i18n></code><button type="button" class="adm-btn adm-btn--outline adm-btn--small" data-copy-target="svc-webhook-url">Copy</button></div>
+                    <div class="adm-row">
+                        <label class="adm-check"><input id="svc-tax" type="checkbox"> Calculate VAT with Stripe Tax (prices include VAT)</label>
+                        <span class="adm-spacer"></span>
+                        <button type="button" id="svc-stripe-test" class="adm-btn adm-btn--outline">Test connection</button>
+                    </div>
+                    <span id="svc-stripe-status" class="adm-inline-status" aria-live="polite"></span>
+                </div>
+                <div class="adm-card">
+                    <h3>Imports · Dropbox and OneDrive</h3>
+                    <div class="adm-grid-2">
+                        <label class="adm-field">Dropbox App key<input id="svc-dropbox-key" class="adm-input" autocomplete="off" spellcheck="false" readonly data-guard-autofill></label>
+                        <label class="adm-field">Dropbox App secret<input id="svc-dropbox-secret" class="adm-input adm-input--masked" type="text" autocomplete="new-password" spellcheck="false" readonly data-guard-autofill data-lpignore="true" data-1p-ignore="true" data-bwignore="true"><span id="svc-dropbox-secret-state" class="adm-help"></span></label>
+                        <label class="adm-field">OneDrive Client ID<input id="svc-onedrive-id" class="adm-input" autocomplete="off" spellcheck="false" readonly data-guard-autofill></label>
+                        <label class="adm-field">OneDrive Client secret<input id="svc-onedrive-secret" class="adm-input adm-input--masked" type="text" autocomplete="new-password" spellcheck="false" readonly data-guard-autofill data-lpignore="true" data-1p-ignore="true" data-bwignore="true"><span id="svc-onedrive-secret-state" class="adm-help"></span></label>
+                    </div>
+                    <div class="adm-copy-row"><span>Dropbox redirect URI</span><code id="svc-dropbox-redirect" data-no-i18n></code><button type="button" class="adm-btn adm-btn--outline adm-btn--small" data-copy-target="svc-dropbox-redirect">Copy</button></div>
+                    <div class="adm-copy-row"><span>OneDrive redirect URI</span><code id="svc-onedrive-redirect" data-no-i18n></code><button type="button" class="adm-btn adm-btn--outline adm-btn--small" data-copy-target="svc-onedrive-redirect">Copy</button></div>
+                </div>
+                <div class="adm-actions">
+                    <button type="submit" id="svc-save" class="adm-btn adm-btn--primary">Save cloud service settings</button>
+                    <span id="svc-status" class="adm-inline-status" aria-live="polite"></span>
+                </div>
+            </form>
         </div>
     </section>
 
@@ -518,6 +609,7 @@
         if (key === "database" && !dbTables.length) loadDbTables();
         if (key === "backups") loadBackupStatus();
         if (key === "logs") loadAccessLogs();
+        if (key === "service") { loadServiceSettings(); loadServiceTasks(); }
     }
 
     // ---------- Users ----------
@@ -1470,6 +1562,188 @@
         document.getElementById("logs-empty").hidden = (data.logs || []).length > 0;
     }
 
+    // ---------- Cloud service ----------
+    const SVC_STATES = {
+        draft: ["Waiting for data", "muted"], analyzing: ["Checking", "info"], quoted: ["Quote sent", "warn"],
+        awaiting_payment: ["Waiting for payment", "warn"], queued: ["Queued", "info"], preparing: ["Starting", "brand"],
+        running: ["Running", "brand"], packaging: ["Preparing download", "brand"], awaiting_download_payment: ["Ready · unpaid", "warn"],
+        ready: ["Ready to download", "info"], completed: ["Completed", "ok"], failed: ["Failed", "danger"],
+        canceled: ["Canceled", "muted"], expired: ["Expired", "muted"], rejected: ["Too large", "danger"]
+    };
+    const SVC_OPEN = new Set(["draft", "analyzing", "quoted", "awaiting_payment", "queued", "preparing", "running", "packaging", "awaiting_download_payment", "ready"]);
+    let svcTasks = [];
+    const euros = (cents) => `${(Number(cents || 0) / 100).toFixed(2)} €`;
+    function bytesLabel(size) {
+        let value = Math.max(0, Number(size) || 0);
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        let index = 0;
+        while (value >= 1000 && index < units.length - 1) { value /= 1000; index += 1; }
+        return `${index < 2 ? Math.round(value) : value.toFixed(1)} ${units[index]}`;
+    }
+    function setSecretState(id, present, fromEnv) {
+        const node = document.getElementById(id);
+        node.textContent = fromEnv ? T("Set by an environment variable") : present ? T("Saved. Leave it empty to keep it.") : T("Not configured");
+    }
+    async function loadServiceSettings() {
+        const data = await apiFetch("/api/admin/service/settings");
+        document.getElementById("svc-enabled").checked = Boolean(data.enabled);
+        document.getElementById("svc-price-min").value = (Number(data.price_min_cents) / 100).toFixed(2);
+        document.getElementById("svc-price-gb").value = (Number(data.price_per_gb_cents) / 100).toFixed(2);
+        document.getElementById("svc-concurrent").value = data.concurrent_tasks;
+        document.getElementById("svc-max-tb").value = Number(data.max_task_bytes) / 1e12;
+        document.getElementById("svc-mbps").value = data.download_mbps;
+        document.getElementById("svc-download-days").value = data.download_days;
+        document.getElementById("svc-quote-days").value = data.quote_days;
+        document.getElementById("svc-tax").checked = Boolean(data.automatic_tax);
+        document.getElementById("svc-operator").value = data.operator_name || "";
+        document.getElementById("svc-contact").value = data.contact_email || "";
+        const dropboxKey = document.getElementById("svc-dropbox-key");
+        dropboxKey.value = data.dropbox_app_key || "";
+        dropboxKey.dataset.serverValue = dropboxKey.value;
+        const onedriveId = document.getElementById("svc-onedrive-id");
+        onedriveId.value = data.onedrive_client_id || "";
+        onedriveId.dataset.serverValue = onedriveId.value;
+        ["svc-stripe-key", "svc-stripe-webhook", "svc-dropbox-secret", "svc-onedrive-secret"].forEach((id) => { document.getElementById(id).value = ""; });
+        setSecretState("svc-stripe-key-state", data.has_stripe_secret_key, data.stripe_secret_key_from_env);
+        setSecretState("svc-stripe-webhook-state", data.has_stripe_webhook_secret, data.stripe_webhook_secret_from_env);
+        setSecretState("svc-dropbox-secret-state", data.has_dropbox_app_secret, data.dropbox_app_secret_from_env);
+        setSecretState("svc-onedrive-secret-state", data.has_onedrive_client_secret, data.onedrive_client_secret_from_env);
+        document.getElementById("svc-webhook-url").textContent = data.urls.stripe_webhook;
+        document.getElementById("svc-dropbox-redirect").textContent = data.urls.dropbox_redirect;
+        document.getElementById("svc-onedrive-redirect").textContent = data.urls.onedrive_redirect;
+        document.getElementById("svc-workdir").textContent = data.work_dir;
+        document.getElementById("svc-free").textContent = bytesLabel(data.free_disk_bytes);
+        const statePill = document.getElementById("svc-state-pill");
+        statePill.textContent = T(data.enabled ? (data.billing_active ? "Enabled · paid" : "Enabled · free") : "Disabled");
+        statePill.className = `adm-pill ${data.enabled ? "adm-pill--ok" : "adm-pill--muted"}`;
+        const stripePill = document.getElementById("svc-stripe-pill");
+        stripePill.textContent = T(data.has_stripe_secret_key ? (data.stripe_mode === "live" ? "Live mode" : "Test mode") : "Not configured");
+        stripePill.className = `adm-pill ${data.has_stripe_secret_key ? (data.stripe_mode === "live" ? "adm-pill--ok" : "adm-pill--warn") : "adm-pill--muted"}`;
+    }
+    async function saveServiceSettings(event) {
+        event.preventDefault();
+        const status = document.getElementById("svc-status");
+        const cents = (id) => Math.round(Number(document.getElementById(id).value || 0) * 100);
+        const payload = {
+            enabled: document.getElementById("svc-enabled").checked,
+            price_min_cents: cents("svc-price-min"),
+            price_per_gb_cents: cents("svc-price-gb"),
+            concurrent_tasks: Number(document.getElementById("svc-concurrent").value || 1),
+            max_task_bytes: Math.round(Number(document.getElementById("svc-max-tb").value || 10) * 1e12),
+            download_mbps: Number(document.getElementById("svc-mbps").value || 0),
+            download_days: Number(document.getElementById("svc-download-days").value || 7),
+            quote_days: Number(document.getElementById("svc-quote-days").value || 7),
+            automatic_tax: document.getElementById("svc-tax").checked,
+            operator_name: document.getElementById("svc-operator").value.trim(),
+            contact_email: document.getElementById("svc-contact").value.trim(),
+            stripe_secret_key: document.getElementById("svc-stripe-key").value.trim(),
+            stripe_webhook_secret: document.getElementById("svc-stripe-webhook").value.trim(),
+            dropbox_app_key: document.getElementById("svc-dropbox-key").value.trim(),
+            dropbox_app_secret: document.getElementById("svc-dropbox-secret").value.trim(),
+            onedrive_client_id: document.getElementById("svc-onedrive-id").value.trim(),
+            onedrive_client_secret: document.getElementById("svc-onedrive-secret").value.trim()
+        };
+        status.textContent = T("Saving...");
+        try {
+            await apiFetch("/api/admin/service/settings", jsonBody("PUT", payload));
+            await loadServiceSettings();
+            status.textContent = T("Saved.");
+        } catch (error) {
+            status.textContent = String(error.message || error);
+        }
+    }
+    async function testStripe() {
+        const status = document.getElementById("svc-stripe-status");
+        status.textContent = T("Checking...");
+        try {
+            const data = await apiFetch("/api/admin/service/stripe/test", {method: "POST"});
+            status.textContent = fmt("Stripe answered correctly ({0} mode).", T(data.mode === "live" ? "live" : "test"));
+        } catch (error) {
+            status.textContent = String(error.message || error);
+        }
+    }
+    function renderServiceTasks() {
+        const filter = document.getElementById("svc-filter").value;
+        const rows = svcTasks.filter((task) => !filter
+            || (filter === "open" && SVC_OPEN.has(task.status))
+            || (filter === "paid" && task.amount_paid_cents)
+            || (filter === "final" && !SVC_OPEN.has(task.status)));
+        const tbody = document.querySelector("#svc-table tbody");
+        tbody.innerHTML = "";
+        rows.forEach((task) => {
+            const tr = el("tr");
+            const userTd = el("td", "adm-strong", task.username || "-");
+            userTd.setAttribute("data-no-i18n", "");
+            const taskTd = el("td", "", task.label);
+            const sizeTd = el("td", "", task.size_bytes ? bytesLabel(task.size_bytes) : "-");
+            const paidTd = el("td", "", task.amount_paid_cents ? euros(task.amount_paid_cents) + (task.refunded_at ? ` · ${T("refunded")}` : "") : "-");
+            const meta = SVC_STATES[task.status] || [task.status, "muted"];
+            const stateTd = el("td");
+            const pill = el("span", `adm-pill adm-pill--${meta[1]}`, T(meta[0]));
+            if (task.error) pill.title = task.error;
+            stateTd.appendChild(pill);
+            const dateTd = el("td", "", formatDateTime(task.created_at));
+            const actionsTd = el("td", "adm-row-actions");
+            if (SVC_OPEN.has(task.status)) {
+                const cancel = el("button", "adm-btn adm-btn--danger-outline adm-btn--small", T("Cancel"));
+                cancel.type = "button";
+                cancel.addEventListener("click", () => cancelServiceTask(task));
+                actionsTd.appendChild(cancel);
+            }
+            if (task.amount_paid_cents && !task.refunded_at && !SVC_OPEN.has(task.status)) {
+                const refund = el("button", "adm-btn adm-btn--outline adm-btn--small", T("Refund"));
+                refund.type = "button";
+                refund.addEventListener("click", () => refundServiceTask(task));
+                actionsTd.appendChild(refund);
+            }
+            tr.append(userTd, taskTd, sizeTd, paidTd, stateTd, dateTd, actionsTd);
+            tbody.appendChild(tr);
+        });
+        document.getElementById("svc-empty").hidden = rows.length > 0;
+    }
+    async function loadServiceTasks() {
+        const data = await apiFetch("/api/admin/service/tasks");
+        svcTasks = data.tasks || [];
+        const summary = data.summary || {};
+        document.getElementById("svc-queued").textContent = String(summary.queued ?? 0);
+        document.getElementById("svc-active").textContent = String(summary.active ?? 0);
+        const running = svcTasks.find((task) => ["preparing", "running", "packaging"].includes(task.status));
+        document.getElementById("svc-active-detail").textContent = running ? running.label : "";
+        document.getElementById("svc-revenue").textContent = euros(summary.revenue_cents);
+        document.getElementById("svc-refunded").textContent = euros(summary.refunded_cents);
+        document.getElementById("svc-free").textContent = bytesLabel(summary.free_disk_bytes);
+        const badge = document.getElementById("tab-service-badge");
+        const open = (summary.queued || 0) + (summary.active || 0);
+        badge.textContent = String(open);
+        badge.hidden = open === 0;
+        renderServiceTasks();
+    }
+    async function cancelServiceTask(task) {
+        const running = ["preparing", "running", "packaging"].includes(task.status);
+        let refund = false;
+        if (running && task.amount_paid_cents) {
+            refund = await askAdminConfirmation({title: T("Cancel task"), message: fmt("Refund {0} to {1} as well? Choose Cancel to stop the task without a refund.", euros(task.amount_paid_cents), task.username), acceptLabel: T("Refund and cancel"), danger: true});
+        }
+        const ok = await askAdminConfirmation({title: T("Cancel task"), message: fmt("Cancel the task of {0} and delete its data? This cannot be undone.", task.username), acceptLabel: T("Cancel task")});
+        if (!ok) return;
+        try {
+            await apiFetch(`/api/admin/service/tasks/${task.id}/cancel`, jsonBody("POST", {refund}));
+        } catch (error) {
+            showAdminNotice({title: T("Cancel task"), message: String(error.message || error)});
+        }
+        loadServiceTasks();
+    }
+    async function refundServiceTask(task) {
+        const ok = await askAdminConfirmation({title: T("Refund"), message: fmt("Refund {0} to {1}? Stripe keeps its fee.", euros(task.amount_paid_cents), task.username), acceptLabel: T("Refund"), danger: false});
+        if (!ok) return;
+        try {
+            await apiFetch(`/api/admin/service/tasks/${task.id}/refund`, {method: "POST"});
+        } catch (error) {
+            showAdminNotice({title: T("Refund"), message: String(error.message || error)});
+        }
+        loadServiceTasks();
+    }
+
     // ---------- Theme and init ----------
     async function loadThemeFromState() {
         try {
@@ -1562,6 +1836,15 @@
 
     ["logs-days", "logs-user", "logs-event"].forEach((id) => document.getElementById(id).addEventListener("change", loadAccessLogs));
     document.getElementById("logs-refresh").addEventListener("click", loadAccessLogs);
+
+    document.getElementById("svc-form").addEventListener("submit", saveServiceSettings);
+    document.getElementById("svc-stripe-test").addEventListener("click", testStripe);
+    document.getElementById("svc-refresh").addEventListener("click", () => { loadServiceSettings(); loadServiceTasks(); });
+    document.getElementById("svc-filter").addEventListener("change", renderServiceTasks);
+    document.querySelectorAll("[data-copy-target]").forEach((button) => button.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(document.getElementById(button.dataset.copyTarget).textContent);
+        button.textContent = T("Copied");
+    }));
 
     guardAutofill();
     (async () => {

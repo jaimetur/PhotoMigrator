@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+{{ i18n_head(request) }}
+<title>{% if doc == 'terms' %}Terms of service{% else %}Privacy policy{% endif %} · PhotoMigrator Cloud</title>
+<link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
+<style>
+:root{--bg:#0a0f1e;--card:#121a30;--line:#243050;--ink:#eef2fb;--muted:#a5afc8;--a:#5b8cff;--b:#22d3c5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:#7fe7dc}
+header{border-bottom:1px solid var(--line)}
+.wrap{width:min(860px,100% - 32px);margin:0 auto}
+header .wrap{display:flex;align-items:center;gap:16px;height:64px}
+header a.home{color:var(--ink);text-decoration:none;font-weight:700;font-size:19px}
+header nav{margin-left:auto;display:flex;gap:18px;font-weight:600;font-size:15px}
+header nav a{color:var(--muted);text-decoration:none}header nav a[aria-current="page"]{color:var(--ink)}
+main{padding:48px 0 80px}
+h1{font-size:clamp(32px,5vw,46px);line-height:1.1;margin:0 0 8px;letter-spacing:-.02em}
+.meta{color:var(--muted);margin:0 0 32px}
+.summary{padding:20px 22px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);margin-bottom:32px}
+.summary ul{margin:8px 0 0;padding-left:20px}
+h2{font-size:22px;margin:36px 0 8px}
+p,li{color:#d5dbea}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="home" href="/">PhotoMigrator</a><nav aria-label="Legal"><a href="/terms"{% if doc == 'terms' %} aria-current="page"{% endif %}>Terms of service</a><a href="/privacy"{% if doc == 'privacy' %} aria-current="page"{% endif %}>Privacy policy</a></nav></div></header>
+<main class="wrap">
+{% if doc == 'terms' %}
+<h1>Terms of service</h1>
+<p class="meta">PhotoMigrator Cloud · version {{ terms_version }}</p>
+<div class="summary"><b>In short</b>
+<ul>
+<li>You pay one price per task: {{ price_min }} minimum, then {{ price_gb }} per GB, VAT included.</li>
+<li>If a task fails, you get the full amount back. If you cancel before it starts, too.</li>
+<li>Your files and credentials are deleted when the task ends. We never delete anything in your source.</li>
+</ul></div>
+
+<h2>1. Who provides the service</h2>
+<p>PhotoMigrator Cloud is provided by <b data-no-i18n>{{ operator }}</b> ("we"). You can contact us at <a href="mailto:{{ contact }}" data-no-i18n>{{ contact }}</a>. PhotoMigrator itself is free, open-source software that you can also run on your own computer at no cost.</p>
+<h2>2. What the service does</h2>
+<p>We run PhotoMigrator on our server for you: we process Google or iCloud Takeout exports and upload them to the photo service you choose, we let you download a processed Takeout, or we move a library from one photo service to another.</p>
+<h2>3. Your account and your data</h2>
+<p>You need a PhotoMigrator account. You may only send us photos, videos and credentials that you own or are allowed to use. You must not send content that is illegal. You are responsible for the credentials you give us; we recommend creating keys or app passwords just for the task and revoking them when it ends.</p>
+<h2>4. Quotes and prices</h2>
+<p>Before a task starts we measure your data and test your destination, and we send you a quote with the price, the estimated start and the estimated duration. The price is {{ price_min }} minimum, then {{ price_gb }} per GB of data to process, VAT included. A quote is valid for {{ quote_days }} days. Estimates of start and duration are not guaranteed.</p>
+<h2>5. Payment</h2>
+<p>Payments are made through Stripe. We never see or store your card details. Migrations are paid when you accept the quote. Takeout processing is paid when the result is ready, and the payment is required to download it.</p>
+<h2>6. Refunds and cancellation</h2>
+<p>If a task fails, we refund the full amount automatically. If you cancel a task before it starts, we refund the full amount. Once a task has started, it can be stopped but it is not refunded. Refunds reach your card in 5 to 10 days.</p>
+<h2>7. Downloads</h2>
+<p>A processed Takeout can be downloaded for {{ download_days }} days, in ZIP parts of up to 50 GB. After that it is deleted.</p>
+<h2>8. Deletion of your data</h2>
+<p>The files and credentials of a task are deleted when the task ends, fails, is canceled or its download period ends. We email you when it happens. See the <a href="/privacy">privacy policy</a>.</p>
+<h2>9. Limits</h2>
+<p>Each task can use up to {{ max_space }} of working space on our server, enough for a Takeout of about a third of that size. Tasks run in order of payment.</p>
+<h2>10. Liability</h2>
+<p>We do our best to keep your albums, dates and locations, but we cannot guarantee that every file is supported by the destination service. PhotoMigrator only reads your source and never deletes it, so keep your originals until you have checked the result. To the extent permitted by law, our liability is limited to the amount you paid for the task.</p>
+<h2>11. Changes</h2>
+<p>We may update these terms. The version you accepted is recorded with each task and applies to it.</p>
+<h2>12. Applicable law</h2>
+<p>These terms are governed by the laws of Spain and the European Union, without prejudice to the consumer protection rules of your country of residence.</p>
+{% else %}
+<h1>Privacy policy</h1>
+<p class="meta">PhotoMigrator Cloud · version {{ terms_version }}</p>
+<div class="summary"><b>In short</b>
+<ul>
+<li>Your photos and credentials are used only to run your task, and are deleted when it ends.</li>
+<li>No other user and no person on our side looks at your photos.</li>
+<li>Your card details go to Stripe, never to us.</li>
+</ul></div>
+
+<h2>1. Who is responsible</h2>
+<p><b data-no-i18n>{{ operator }}</b> is responsible for the personal data processed by PhotoMigrator Cloud. Contact: <a href="mailto:{{ contact }}" data-no-i18n>{{ contact }}</a>.</p>
+<h2>2. What data we process</h2>
+<ul>
+<li><b>Account:</b> username, email address, language and the date of your last sign-in.</li>
+<li><b>Task data:</b> the Takeout files you upload or import, the files PhotoMigrator creates from them, and the credentials of the services you choose.</li>
+<li><b>Task records:</b> type of task, size, price, dates and the history of each task (without its files or credentials).</li>
+<li><b>Payments:</b> the amount and the Stripe identifiers of the payment. Stripe processes your card details.</li>
+</ul>
+<h2>3. Why we process it</h2>
+<p>Only to provide the service you request: to quote, run and deliver your tasks, to send you emails about them and to keep the accounting records the law requires. The legal basis is the contract you accept when you create a task, and our legal obligations for payment records.</p>
+<h2>4. How long we keep it</h2>
+<ul>
+<li>Task files and credentials: until the task ends, fails or is canceled, or until the end of the download period ({{ download_days }} days).</li>
+<li>Task records and payments: as long as tax and accounting laws require.</li>
+<li>Account: until you ask us to delete it.</li>
+</ul>
+<h2>5. How we protect it</h2>
+<ul>
+<li>Each task runs in its own isolated folder that no other user can reach.</li>
+<li>Credentials are encrypted with a key that exists only for that task, and both are destroyed when it ends.</li>
+<li>Task files and credentials are not included in our backups.</li>
+<li>Connections use HTTPS, and the servers are in the European Union.</li>
+<li>PhotoMigrator is open source, so anyone can check what it does.</li>
+</ul>
+<h2>6. Who receives it</h2>
+<p>Stripe (payments), the destination and source services you choose, and Dropbox or Microsoft OneDrive only if you connect them to import your Takeout (read-only). We do not sell your data or use it for advertising.</p>
+<h2>7. Cookies</h2>
+<p>We use one cookie to keep you signed in and one to remember your language. No advertising or tracking cookies.</p>
+<h2>8. Your rights</h2>
+<p>You can ask for access to your data, its correction or deletion, limit or object to its processing, and ask for a copy of it, by writing to <a href="mailto:{{ contact }}" data-no-i18n>{{ contact }}</a>. You can also complain to the Spanish Data Protection Agency (aepd.es) or to the authority of your country.</p>
+{% endif %}
+</main>
+<footer><div class="wrap">PhotoMigrator · <a href="/">Home</a> · <a href="/terms">Terms of service</a> · <a href="/privacy">Privacy policy</a></div></footer>
+</body>
+</html>

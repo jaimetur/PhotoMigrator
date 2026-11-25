@@ -9,6 +9,9 @@ msgstr ""
 msgid "'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "'move' と 'remove' はファイルを変更します。先に確認したい場合は 'list' から始めてください。"
 
+msgid "(\"we\"). You can contact us at"
+msgstr "（以下「当社」）です。お問い合わせ先："
+
 msgid "(Makes your output portable but requires more HDD space)."
 msgstr "(出力を持ち運び可能にしますが、より多くの HDD 容量が必要です)。"
 
@@ -38,6 +41,12 @@ msgstr "+ 追加"
 
 msgid "+ Add row"
 msgstr "+ 行を追加"
+
+msgid ". PhotoMigrator itself is free, open-source software that you can also run on your own computer at no cost."
+msgstr "。PhotoMigrator 自体は無料のオープンソースソフトウェアで、ご自身のコンピューターでも無料で実行できます。"
+
+msgid ". You can also complain to the Spanish Data Protection Agency (aepd.es) or to the authority of your country."
+msgstr "。スペインのデータ保護機関 (aepd.es) またはお住まいの国の当局に苦情を申し立てることもできます。"
 
 msgid "/app/data subpath"
 msgstr "/app/data のサブパス"
@@ -93,17 +102,29 @@ msgstr "<b>{0}</b> ({1}) が PhotoMigrator アカウントを申請しました�
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr "<b>{0}</b> ({1}) が PhotoMigrator アカウントを申請しました。<br>メッセージ: <i>{2}</i>"
 
+msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
+msgstr "コピーはこのタスク専用に暗号化され、終了時に削除されます。保存済みのアカウントは変更されません。"
+
 msgid "A job${lastMeta ?"
 msgstr "A job${lastMeta ?"
 
 msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
 msgstr "'Albums' サブフォルダー内のサブフォルダーごとに新しいアルバムが作成されます。"
 
+msgid "A processed Takeout can be downloaded for {0} days, in ZIP parts of up to {1} GB. After that it is deleted."
+msgstr "処理済みの Takeout は {0} 日間、最大 {1} GB の ZIP 分割ファイルでダウンロードできます。その後は削除されます。"
+
 msgid "A whole folder, albums included"
 msgstr "アルバムを含むフォルダー全体"
 
 msgid "ALL_PHOTOS Folder Name"
 msgstr "ALL_PHOTOS フォルダー名"
+
+msgid "API key"
+msgstr "API キー"
+
+msgid "API key (optional)"
+msgstr "API キー（任意）"
 
 msgid "API key admin"
 msgstr "管理者 API キー"
@@ -180,6 +201,15 @@ msgstr "iCloud Takeout について"
 msgid "About {0}"
 msgstr "{0} について"
 
+msgid "About {0} days"
+msgstr "約 {0} 日"
+
+msgid "About {0} hours"
+msgstr "約 {0} 時間"
+
+msgid "Accept the terms of service and the privacy policy to continue."
+msgstr "続行するには、利用規約とプライバシーポリシーに同意してください。"
+
 msgid "Access Logs"
 msgstr "アクセスログ"
 
@@ -210,6 +240,9 @@ msgstr "アカウント ID"
 msgid "Account name"
 msgstr "アカウント名"
 
+msgid "Account of Settings > Service credentials"
+msgstr "設定 > サービスの認証情報 のアカウント"
+
 msgid "Account request"
 msgstr "アカウント申請"
 
@@ -230,6 +263,12 @@ msgstr "アカウント {0}: Immich Photos のパスワード（API_KEY を指�
 
 msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
 msgstr "アカウント {0}: Immich Photos のユーザー名（API_KEY を指定しない場合は必須）"
+
+msgid "Account:"
+msgstr "アカウント："
+
+msgid "Account: until you ask us to delete it."
+msgstr "アカウント：削除をご依頼いただくまで。"
 
 msgid "Accounts"
 msgstr "アカウント"
@@ -258,6 +297,9 @@ msgstr "アクティビティ"
 msgid "Activity · PhotoMigrator"
 msgstr "アクティビティ · PhotoMigrator"
 
+msgid "Add Takeout files"
+msgstr "Takeout ファイルを追加"
+
 msgid "Add row"
 msgstr "行を追加"
 
@@ -266,6 +308,12 @@ msgstr "各アカウントの URL と認証情報を次の場所に追加して�
 
 msgid "Add them in Settings"
 msgstr "設定で追加してください"
+
+msgid "Add your Takeout files"
+msgstr "Takeout ファイルを追加してください"
+
+msgid "Added to the queue."
+msgstr "キューに追加しました。"
 
 msgid "Admin"
 msgstr "管理者"
@@ -366,6 +414,9 @@ msgstr "すべての写真フォルダーの構造"
 msgid "All roles"
 msgstr "すべてのロール"
 
+msgid "All states"
+msgstr "すべての状態"
+
 msgid "All users"
 msgstr "すべてのユーザー"
 
@@ -389,6 +440,9 @@ msgstr "ユーザー名とパスワードを記載したメールが新しいユ
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
 msgstr "ここで保存した値はデータベースに保持されますが、その上書きが設定されている間は無視されます。"
+
+msgid "App password"
+msgstr "アプリパスワード"
 
 msgid "App settings"
 msgstr "アプリ設定"
@@ -531,6 +585,9 @@ msgstr "バックアップスケジューラー"
 msgid "Before a restore"
 msgstr "復元前"
 
+msgid "Before a task starts we measure your data and test your destination, and we send you a quote with the price, the estimated start and the estimated duration. The price is 5.00 € minimum, then 0.05 € per GB of data to process, VAT included. A quote is valid for 7 days. Estimates of start and duration are not guaranteed."
+msgstr "タスクを開始する前に、データのサイズを測定して送信先をテストし、料金、開始予定、所要時間の見積もりを記載した見積書をお送りします。料金は最低 5.00 €、以降は処理するデータ 1 GB あたり 0.05 €（消費税込み）です。見積もりの有効期間は 7 日間です。開始時期と所要時間の見積もりは保証されません。"
+
 msgid "Blue palette"
 msgstr "ブルーパレット"
 
@@ -555,11 +612,32 @@ msgstr "注意: 非推奨 (Google Takeout 処理の中核です)。テスト目�
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "バックエンドで CSV エンドポイントが利用できません。Web バックエンドを再起動または更新してください。"
 
+msgid "Calculate VAT with Stripe Tax (prices include VAT)"
+msgstr "Stripe Tax で消費税を計算する（料金は消費税込み）"
+
 msgid "Can sign in right away"
 msgstr "すぐにサインイン可能"
 
 msgid "Cancel"
 msgstr "キャンセル"
+
+msgid "Cancel and delete"
+msgstr "キャンセルして削除"
+
+msgid "Cancel refunds tasks that have not started. A running task can be canceled with or without a refund."
+msgstr "キャンセルすると、開始前のタスクは返金されます。実行中のタスクは、返金ありまたはなしでキャンセルできます。"
+
+msgid "Cancel task"
+msgstr "タスクをキャンセル"
+
+msgid "Cancel the task of {0} and delete its data? This cannot be undone."
+msgstr "{0} のタスクをキャンセルし、そのデータを削除しますか？この操作は元に戻せません。"
+
+msgid "Cancel this task and delete its data? You get the full amount back."
+msgstr "このタスクをキャンセルし、そのデータを削除しますか？全額が返金されます。"
+
+msgid "Canceled"
+msgstr "キャンセル済み"
 
 msgid "Cannot change role of the last active admin."
 msgstr "最後の有効な管理者のロールは変更できません。"
@@ -609,11 +687,29 @@ msgstr "変更はすぐに適用され、自動的に保存されます。"
 msgid "Changes your library"
 msgstr "ライブラリを変更します"
 
+msgid "Check again"
+msgstr "もう一度確認"
+
+msgid "Check and get a quote"
+msgstr "確認して見積もりを取得"
+
+msgid "Check the accounts"
+msgstr "アカウントを確認"
+
 msgid "Check the command preview, press Run and watch it live in"
 msgstr "コマンドのプレビューを確認し、「実行」を押して、次の画面でライブ表示を確認してください:"
 
 msgid "Check the command, press Run and watch it live in"
 msgstr "コマンドを確認し、Run を押して次の画面でライブで確認します："
+
+msgid "Checking"
+msgstr "確認中"
+
+msgid "Checking your task"
+msgstr "タスクを確認しています"
+
+msgid "Checking..."
+msgstr "確認中..."
 
 msgid "Choose a subfolder inside one of your assigned roots."
 msgstr "割り当てられたルートのいずれかの中にあるサブフォルダーを選択してください。"
@@ -627,14 +723,26 @@ msgstr "ツールを選択"
 msgid "Choose an action"
 msgstr "アクションを選択"
 
+msgid "Choose the folder with your Takeout"
+msgstr "Takeout が入っているフォルダーを選択"
+
 msgid "Choose the retained asset for '--remove-duplicates-assets'."
 msgstr "'--remove-duplicates-assets' で残すアセットを選択します。"
 
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr "'--remove-duplicates-assets' で残すアセットを選択します。more-people/tags 戦略では、異なる人物の数が最も多いアセットを残し、次にタグ数を比較し、最後に指定された同点時の基準を適用します。'better-quality' は Immich ネイティブの提案を使用し、'oldest' と 'newest' はアップロード日を使用します(デフォルト: Immich ネイティブの重複アルゴリズムでは more-people/tags-then-better-quality、PhotoMigrator の重複アルゴリズムでは more-people/tags-then-oldest)。"
 
+msgid "Choose your Takeout folder"
+msgstr "Takeout フォルダーを選択"
+
+msgid "Chosen folder: {0}"
+msgstr "選択したフォルダー：{0}"
+
 msgid "City"
 msgstr "都市"
+
+msgid "Clean my Takeout and upload it to my photo service."
+msgstr "Takeout をクリーンアップして、フォトサービスにアップロードします。"
 
 msgid "Clean up"
 msgstr "クリーンアップ"
@@ -663,6 +771,18 @@ msgstr "追加せずに閉じる"
 msgid "Close without creating"
 msgstr "作成せずに閉じる"
 
+msgid "Cloud service"
+msgstr "クラウドサービス"
+
+msgid "Cloud service terms"
+msgstr "クラウドサービス利用規約"
+
+msgid "Cloud service · PhotoMigrator"
+msgstr "クラウドサービス · PhotoMigrator"
+
+msgid "Cloud → cloud"
+msgstr "クラウド → クラウド"
+
 msgid "Collapse panel"
 msgstr "パネルを折りたたむ"
 
@@ -680,6 +800,9 @@ msgstr "コマンド"
 
 msgid "Command copied"
 msgstr "コマンドをコピーしました"
+
+msgid "Completed"
+msgstr "完了"
 
 msgid "Config status: auto-save failed ({0})"
 msgstr "設定の状態: 自動保存に失敗しました ({0})"
@@ -771,8 +894,17 @@ msgstr "実行中に使用する確認と外部ツール。"
 msgid "Connect your services"
 msgstr "サービスを接続"
 
+msgid "Connect {0}"
+msgstr "{0} に接続"
+
+msgid "Connect {0} with read-only access and choose the folder where Takeout saved the files."
+msgstr "{0} に読み取り専用で接続し、Takeout がファイルを保存したフォルダーを選択します。"
+
 msgid "Connection security"
 msgstr "接続のセキュリティ"
+
+msgid "Connections use HTTPS, and the servers are in the European Union."
+msgstr "通信には HTTPS を使用し、サーバーは欧州連合内にあります。"
 
 msgid "Consolidate Albums Names"
 msgstr "アルバム名の統合"
@@ -783,6 +915,21 @@ msgstr "類似アルバムを統合"
 msgid "Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets."
 msgstr "新しいアセットをアップロードせずに、ターゲットサービス上で同等の既存クラウドアルバム名のグループを直接統合します。"
 
+msgid "Contact email"
+msgstr "連絡先メール"
+
+msgid "Continue"
+msgstr "続行"
+
+msgid "Continue upload"
+msgstr "アップロードを再開"
+
+msgid "Copied"
+msgstr "コピーしました"
+
+msgid "Copy"
+msgstr "コピー"
+
 msgid "Copy album files instead of symlinks"
 msgstr "シンボリックリンクの代わりにアルバムファイルをコピー"
 
@@ -791,6 +938,9 @@ msgstr "コマンドをコピー"
 
 msgid "Copy failed"
 msgstr "コピーに失敗しました"
+
+msgid "Copy link"
+msgstr "リンクをコピー"
 
 msgid "Copy log"
 msgstr "ログをコピー"
@@ -825,6 +975,9 @@ msgstr "<INPUT_FOLDER> の処理済みコピー(または移動したクロー�
 msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date. By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided. Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy. Example: --organize-local-folder-by-date ./UnsortedLibrary"
 msgstr "<INPUT_FOLDER> の処理済みコピー(または移動したクローン)を作成し、ファイルを日付別に整理します。デフォルトでは、出力は 'year/month' 構造を使用し、'-o/--output-folder' が指定されていない限り '<INPUT_FOLDER>_processed_<TIMESTAMP>' に保存されます。レイアウトを変更するには '--organize-folder-structure'、出力フォルダーが明示されていない場合に生成されるサフィックスを変更するには '--organize-output-folder-suffix'、コピーではなく移動するには '--move-original-files' を使用します。例: --organize-local-folder-by-date ./UnsortedLibrary"
 
+msgid "Create a task to migrate a Takeout to your photo service, fix a Takeout or move a library between services."
+msgstr "Takeout をフォトサービスに移行する、Takeout を修復する、またはサービス間でライブラリを移動するタスクを作成します。"
+
 msgid "Create failed: {0}"
 msgstr "作成に失敗しました: {0}"
 
@@ -836,6 +989,9 @@ msgstr "'--account-id' (デフォルト 1) の Google Photos リフレッシュ�
 
 msgid "Create user"
 msgstr "ユーザーを作成"
+
+msgid "Created"
+msgstr "作成日時"
 
 msgid "Created From"
 msgstr "作成日(開始)"
@@ -851,6 +1007,12 @@ msgstr "作成中…"
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
 msgstr "認証情報とサービス設定は、ユーザーごとに Web データベースへ保存されます。機密値は保存時に暗号化され、すべての機能で再利用されます。"
+
+msgid "Credentials are encrypted with a key that exists only for that task, and both are destroyed when it ends."
+msgstr "認証情報は、そのタスク専用にのみ存在するキーで暗号化され、タスク終了時に両方とも破棄されます。"
+
+msgid "Credentials encrypted with a key for this task only"
+msgstr "認証情報はこのタスク専用のキーで暗号化"
 
 msgid "Credentials for account {0} found in Settings"
 msgstr "設定でアカウント {0} の認証情報が見つかりました"
@@ -894,8 +1056,29 @@ msgstr "ダーク UI パレット"
 msgid "Dashboard"
 msgstr "ダッシュボード"
 
+msgid "Data and credentials deleted from our server on {0}."
+msgstr "データと認証情報は {0} に当社のサーバーから削除されました。"
+
+msgid "Data and credentials deleted from our server."
+msgstr "データと認証情報は当社のサーバーから削除されました。"
+
+msgid "Data and credentials deleted on {0}"
+msgstr "データと認証情報は {0} に削除されました"
+
+msgid "Data and credentials deleted when it ends"
+msgstr "データと認証情報は終了時に削除されます"
+
+msgid "Data deleted on {0}"
+msgstr "データは {0} に削除されました"
+
 msgid "Data folder"
 msgstr "データフォルダー"
+
+msgid "Data measured: {0}"
+msgstr "測定済みデータ：{0}"
+
+msgid "Data to move"
+msgstr "移動するデータ"
 
 msgid "Database"
 msgstr "データベース"
@@ -978,6 +1161,9 @@ msgstr "データベースの行を削除"
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr "削除エンドポイントが利用できません。Web インターフェースのバックエンドを再起動してからもう一度お試しください。"
 
+msgid "Delete now"
+msgstr "今すぐ削除"
+
 msgid "Delete row"
 msgstr "行を削除"
 
@@ -990,6 +1176,9 @@ msgstr "バックアップ {0} を削除しますか？この操作は元に戻�
 msgid "Delete the {0} selected users? This action cannot be undone."
 msgstr "選択した {0} 人のユーザーを削除しますか？この操作は元に戻せません。"
 
+msgid "Delete this task and its data?"
+msgstr "このタスクとそのデータを削除しますか？"
+
 msgid "Delete user"
 msgstr "ユーザーを削除"
 
@@ -998,6 +1187,12 @@ msgstr "ユーザー {0} を削除しますか？この操作は元に戻せま�
 
 msgid "Delete {0}"
 msgstr "{0} を削除"
+
+msgid "Deleted on"
+msgstr "削除日"
+
+msgid "Deleted on {0}"
+msgstr "{0} に削除"
 
 msgid "Demo"
 msgstr "デモ"
@@ -1011,11 +1206,20 @@ msgstr "デモロールは制限されています"
 msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
 msgstr "デモロールではこの設定操作を直接実行できません。有効な管理者のユーザー名とパスワードを入力してください。"
 
+msgid "Destination"
+msgstr "送信先"
+
 msgid "Destination Required"
 msgstr "宛先が必要です"
 
+msgid "Destination checked: it can receive uploads."
+msgstr "送信先を確認しました：アップロードを受け付けられます。"
+
 msgid "Destination folder"
 msgstr "宛先フォルダー"
+
+msgid "Destination service"
+msgstr "送信先サービス"
 
 msgid "Details"
 msgstr "詳細"
@@ -1047,14 +1251,35 @@ msgstr "すべてのアルバムと、アルバムに属さないすべてのア
 msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened). - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure. Example: --download-all ./MyLibrary"
 msgstr "すべてのアルバムと、アルバムに属さないすべてのアセットを <OUTPUT_FOLDER> にダウンロードします。- アルバムは <OUTPUT_FOLDER>/Albums/<AlbumName> にダウンロードされます(フラット化)。- アルバムに属さないアセットは year/month 構造で <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ に保存されます。例: --download-all ./MyLibrary"
 
+msgid "Download days"
+msgstr "ダウンロード日数"
+
+msgid "Download ready."
+msgstr "ダウンロードの準備ができました。"
+
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
 msgstr "特定のアルバムを <OUTPUT_FOLDER> にダウンロードします(必須: -o/--output-folder)。"
 
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder). - Use 'ALL' to download ALL albums. - Use patterns: e.g. --download-albums 'dron*' - Multiple albums can be separated by comma or space and quoted. Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
 msgstr "特定のアルバムを <OUTPUT_FOLDER> にダウンロードします(必須: -o/--output-folder)。- 'ALL' を使用するとすべてのアルバムをダウンロードします。- パターンも使用できます(例: --download-albums 'dron*')。- 複数のアルバムはカンマまたはスペースで区切り、引用符で囲めます。例: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
 
+msgid "Download speed (Mbps)"
+msgstr "ダウンロード速度 (Mbps)"
+
 msgid "Drag from bottom edge or bottom corners to resize the log panel"
 msgstr "下端または下隅からドラッグしてログパネルのサイズを変更します"
+
+msgid "Drop your Takeout ZIP files here"
+msgstr "Takeout の ZIP ファイルをここにドロップ"
+
+msgid "Dropbox App key"
+msgstr "Dropbox アプリキー"
+
+msgid "Dropbox App secret"
+msgstr "Dropbox アプリシークレット"
+
+msgid "Dropbox redirect URI"
+msgstr "Dropbox リダイレクト URI"
 
 msgid "Dup asset keeper"
 msgstr "重複アセットの保持基準"
@@ -1086,6 +1311,9 @@ msgstr "重複 CSV"
 msgid "Duplicates, folders"
 msgstr "重複、フォルダー"
 
+msgid "Duration"
+msgstr "所要時間"
+
 msgid "Duration: <b>{0}</b>. Last lines of the log:"
 msgstr "所要時間: <b>{0}</b>。ログの最後の行:"
 
@@ -1094,6 +1322,12 @@ msgstr "アップロード中、同等の既存アルバム名を 1 つのグル
 
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
 msgstr "アップロード中、同等の既存アルバム名を 1 つのグループとして扱い、それらのアセットを正規のアルバムに統合します。余分なアルバムは、サービスがアルバム削除に対応している場合にのみ削除されます。"
+
+msgid "Each task can use up to 10.0 TB of working space on our server, enough for a Takeout of about a third of that size. Tasks run in order of payment."
+msgstr "各タスクは、当社サーバー上で最大 10.0 TB の作業領域を使用でき、その約 3 分の 1 のサイズの Takeout に十分です。タスクは支払い順に実行されます。"
+
+msgid "Each task runs in its own isolated folder that no other user can reach."
+msgstr "各タスクは独自の分離されたフォルダーで実行され、他のユーザーはアクセスできません。"
 
 msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
 msgstr "値を編集し、✓ を押してその行を保存します。キーは保護されています。1 ページあたり {0} 行。"
@@ -1112,6 +1346,9 @@ msgstr "メール"
 
 msgid "Email (SMTP)"
 msgstr "メール (SMTP)"
+
+msgid "Email (optional)"
+msgstr "メール（任意）"
 
 msgid "Email check"
 msgstr "メールの確認"
@@ -1191,6 +1428,12 @@ msgstr "有効"
 msgid "Enabled by default; use '--no-preview-album-actions' to disable it."
 msgstr "デフォルトで有効です。無効にするには '--no-preview-album-actions' を使用してください。"
 
+msgid "Enabled · free"
+msgstr "有効 · 無料"
+
+msgid "Enabled · paid"
+msgstr "有効 · 有料"
+
 msgid "Encryption"
 msgstr "暗号化"
 
@@ -1199,6 +1442,9 @@ msgstr "終了"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "フォルダー名、または次の内部の絶対パスを入力してください:"
+
+msgid "Enter them for this task only"
+msgstr "このタスクにのみ入力"
 
 msgid "Env override"
 msgstr "環境変数による上書き"
@@ -1211,6 +1457,12 @@ msgstr "エラー: {0}"
 
 msgid "Estimated End"
 msgstr "終了予定"
+
+msgid "Estimated start"
+msgstr "開始予定"
+
+msgid "Estimated start: {0}. Estimated duration: {1}."
+msgstr "開始予定：{0}。所要時間の見積もり：{1}。"
 
 msgid "Event"
 msgstr "イベント"
@@ -1392,6 +1644,9 @@ msgstr "パネルを展開"
 msgid "Expand/collapse section"
 msgstr "セクションを展開/折りたたむ"
 
+msgid "Expired"
+msgstr "期限切れ"
+
 msgid "Export Config"
 msgstr "設定をエクスポート"
 
@@ -1410,11 +1665,17 @@ msgstr "展開した ZIP: {0} ({1} ファイル) |"
 msgid "Extracted ZIPs: {0}\\n"
 msgstr "展開した ZIP: {0}\\n"
 
+msgid "Failed"
+msgstr "失敗"
+
 msgid "Failed sign in"
 msgstr "サインイン失敗"
 
 msgid "Failed: {0}"
 msgstr "失敗: {0}"
+
+msgid "Files and credentials deleted when it ends"
+msgstr "ファイルと認証情報は終了時に削除されます"
 
 msgid "Fill at least one value."
 msgstr "値を 1 つ以上入力してください。"
@@ -1470,6 +1731,9 @@ msgstr "重複を検索"
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr "ファイルサイズと内容の確認を使用して、1 つ以上のフォルダー内の重複を検索します。"
 
+msgid "Finished"
+msgstr "終了"
+
 msgid "First page"
 msgstr "最初のページ"
 
@@ -1491,8 +1755,14 @@ msgstr "Google または Apple のエクスポートを修復"
 msgid "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."
 msgstr "Google Photos Takeout エクスポートの日付とメタデータを修正し、アルバムを整ったライブラリとして再構築します。"
 
+msgid "Fix my Takeout"
+msgstr "Takeout を修復"
+
 msgid "Fix symlinks · Rename folders · Organize by date · Duplicates"
 msgstr "シンボリックリンクの修復 · フォルダー名の変更 · 日付別に整理 · 重複"
+
+msgid "Fix the problem shown above and check again, or delete the task and create it again with other credentials."
+msgstr "上に表示された問題を解決してもう一度確認するか、タスクを削除して別の認証情報で作り直してください。"
 
 msgid "Folder"
 msgstr "フォルダー"
@@ -1536,8 +1806,14 @@ msgstr "{0} のフォルダーを変更しました"
 msgid "Folders to scan"
 msgstr "スキャンするフォルダー"
 
+msgid "Follow it"
+msgstr "進捗を見る"
+
 msgid "Follow its live progress and log in Activity."
 msgstr "進行状況とログは「アクティビティ」でライブ表示されます。"
+
+msgid "Follow the live dashboard and the log in Activity. A task that has started is not refunded if you stop it."
+msgstr "ライブダッシュボードとログはアクティビティで確認できます。開始済みのタスクを停止しても返金されません。"
 
 msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: 3). Only used when '--try-small-albums-grouping' is enabled."
 msgstr "Consolidate Albums Names で、アルバムを小さいと見なすアセットの最大数を設定します (デフォルト: 3)。'--try-small-albums-grouping' が有効な場合にのみ使用されます。"
@@ -1599,14 +1875,23 @@ msgstr "パスワード変更を強制"
 msgid "Force password change on first login"
 msgstr "初回ログイン時にパスワード変更を強制"
 
+msgid "Free"
+msgstr "無料"
+
 msgid "Free disk space"
 msgstr "空きディスク容量"
+
+msgid "Free for your account"
+msgstr "お客様のアカウントでは無料"
 
 msgid "Friday"
 msgstr "金曜日"
 
 msgid "From"
 msgstr "送信元"
+
+msgid "Full refund if a task fails"
+msgstr "タスクが失敗した場合は全額返金"
 
 msgid "GPTH messages"
 msgstr "GPTH メッセージ"
@@ -1671,6 +1956,12 @@ msgstr "Google Takeout"
 msgid "Google Takeout · PhotoMigrator"
 msgstr "Google Takeout · PhotoMigrator"
 
+msgid "Google Takeout → Download"
+msgstr "Google Takeout → ダウンロード"
+
+msgid "Google Takeout → Immich Photos"
+msgstr "Google Takeout → Immich Photos"
+
 msgid "Green palette"
 msgstr "グリーンパレット"
 
@@ -1689,6 +1980,9 @@ msgstr "{0} 様、"
 msgid "Hide password"
 msgstr "パスワードを非表示"
 
+msgid "History"
+msgstr "履歴"
+
 msgid "Home"
 msgstr "ホーム"
 
@@ -1703,6 +1997,12 @@ msgstr "毎時"
 
 msgid "How to migrate"
 msgstr "移行の手順"
+
+msgid "How we protect your data"
+msgstr "データの保護方法"
+
+msgid "I accept the"
+msgstr "次に同意します："
 
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "Config.ini に IMMICH_USERNAME_2/IMMICH_PASSWORD_2 または IMMICH_API_KEY_USER_2 のエントリが存在する必要があります。"
@@ -1739,6 +2039,12 @@ msgstr "条件"
 
 msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
 msgstr "'-AlbFolder, --albums-folders <ALBUMS_FOLDER>' も指定した場合、それらのフォルダーのアルバムも作成されます。"
+
+msgid "If a task fails, we refund the full amount automatically. If you cancel a task before it starts, we refund the full amount. Once a task has started, it can be stopped but it is not refunded. Refunds reach your card in {0} to {1} days."
+msgstr "タスクが失敗した場合、全額を自動的に返金します。開始前にタスクをキャンセルした場合も全額を返金します。開始後のタスクは停止できますが、返金されません。返金はカードに {0}～{1} 日で反映されます。"
+
+msgid "If a task fails, you get the full amount back. If you cancel before it starts, too."
+msgstr "タスクが失敗した場合は全額が返金されます。開始前にキャンセルした場合も同様です。"
 
 msgid "If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input."
 msgstr "内部に ZIP ファイルが見つかった場合、まず ZIP が '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>' に展開され、そのフォルダーが入力として使用されます。"
@@ -1803,8 +2109,23 @@ msgstr "Takeout の人物マップがある場合、Google Takeout の人物ラ�
 msgid "Import Google Takeout person labels into Immich when a Takeout people map is available. Only applies to an Immich destination or Immich Upload All/Upload Albums. (default: True)."
 msgstr "Takeout の人物マップがある場合、Google Takeout の人物ラベルを Immich にインポートします。宛先が Immich の場合、または Immich へのすべてアップロード/アルバムのアップロードにのみ適用されます。(デフォルト: True)"
 
+msgid "Import from Dropbox"
+msgstr "Dropbox からインポート"
+
+msgid "Import from OneDrive"
+msgstr "OneDrive からインポート"
+
 msgid "Import people"
 msgstr "人物をインポート"
+
+msgid "Imports · Dropbox and OneDrive"
+msgstr "インポート · Dropbox と OneDrive"
+
+msgid "In short"
+msgstr "要点"
+
+msgid "In the queue"
+msgstr "キュー待ち"
 
 msgid "Inactive"
 msgstr "無効"
@@ -1893,6 +2214,9 @@ msgstr "直近 {0} 日間"
 msgid "Last {0} hours"
 msgstr "直近 {0} 時間"
 
+msgid "Legal"
+msgstr "法的情報"
+
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr "英字、数字、ドット、ハイフン、アンダースコア"
 
@@ -1907,6 +2231,9 @@ msgstr "一覧表示のみ、重複をフォルダーへ移動、または削除
 
 msgid "List, move or remove duplicates"
 msgstr "重複を一覧表示、移動、削除"
+
+msgid "Live mode"
+msgstr "本番モード"
 
 msgid "Load Table"
 msgstr "テーブルを読み込む"
@@ -1980,6 +2307,12 @@ msgstr "メッセージ: {0}"
 msgid "Migrate"
 msgstr "移行"
 
+msgid "Migrations and Takeout processing that remote users run on this server, with Stripe payments. Administrators never see the files or credentials of a task."
+msgstr "リモートユーザーがこのサーバー上で実行する移行と Takeout 処理で、支払いは Stripe で行います。管理者がタスクのファイルや認証情報を見ることはありません。"
+
+msgid "Minimum price (€)"
+msgstr "最低料金 (€)"
+
 msgid "Missing Required Arguments"
 msgstr "必須引数が不足しています"
 
@@ -2007,6 +2340,9 @@ msgstr "ライブラリ全体を一度に移行"
 msgid "Move mode is on"
 msgstr "移動モードがオンです"
 
+msgid "Move my library from one service to another."
+msgstr "ライブラリをあるサービスから別のサービスへ移動します。"
+
 msgid "Move the original folder into the processed output instead of copying it first."
 msgstr "最初にコピーする代わりに、元のフォルダーを処理済みの出力先へ移動します。"
 
@@ -2024,6 +2360,9 @@ msgstr "複数のアルバムはカンマまたはスペースで区切り、引
 
 msgid "Must change password"
 msgstr "パスワード変更が必要"
+
+msgid "My tasks"
+msgstr "マイタスク"
 
 msgid "Names of the folders that PhotoMigrator creates."
 msgstr "PhotoMigrator が作成するフォルダーの名前。"
@@ -2052,6 +2391,9 @@ msgstr "新しいパスワード"
 msgid "New password for {0}"
 msgstr "{0} の新しいパスワード"
 
+msgid "New task"
+msgstr "新しいタスク"
+
 msgid "New user"
 msgstr "新規ユーザー"
 
@@ -2072,6 +2414,9 @@ msgstr "NextCloud Photos · PhotoMigrator"
 
 msgid "No"
 msgstr "いいえ"
+
+msgid "No Takeout files here"
+msgstr "ここに Takeout ファイルはありません"
 
 msgid "No additional help for this field."
 msgstr "この項目に関する追加のヘルプはありません。"
@@ -2103,6 +2448,18 @@ msgstr "実行中のジョブはありません"
 msgid "No log file"
 msgstr "ログファイルがありません"
 
+msgid "No other user and no person on our side looks at your photos."
+msgstr "他のユーザーも、当社の担当者も、お客様の写真を見ることはありません。"
+
+msgid "No other user or person can see them"
+msgstr "他のユーザーや担当者は閲覧できません"
+
+msgid "No tasks yet"
+msgstr "タスクはまだありません"
+
+msgid "No tasks yet."
+msgstr "タスクはまだありません。"
+
 msgid "No users match the current filters."
 msgstr "現在のフィルターに一致するユーザーはいません。"
 
@@ -2127,6 +2484,12 @@ msgstr "未設定"
 msgid "Notice"
 msgstr "お知らせ"
 
+msgid "Number"
+msgstr "番号"
+
+msgid "Number {0} in the queue · starts about {1}"
+msgstr "キューの {0} 番目 · {1} ごろ開始"
+
 msgid "OAuth Client ID for Google Photos account {0}"
 msgstr "Google Photos アカウント {0} の OAuth クライアント ID"
 
@@ -2135,6 +2498,12 @@ msgstr "Google Photos アカウント {0} の OAuth クライアントシーク�
 
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Google Photos アカウント {0} の OAuth リフレッシュトークン"
+
+msgid "OAuth client ID"
+msgstr "OAuth クライアント ID"
+
+msgid "OAuth client secret"
+msgstr "OAuth クライアントシークレット"
 
 msgid "Ocean"
 msgstr "オーシャン"
@@ -2169,6 +2538,15 @@ msgstr "ワンタイムパスワード"
 msgid "One value per line or comma-separated"
 msgstr "値を 1 行に 1 つ、またはカンマ区切りで入力"
 
+msgid "OneDrive Client ID"
+msgstr "OneDrive クライアント ID"
+
+msgid "OneDrive Client secret"
+msgstr "OneDrive クライアントシークレット"
+
+msgid "OneDrive redirect URI"
+msgstr "OneDrive リダイレクト URI"
+
 msgid "Online now"
 msgstr "現在オンライン"
 
@@ -2180,6 +2558,12 @@ msgstr "この期間に撮影されたアイテムのみ。片側を空欄にす
 
 msgid "Only assets taken in this country or city, or where this person appears."
 msgstr "この国や都市で撮影された、またはこの人物が写っているアイテムのみ。"
+
+msgid "Only to provide the service you request: to quote, run and deliver your tasks, to send you emails about them and to keep the accounting records the law requires. The legal basis is the contract you accept when you create a task, and our legal obligations for payment records."
+msgstr "ご依頼のサービスを提供するためだけに利用します：タスクの見積もり、実行、提供、タスクに関するメールの送信、および法律で義務付けられた会計記録の保管です。法的根拠は、タスク作成時にお客様が承諾する契約と、支払い記録に関する当社の法的義務です。"
+
+msgid "Open"
+msgstr "開く"
 
 msgid "Open Activity"
 msgstr "アクティビティを開く"
@@ -2208,8 +2592,14 @@ msgstr "ロードマップを開く"
 msgid "Open folder selector"
 msgstr "フォルダーセレクターを開く"
 
+msgid "Open in Activity"
+msgstr "アクティビティで開く"
+
 msgid "Open menu"
 msgstr "メニューを開く"
+
+msgid "Operator name"
+msgstr "運営者名"
 
 msgid "Optional"
 msgstr "任意"
@@ -2322,6 +2712,9 @@ msgstr "設定を上書きしますか?"
 msgid "Page {0} of {1}"
 msgstr "{0} / {1} ページ"
 
+msgid "Paid"
+msgstr "支払い済み"
+
 msgid "Parallel Migration"
 msgstr "並列移行"
 
@@ -2331,6 +2724,9 @@ msgstr "パスワード"
 msgid "Password (at least {0} characters)"
 msgstr "パスワード({0} 文字以上)"
 
+msgid "Password (optional)"
+msgstr "パスワード（任意）"
+
 msgid "Password of {0} changed"
 msgstr "{0} のパスワードを変更しました"
 
@@ -2339,6 +2735,39 @@ msgstr "パスワードのリセット"
 
 msgid "Pattern and replacement"
 msgstr "パターンと置換"
+
+msgid "Pay"
+msgstr "支払う"
+
+msgid "Pay <b>{0}</b> to download it. You have {1} days; after that the result is deleted."
+msgstr "<b>{0}</b> をお支払いいただくとダウンロードできます。期間は {1} 日間で、その後は結果が削除されます。"
+
+msgid "Pay and download"
+msgstr "支払ってダウンロード"
+
+msgid "Pay {0} and start"
+msgstr "{0} を支払って開始"
+
+msgid "Payment page opened."
+msgstr "支払いページを開きました。"
+
+msgid "Payment received"
+msgstr "支払いを受領しました"
+
+msgid "Payment received."
+msgstr "支払いを受領しました。"
+
+msgid "Payment refunded."
+msgstr "支払いは返金されました。"
+
+msgid "Payments are made through Stripe. We never see or store your card details. Migrations are paid when you accept the quote. Takeout processing is paid when the result is ready, and the payment is required to download it."
+msgstr "支払いは Stripe を通じて行われます。カード情報を当社が見たり保存したりすることはありません。移行は見積もりを承諾したときに、Takeout 処理は結果の準備ができたときに支払います。ダウンロードには支払いが必要です。"
+
+msgid "Payments · Stripe"
+msgstr "支払い · Stripe"
+
+msgid "Payments:"
+msgstr "支払い："
 
 msgid "Pending access requests"
 msgstr "保留中のアクセスリクエスト"
@@ -2358,6 +2787,12 @@ msgstr "PhotoMigrator"
 msgid "PhotoMigrator Admin"
 msgstr "PhotoMigrator 管理"
 
+msgid "PhotoMigrator Cloud is provided by"
+msgstr "PhotoMigrator Cloud の提供者は"
+
+msgid "PhotoMigrator Cloud · version 2026-11-25"
+msgstr "PhotoMigrator Cloud · バージョン 2026-11-25"
+
 msgid "PhotoMigrator Login"
 msgstr "PhotoMigrator ログイン"
 
@@ -2367,11 +2802,20 @@ msgstr "PhotoMigrator には ExifTool が組み込まれていますが、別の
 msgid "PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
 msgstr "PhotoMigrator には GPTH が組み込まれていますが、別のバージョンを使用したい場合はこの引数を使用できます。"
 
+msgid "PhotoMigrator is open source, so anyone can check what it does."
+msgstr "PhotoMigrator はオープンソースであり、誰でも動作を確認できます。"
+
+msgid "PhotoMigrator is working on your task."
+msgstr "PhotoMigrator がタスクを処理しています。"
+
 msgid "PhotoMigrator website"
 msgstr "PhotoMigrator の Web サイト"
 
 msgid "Photos"
 msgstr "写真"
+
+msgid "Photos folder"
+msgstr "写真フォルダー"
 
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
 msgstr "写真、動画、アルバムを移行元から移行先へ。ライブダッシュボード付き。"
@@ -2403,6 +2847,9 @@ msgstr "ポート"
 msgid "Port ({0}, {1} or {2})"
 msgstr "ポート ({0}、{1}、または {2})"
 
+msgid "Position"
+msgstr "順位"
+
 msgid "Possible values:"
 msgstr "指定可能な値:"
 
@@ -2423,6 +2870,15 @@ msgstr "お客様のユーザーに対する Web インターフェースの外�
 
 msgid "Prefix album folders with their dates"
 msgstr "アルバムフォルダーの先頭に日付を付ける"
+
+msgid "Preparing download"
+msgstr "ダウンロードを準備中"
+
+msgid "Preparing the download"
+msgstr "ダウンロードを準備しています"
+
+msgid "Preparing your download"
+msgstr "ダウンロードを準備しています"
 
 msgid "Preview Album Actions"
 msgstr "アルバム操作をプレビュー"
@@ -2445,8 +2901,35 @@ msgstr "プレビューを利用できません: {0}"
 msgid "Previous page"
 msgstr "前のページ"
 
+msgid "Price"
+msgstr "料金"
+
+msgid "Price per GB (€)"
+msgstr "1 GB あたりの料金 (€)"
+
+msgid "Price {0} · starts about {1}"
+msgstr "料金 {0} · {1} ごろ開始"
+
+msgid "Price · VAT incl."
+msgstr "料金 · 消費税込み"
+
+msgid "Price: <b>{0}</b> (VAT included)."
+msgstr "料金：<b>{0}</b>（消費税込み）。"
+
+msgid "Price: <b>{0}</b>. This task is free for your account."
+msgstr "料金：<b>{0}</b>。このタスクはお客様のアカウントでは無料です。"
+
 msgid "Primary-key values are protected"
 msgstr "主キーの値は保護されています"
+
+msgid "Privacy"
+msgstr "プライバシー"
+
+msgid "Privacy policy"
+msgstr "プライバシーポリシー"
+
+msgid "Privacy policy · PhotoMigrator Cloud"
+msgstr "プライバシーポリシー · PhotoMigrator Cloud"
 
 msgid "Process Duplicates"
 msgstr "重複を処理"
@@ -2487,6 +2970,9 @@ msgstr "Apple iCloud Photos のエクスポートフォルダー <ICLOUD_EXPORT_
 msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets. If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "Apple iCloud Photos のエクスポートフォルダー <ICLOUD_EXPORT_FOLDER> を処理し、'Photo Details.csv' ファイルから日付を復元してメディアファイルに設定し、アセットを整理します。内部に ZIP ファイルが見つかった場合は、最初に '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>' に展開され、そのフォルダーが入力として使用されます。処理済みのエクスポートは '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>' フォルダーに保存されます。"
 
+msgid "Process it and let me download the result."
+msgstr "処理して、結果をダウンロードできるようにします。"
+
 msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it."
 msgstr "Takeout フォルダー <TAKEOUT_FOLDER> を処理して、すべてのメタデータを修復し、内部のアセットを整理します。"
 
@@ -2502,8 +2988,29 @@ msgstr "挿入する JSON の値を指定してください。"
 msgid "Push Asset Max Size (MB)"
 msgstr "プッシュするアセットの最大サイズ (MB)"
 
+msgid "Queue"
+msgstr "キュー"
+
+msgid "Queued"
+msgstr "キュー待ち"
+
+msgid "Queued again after a server restart."
+msgstr "サーバーの再起動後に再度キューに追加されました。"
+
 msgid "Quick tools"
 msgstr "クイックツール"
+
+msgid "Quote ready"
+msgstr "見積もり完了"
+
+msgid "Quote sent"
+msgstr "見積もり送信済み"
+
+msgid "Quote sent to your email."
+msgstr "見積もりをメールで送信しました。"
+
+msgid "Quote valid for (days)"
+msgstr "見積もりの有効期間（日）"
 
 msgid "Range separator"
 msgstr "範囲の区切り文字"
@@ -2514,11 +3021,23 @@ msgstr "JSON サイドカーから Google Takeout の人物ラベルを読み取
 msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
 msgstr "JSON サイドカーから Google Takeout の人物ラベルを読み取り、人物マップを処理済みの出力に保存します。(デフォルト: True)"
 
+msgid "Read-only access. In Google Takeout choose “Add to Dropbox” or “Add to OneDrive”, then connect it in the next step."
+msgstr "読み取り専用アクセスです。Google Takeout で「Dropbox に追加」または「OneDrive に追加」を選び、次のステップで接続します。"
+
 msgid "Readme"
 msgstr "Readme"
 
+msgid "Ready to download"
+msgstr "ダウンロード可能"
+
 msgid "Ready to run"
 msgstr "実行の準備完了"
+
+msgid "Ready · pay to download"
+msgstr "準備完了 · 支払ってダウンロード"
+
+msgid "Ready · unpaid"
+msgstr "準備完了 · 未払い"
 
 msgid "Reason: {0}"
 msgstr "理由: {0}"
@@ -2541,6 +3060,21 @@ msgstr "テーブルを更新"
 msgid "Refresh token"
 msgstr "リフレッシュトークン"
 
+msgid "Refund"
+msgstr "返金"
+
+msgid "Refund and cancel"
+msgstr "返金してキャンセル"
+
+msgid "Refund {0} to {1} as well? Choose Cancel to stop the task without a refund."
+msgstr "{1} への {0} も返金しますか？返金せずにタスクを停止するには「キャンセル」を選択してください。"
+
+msgid "Refund {0} to {1}? Stripe keeps its fee."
+msgstr "{1} に {0} を返金しますか？Stripe の手数料は返金されません。"
+
+msgid "Refunded"
+msgstr "返金済み"
+
 msgid "Reject Account Request"
 msgstr "アカウント申請を却下"
 
@@ -2552,6 +3086,9 @@ msgstr "リクエストを却下"
 
 msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
 msgstr "{0} のアクセスリクエストを却下しますか？アカウントは削除され、ユーザーにメールが送信されます。"
+
+msgid "Rejected: too large."
+msgstr "拒否：サイズが大きすぎます。"
 
 msgid "Release Notes"
 msgstr "リリースノート"
@@ -2727,11 +3264,29 @@ msgstr "この機能に表示されている項目をデフォルト値に戻し
 msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
 msgstr "{0} を復元しますか？ユーザー、設定、認証情報がバックアップの内容で置き換えられます。現在のデータは先に復元前バックアップとして保存され、再度サインインが必要になる場合があります。"
 
+msgid "Restricted key"
+msgstr "制限付きキー"
+
+msgid "Result"
+msgstr "結果"
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "結果は CSV にエクスポートされ、重複と各項目に選択したアクションを確認できます。"
 
+msgid "Revenue"
+msgstr "売上"
+
+msgid "Review and pay"
+msgstr "確認して支払う"
+
+msgid "Review and start"
+msgstr "確認して開始"
+
 msgid "Review the request"
 msgstr "申請を確認"
+
+msgid "Review the task"
+msgstr "タスクを確認"
 
 msgid "Roadmap"
 msgstr "ロードマップ"
@@ -2817,6 +3372,9 @@ msgstr "スケジュールを保存"
 msgid "Save app settings"
 msgstr "アプリ設定を保存"
 
+msgid "Save cloud service settings"
+msgstr "クラウドサービス設定を保存"
+
 msgid "Save config"
 msgstr "設定を保存"
 
@@ -2846,6 +3404,12 @@ msgstr "自動保存しました。"
 
 msgid "Saved · leave empty to keep it"
 msgstr "保存済み · 空欄のままにすると維持されます"
+
+msgid "Saved."
+msgstr "保存しました。"
+
+msgid "Saved. Leave it empty to keep it."
+msgstr "保存しました。そのままにする場合は空欄のままにしてください。"
 
 msgid "Saving..."
 msgstr "保存中..."
@@ -2885,6 +3449,9 @@ msgstr "ユーザーを検索"
 
 msgid "Search users by username or email"
 msgstr "ユーザー名またはメールアドレスでユーザーを検索"
+
+msgid "Secure payment with Stripe. Valid for {0} days. If the task fails you get the full amount back."
+msgstr "Stripe による安全な支払い。有効期間は {0} 日間です。タスクが失敗した場合は全額が返金されます。"
 
 msgid "Segoe UI"
 msgstr "Segoe UI"
@@ -2994,6 +3561,12 @@ msgstr "送信中…"
 msgid "Server"
 msgstr "サーバー"
 
+msgid "Server address"
+msgstr "サーバーアドレス"
+
+msgid "Service"
+msgstr "サービス"
+
 msgid "Service credentials"
 msgstr "サービスの認証情報"
 
@@ -3002,6 +3575,9 @@ msgstr "新しいパスワードを設定して、確認してください。"
 
 msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
 msgstr "{0} に一時パスワードを設定しますか？ユーザーはすべてのブラウザーからサインアウトされ、次回のサインイン時に新しいパスワードを選択する必要があります。"
+
+msgid "Set by an environment variable"
+msgstr "環境変数で設定済み"
 
 msgid "Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1)."
 msgstr "Synology Photos、Immich Photos、NextCloud Photos、Google Photos のアカウント ID を設定します (デフォルト: 1)。"
@@ -3063,6 +3639,9 @@ msgstr "{0} を表示"
 msgid "Showing the first {0} matching values. Search to narrow them."
 msgstr "一致する最初の {0} 件の値を表示しています。検索して絞り込んでください。"
 
+msgid "Shown in the"
+msgstr "次に表示されます："
+
 msgid "Sign in"
 msgstr "サインイン"
 
@@ -3074,6 +3653,9 @@ msgstr "サインイン"
 
 msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
 msgstr "サインインと管理パネルの変更: 誰が、いつ、どこから何をしたか。"
+
+msgid "Size"
+msgstr "サイズ"
 
 msgid "Skip GPTH tool (not recommended)"
 msgstr "GPTH ツールをスキップ(非推奨)"
@@ -3146,6 +3728,9 @@ msgstr "ソースサービス"
 
 msgid "Source to target"
 msgstr "移行元から移行先へ"
+
+msgid "Space per task (TB)"
+msgstr "タスクごとの容量 (TB)"
 
 msgid "Specify Date Separator used by feature `Auto-Rename Albums Content Based`."
 msgstr "機能 `Auto-Rename Albums Content Based` で使用する日付の区切り文字を指定します。"
@@ -3267,6 +3852,9 @@ msgstr "出力フォルダーのサフィックスを指定します。デフォ
 msgid "Start"
 msgstr "開始"
 
+msgid "Start (you pay when it is ready)"
+msgstr "開始（準備完了時に支払い）"
+
 msgid "Start Time: -"
 msgstr "開始時刻: -"
 
@@ -3281,6 +3869,12 @@ msgstr "移行を開始{0}"
 
 msgid "Start here"
 msgstr "ここから始める"
+
+msgid "Starting"
+msgstr "開始中"
+
+msgid "State"
+msgstr "状態"
 
 msgid "Status: authenticating..."
 msgstr "状態: 認証中..."
@@ -3357,8 +3951,23 @@ msgstr "停止"
 msgid "Stop Running Module?"
 msgstr "実行中のモジュールを停止しますか?"
 
+msgid "Stop this task and delete its data? A task that has started is not refunded."
+msgstr "このタスクを停止し、そのデータを削除しますか？開始済みのタスクは返金されません。"
+
+msgid "Storage connected (read-only)."
+msgstr "ストレージに接続しました（読み取り専用）。"
+
 msgid "Stored backups"
 msgstr "保存済みバックアップ"
+
+msgid "Stripe (payments), the destination and source services you choose, and Dropbox or Microsoft OneDrive only if you connect them to import your Takeout (read-only). We do not sell your data or use it for advertising."
+msgstr "Stripe（支払い）、お客様が選択した送信先および取得元サービス、そして Takeout のインポートのために接続した場合に限り Dropbox または Microsoft OneDrive（読み取り専用）。お客様のデータを販売したり、広告に利用したりすることはありません。"
+
+msgid "Stripe answered correctly ({0} mode)."
+msgstr "Stripe が正常に応答しました（{0} モード）。"
+
+msgid "Summary"
+msgstr "概要"
 
 msgid "Sunday"
 msgstr "日曜日"
@@ -3374,6 +3983,9 @@ msgstr "Synology Photos"
 
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Synology Photos → Immich Photos"
+msgstr "Synology Photos → Immich Photos"
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "ヒント: <TAKEOUT_FOLDER> に元の zip ファイルが含まれている場合でも、それらは保持されます。"
@@ -3414,11 +4026,20 @@ msgstr "テーブルの状態: {0}"
 msgid "Takeout"
 msgstr "Takeout"
 
+msgid "Takeout files imported."
+msgstr "Takeout ファイルをインポートしました。"
+
 msgid "Takeout folder"
 msgstr "Takeout フォルダー"
 
 msgid "Takeout input and output"
 msgstr "Takeout の入力と出力"
+
+msgid "Takeout type"
+msgstr "Takeout の種類"
+
+msgid "Takeout → my cloud"
+msgstr "Takeout → マイクラウド"
 
 msgid "Target"
 msgstr "ターゲット"
@@ -3432,6 +4053,57 @@ msgstr "移行先のターゲットエンドポイントまたはローカルフ
 msgid "Target service"
 msgstr "ターゲットサービス"
 
+msgid "Task"
+msgstr "タスク"
+
+msgid "Task canceled."
+msgstr "タスクをキャンセルしました。"
+
+msgid "Task completed."
+msgstr "タスクが完了しました。"
+
+msgid "Task created. Terms of service accepted."
+msgstr "タスクを作成しました。利用規約に同意済みです。"
+
+msgid "Task data:"
+msgstr "タスクのデータ："
+
+msgid "Task failed."
+msgstr "タスクが失敗しました。"
+
+msgid "Task files and credentials are not included in our backups."
+msgstr "タスクのファイルと認証情報は当社のバックアップに含まれません。"
+
+msgid "Task files and credentials: until the task ends, fails or is canceled, or until the end of the download period ({0} days)."
+msgstr "タスクのファイルと認証情報：タスクが終了、失敗、またはキャンセルされるまで、またはダウンロード期間（{0} 日間）の終了まで。"
+
+msgid "Task records and payments: as long as tax and accounting laws require."
+msgstr "タスクの記録と支払い：税法および会計法で求められる期間。"
+
+msgid "Task records:"
+msgstr "タスクの記録："
+
+msgid "Task started."
+msgstr "タスクを開始しました。"
+
+msgid "Tasks and queue"
+msgstr "タスクとキュー"
+
+msgid "Tasks at a time"
+msgstr "同時実行タスク数"
+
+msgid "Tasks run on this server"
+msgstr "タスクはこのサーバーで実行されます"
+
+msgid "Terms of service"
+msgstr "利用規約"
+
+msgid "Terms of service · PhotoMigrator Cloud"
+msgstr "利用規約 · PhotoMigrator Cloud"
+
+msgid "Test connection"
+msgstr "接続をテスト"
+
 msgid "Test email"
 msgstr "テストメール"
 
@@ -3441,11 +4113,26 @@ msgstr "テストメールの送信に失敗しました:"
 msgid "Test email sent to {0}."
 msgstr "テストメールを {0} に送信しました。"
 
+msgid "Test mode"
+msgstr "テストモード"
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr "アカウントはまだ有効ではありません。有効になりましたらメールでお知らせします。"
 
 msgid "The changes could not be saved. Try again."
 msgstr "変更を保存できませんでした。もう一度お試しください。"
+
+msgid "The check failed."
+msgstr "確認に失敗しました。"
+
+msgid "The cloud service is not enabled on this server."
+msgstr "このサーバーではクラウドサービスが有効になっていません。"
+
+msgid "The data and credentials of the task have been deleted from our server."
+msgstr "タスクのデータと認証情報は当社のサーバーから削除されました。"
+
+msgid "The data and credentials of your task <b>{0}</b> were deleted from our server on {1}."
+msgstr "タスク <b>{0}</b> のデータと認証情報は、{1} に当社のサーバーから削除されました。"
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
 msgstr "デモロールでは、TimeZone と Theme 以外の設定変更を保存できません。"
@@ -3453,11 +4140,20 @@ msgstr "デモロールでは、TimeZone と Theme 以外の設定変更を保�
 msgid "The demo role cannot {0} configuration directly."
 msgstr "デモロールは設定を直接 {0} できません。"
 
+msgid "The exact price comes with the quote, after we measure the data and test the destination with a tiny upload. Nothing is charged until you accept it."
+msgstr "正確な料金は、データを測定し、ごく小さなアップロードで送信先をテストした後の見積もりでお知らせします。承諾するまで課金されることはありません。"
+
+msgid "The files and credentials of a task are deleted when the task ends, fails, is canceled or its download period ends. We email you when it happens. See the"
+msgstr "タスクのファイルと認証情報は、タスクが終了、失敗、キャンセルされたとき、またはダウンロード期間が終了したときに削除されます。削除時にはメールでお知らせします。次をご覧ください："
+
 msgid "The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr "出力フォルダーは、入力フォルダーと同じ名前の後にこのサフィックスと実行タイムスタンプが付きます。"
 
 msgid "The password needs at least {0} characters."
 msgstr "パスワードは {0} 文字以上にする必要があります。"
+
+msgid "The payment was canceled. You can pay whenever you are ready."
+msgstr "支払いはキャンセルされました。準備ができたらいつでもお支払いいただけます。"
 
 msgid "The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "処理済みの Takeout はフォルダー '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>' に保存されます。"
@@ -3465,14 +4161,35 @@ msgstr "処理済みの Takeout はフォルダー '<TAKEOUT_FOLDER>_processed_<
 msgid "The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "処理済みのエクスポートはフォルダー '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>' に保存されます。"
 
+msgid "The quote is valid for {0} days. After that the task and its data are deleted."
+msgstr "見積もりの有効期間は {0} 日間です。その後、タスクとそのデータは削除されます。"
+
+msgid "The refund failed; we will review it."
+msgstr "返金に失敗しました。内容を確認します。"
+
+msgid "The result of your task <b>{0}</b> is deleted on {1}. Download it before then."
+msgstr "タスク <b>{0}</b> の結果は {1} に削除されます。それまでにダウンロードしてください。"
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "選択したパスには '{0}' が含まれていますが、これは Google の特殊なフォルダー名として予約されています。\\n\\n"
+
+msgid "The server must be reachable from the internet."
+msgstr "サーバーはインターネットから到達可能である必要があります。"
+
+msgid "The task failed"
+msgstr "タスクが失敗しました"
+
+msgid "The task is too large"
+msgstr "タスクが大きすぎます"
 
 msgid "The temporary password was emailed to {0}."
 msgstr "一時パスワードを {0} にメールで送信しました。"
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
 msgstr "ツールは同じフォルダーツリー内で有効なターゲットファイルを探し、可能な場合はリンクし直します。"
+
+msgid "The upload could not continue. Add the file again."
+msgstr "アップロードを続行できませんでした。ファイルをもう一度追加してください。"
 
 msgid "The user can sign in with this email and receives account and task notices there."
 msgstr "ユーザーはこのメールアドレスでサインインでき、アカウントやタスクの通知もここで受け取ります。"
@@ -3485,6 +4202,9 @@ msgstr "PhotoMigrator の Web インターフェースで使用するテーマ�
 
 msgid "There are no changed values in this row."
 msgstr "この行に変更された値はありません。"
+
+msgid "These terms are governed by the laws of Spain and the European Union, without prejudice to the consumer protection rules of your country of residence."
+msgstr "本規約はスペインおよび欧州連合の法律に準拠し、お住まいの国の消費者保護規定を妨げるものではありません。"
 
 msgid "This argument is mandatory to run the Google Takeout Processor feature."
 msgstr "Google Takeout Processor 機能を実行するには、この引数が必須です。"
@@ -3696,6 +4416,15 @@ msgstr "TimeZone"
 msgid "Timestamp ▼"
 msgstr "タイムスタンプ ▼"
 
+msgid "Tip: create an API key just for this task in Immich (Account settings → API keys) and delete it when the task ends."
+msgstr "ヒント：Immich でこのタスク専用の API キーを作成し（アカウント設定 → API キー）、タスク終了時に削除してください。"
+
+msgid "Tip: use an account without two-step verification, ideally one created only for this task."
+msgstr "ヒント：2 段階認証のないアカウント、できればこのタスク専用に作成したアカウントを使用してください。"
+
+msgid "Tip: use an app password (Personal settings → Security) and revoke it when the task ends."
+msgstr "ヒント：アプリパスワード（個人設定 → セキュリティ）を使用し、タスク終了時に取り消してください。"
+
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr "その他の設定項目を保存するには、有効な管理者の認証情報を入力してください。"
 
@@ -3704,6 +4433,9 @@ msgstr "今日"
 
 msgid "Toggle {0}"
 msgstr "{0} を切り替え"
+
+msgid "Too large"
+msgstr "大きすぎます"
 
 msgid "Tools"
 msgstr "ツール"
@@ -3771,6 +4503,12 @@ msgstr "申請を送信できません"
 msgid "Unable to stop job"
 msgstr "ジョブを停止できません"
 
+msgid "Up"
+msgstr "上へ"
+
+msgid "Up to {0} in total."
+msgstr "合計 {0} まで。"
+
 msgid "Upload Albums"
 msgstr "アルバムをアップロード"
 
@@ -3819,6 +4557,9 @@ msgstr "<INPUT_FOLDER> のすべてのアセットを、選択したクライア
 msgid "Upload behavior: ZIP extraction follows the \"Extract ZIPs on upload\" option (Yes/No) in Upload to Server."
 msgstr "アップロードの動作: ZIP の展開は、サーバーへのアップロードの「アップロード時に ZIP を展開」オプション(はい/いいえ)に従います。"
 
+msgid "Upload from this browser"
+msgstr "このブラウザーからアップロード"
+
 msgid "Upload from this computer"
 msgstr "このコンピューターからアップロード"
 
@@ -3846,6 +4587,9 @@ msgstr "サーバーへアップロード"
 msgid "Upload to Server · PhotoMigrator"
 msgstr "サーバーへアップロード · PhotoMigrator"
 
+msgid "Upload your Takeout files"
+msgstr "Takeout ファイルをアップロード"
+
 msgid "Upload, download, organize and clean up albums and assets in your Google Photos library."
 msgstr "Google Photos ライブラリのアルバムとアセットを、アップロード、ダウンロード、整理、クリーンアップします。"
 
@@ -3861,8 +4605,17 @@ msgstr "Synology Photos ライブラリのアルバムとアセットを、ア�
 msgid "Upload, download, rename, clean up and deduplicate albums and assets."
 msgstr "アルバムとアセットを、アップロード、ダウンロード、名前変更、クリーンアップ、重複排除します。"
 
+msgid "Uploaded"
+msgstr "アップロード済み"
+
 msgid "Uploaded: {0}\\n"
 msgstr "アップロード済み: {0}\\n"
+
+msgid "Uploading"
+msgstr "アップロード中"
+
+msgid "Uploads resume if the connection drops: add the same file again to continue."
+msgstr "接続が切れてもアップロードは再開できます：同じファイルをもう一度追加すると続行します。"
 
 msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
 msgstr "レイアウトを変更するには '--organize-folder-structure'、出力フォルダーが明示されていない場合に生成されるサフィックスを変更するには '--organize-output-folder-suffix'、コピーではなく移動するには '--move-original-files' を使用します。"
@@ -3891,14 +4644,23 @@ msgstr "選択したものを使用"
 msgid "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
 msgstr "サーバーへアップロードパネルで、ローカルフォルダーのアップロードまたはローカル ZIP のアップロードを使用してください。"
 
+msgid "Use my saved account"
+msgstr "保存済みのアカウントを使用"
+
 msgid "Use patterns: e.g. --download-albums 'dron*'"
 msgstr "パターンを使用できます(例: --download-albums 'dron*')"
+
+msgid "Use the client ID, client secret and refresh token of your own Google OAuth client (see the Google Photos help)."
+msgstr "ご自身の Google OAuth クライアントのクライアント ID、クライアントシークレット、リフレッシュトークンを使用してください（Google Photos のヘルプを参照）。"
 
 msgid "Use the password your administrator gave you."
 msgstr "管理者から受け取ったパスワードを使用してください。"
 
 msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
 msgstr "'--find-duplicates' の後に使用して、確認済み CSV に記入した手動の判断を適用します。"
+
+msgid "Use this folder ({0} files)"
+msgstr "このフォルダーを使用（{0} ファイル）"
 
 msgid "Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
 msgstr "'--remove-albums' と併用します。使用できる形式には YYYY、YYYY-MM、YYYY-MM-DD があります。"
@@ -3969,6 +4731,9 @@ msgstr "設定のデフォルトを使用中"
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "有効なアクション: restore_duplicate / remove_duplicate / replace_duplicate。"
 
+msgid "Valid for {0} days."
+msgstr "有効期間は {0} 日間です。"
+
 msgid "Values come from the whole table, not just this page."
 msgstr "値はこのページだけでなく、テーブル全体から取得されます。"
 
@@ -3981,17 +4746,65 @@ msgstr "動画"
 msgid "Volumes folder"
 msgstr "ボリュームフォルダー"
 
+msgid "Waiting for data"
+msgstr "データを待機中"
+
+msgid "Waiting for payment"
+msgstr "支払いを待機中"
+
+msgid "Waiting for your data"
+msgstr "データを待機中"
+
 msgid "Warm palette"
 msgstr "ウォームパレット"
 
+msgid "We checked your task <b>{0}</b>: {1} of photos and videos."
+msgstr "タスク <b>{0}</b> を確認しました：写真と動画は {1} です。"
+
+msgid "We do our best to keep your albums, dates and locations, but we cannot guarantee that every file is supported by the destination service. PhotoMigrator only reads your source and never deletes it, so keep your originals until you have checked the result. To the extent permitted by law, our liability is limited to the amount you paid for the task."
+msgstr "アルバム、日付、位置情報の保持に努めますが、すべてのファイルが送信先サービスで対応されることを保証するものではありません。PhotoMigrator は取得元を読み取るだけで削除は行いませんので、結果を確認するまで元のファイルを保管してください。法律で認められる範囲で、当社の責任はお客様がタスクに支払った金額を上限とします。"
+
+msgid "We email you when it starts and when it ends. You can cancel it until then with a full refund."
+msgstr "開始時と終了時にメールでお知らせします。それまでは全額返金でキャンセルできます。"
+
+msgid "We may update these terms. The version you accepted is recorded with each task and applies to it."
+msgstr "本規約は更新されることがあります。お客様が同意したバージョンは各タスクに記録され、そのタスクに適用されます。"
+
+msgid "We measure your data and test the destination with a tiny upload that we delete right away. It takes a few minutes."
+msgstr "データを測定し、ごく小さなアップロードで送信先をテストします。このアップロードはすぐに削除されます。数分かかります。"
+
+msgid "We never delete anything in your source"
+msgstr "取得元のデータは一切削除しません"
+
 msgid "We received your account request"
 msgstr "アカウント申請を受け付けました"
+
+msgid "We received your payment of <b>{0}</b>. Your task <b>{1}</b> is number {2} in the queue."
+msgstr "<b>{0}</b> のお支払いを受領しました。タスク <b>{1}</b> はキューの {2} 番目です。"
+
+msgid "We refunded the full amount of <b>{0}</b>. It reaches your card in 5 to 10 days."
+msgstr "<b>{0}</b> の全額を返金しました。カードには 5～10 日で反映されます。"
+
+msgid "We run PhotoMigrator on our server for you: we process Google or iCloud Takeout exports and upload them to the photo service you choose, we let you download a processed Takeout, or we move a library from one photo service to another."
+msgstr "当社のサーバーでお客様に代わって PhotoMigrator を実行します：Google または iCloud の Takeout エクスポートを処理してお選びのフォトサービスにアップロードする、処理済みの Takeout をダウンロードできるようにする、またはフォトサービス間でライブラリを移動します。"
+
+msgid "We run your migration or Takeout processing on our server. You pay only for tasks that work."
+msgstr "移行または Takeout 処理を当社のサーバーで実行します。料金は成功したタスクにのみかかります。"
+
+msgid "We use one cookie to keep you signed in and one to remember your language. No advertising or tracking cookies."
+msgstr "ログイン状態を維持するための Cookie と、言語を記憶するための Cookie を 1 つずつ使用します。広告用やトラッキング用の Cookie は使用しません。"
 
 msgid "Web Interface"
 msgstr "Web インターフェース"
 
 msgid "Web database"
 msgstr "Web データベース"
+
+msgid "Webhook URL"
+msgstr "Webhook URL"
+
+msgid "Webhook signing secret"
+msgstr "Webhook 署名シークレット"
 
 msgid "Website"
 msgstr "Web サイト"
@@ -4007,6 +4820,9 @@ msgstr "おかえりなさい、admin さん"
 
 msgid "Welcome back, {0}"
 msgstr "おかえりなさい、{0} さん"
+
+msgid "What do you want to do?"
+msgstr "何をしますか？"
 
 msgid "What do you want to move today?"
 msgstr "今日は何を移行しますか？"
@@ -4077,6 +4893,12 @@ msgstr "各機能が処理する写真と動画。"
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "このフラグを有効にすると、アンダースコアとスペースの違いや、重複のような末尾の数字サフィックスなどの無害なバリアントが正規化されます"
 
+msgid "Without Stripe keys every task is free. Administrators never pay. {0} Mbps means no download limit."
+msgstr "Stripe キーがない場合、すべてのタスクは無料です。管理者は支払いません。{0} Mbps はダウンロード制限なしを意味します。"
+
+msgid "Working on it"
+msgstr "処理中"
+
 msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
 msgstr "Google Photos、Synology Photos、Immich Photos、NextCloud Photos、ローカルフォルダーで、どの方向でも利用できます。"
 
@@ -4091,6 +4913,15 @@ msgstr "昨日"
 
 msgid "You"
 msgstr "あなた"
+
+msgid "You add the files in the next step. Uploads resume if the connection drops, so you can close the page and continue later."
+msgstr "ファイルは次のステップで追加します。接続が切れてもアップロードは再開できるため、ページを閉じて後で続けられます。"
+
+msgid "You can ask for access to your data, its correction or deletion, limit or object to its processing, and ask for a copy of it, by writing to"
+msgstr "データへのアクセス、訂正、削除の請求、処理の制限や異議の申し立て、およびデータのコピーの請求は、次の宛先までご連絡ください："
+
+msgid "You can download it until {0}. After that it is deleted from our server."
+msgstr "{0} までダウンロードできます。その後は当社のサーバーから削除されます。"
 
 msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
 msgstr "セルを編集して「行を保存」をクリックするか、「行を削除」をクリックできます。挿入には JSON オブジェクトの構文を使用します。"
@@ -4107,8 +4938,17 @@ msgstr "自分自身のユーザーは削除できません"
 msgid "You cannot delete your own user."
 msgstr "自分自身のユーザーは削除できません。"
 
+msgid "You have not been charged."
+msgstr "課金はされていません。"
+
 msgid "You need"
 msgstr "必要なもの"
+
+msgid "You need a PhotoMigrator account. You may only send us photos, videos and credentials that you own or are allowed to use. You must not send content that is illegal. You are responsible for the credentials you give us; we recommend creating keys or app passwords just for the task and revoking them when it ends."
+msgstr "PhotoMigrator のアカウントが必要です。お客様が所有している、または使用を許可されている写真、動画、認証情報のみを送信できます。違法なコンテンツを送信してはなりません。当社に提供する認証情報についてはお客様が責任を負います。タスク専用のキーやアプリパスワードを作成し、終了時に取り消すことをお勧めします。"
+
+msgid "You pay one price per task: 5.00 € minimum, then 0.05 € per GB, VAT included."
+msgstr "料金はタスクごとに 1 回：最低 5.00 €、以降は 1 GB あたり 0.05 €（消費税込み）です。"
 
 msgid "You will be asked to confirm before it runs."
 msgstr "実行前に確認を求められます。"
@@ -4118,6 +4958,12 @@ msgstr "Immich Photos の ADMIN_API_KEY（API_KEY は アカウント設定 --> 
 
 msgid "Your PhotoMigrator account"
 msgstr "お客様の PhotoMigrator アカウント"
+
+msgid "Your PhotoMigrator quote"
+msgstr "PhotoMigrator の見積もり"
+
+msgid "Your Takeout"
+msgstr "お客様の Takeout"
 
 msgid "Your account has been disabled"
 msgstr "アカウントが無効になりました"
@@ -4131,6 +4977,21 @@ msgstr "アカウントが有効になりました"
 msgid "Your account request"
 msgstr "アカウント申請"
 
+msgid "Your card details go to Stripe, never to us."
+msgstr "カード情報は Stripe に送られ、当社には送られません。"
+
+msgid "Your download expires soon"
+msgstr "ダウンロードの期限がまもなく切れます"
+
+msgid "Your files and credentials are deleted when the task ends. We never delete anything in your source."
+msgstr "ファイルと認証情報はタスク終了時に削除されます。取得元のデータは一切削除しません。"
+
+msgid "Your migration is complete"
+msgstr "移行が完了しました"
+
+msgid "Your name or company"
+msgstr "お名前または会社名"
+
 msgid "Your own library"
 msgstr "自分のライブラリ"
 
@@ -4139,6 +5000,51 @@ msgstr "パスワードが変更されました"
 
 msgid "Your password was reset"
 msgstr "パスワードがリセットされました"
+
+msgid "Your photos and credentials are used only to run your task, and are deleted when it ends."
+msgstr "写真と認証情報はタスクの実行にのみ使用され、終了時に削除されます。"
+
+msgid "Your processed Takeout is ready"
+msgstr "処理済みの Takeout の準備ができました"
+
+msgid "Your quote"
+msgstr "お客様の見積もり"
+
+msgid "Your quote is ready"
+msgstr "見積もりの準備ができました"
+
+msgid "Your task <b>{0}</b> failed: {1}"
+msgstr "タスク <b>{0}</b> が失敗しました：{1}"
+
+msgid "Your task <b>{0}</b> finished successfully. The result takes {1}."
+msgstr "タスク <b>{0}</b> は正常に完了しました。結果のサイズは {1} です。"
+
+msgid "Your task <b>{0}</b> finished successfully: {1} of photos and videos were moved."
+msgstr "タスク <b>{0}</b> は正常に完了しました：{1} の写真と動画を移動しました。"
+
+msgid "Your task <b>{0}</b> has started. You can follow it in Activity."
+msgstr "タスク <b>{0}</b> を開始しました。進捗はアクティビティで確認できます。"
+
+msgid "Your task <b>{0}</b> is number {1} in the queue."
+msgstr "タスク <b>{0}</b> はキューの {1} 番目です。"
+
+msgid "Your task <b>{0}</b> was canceled and its data deleted."
+msgstr "タスク <b>{0}</b> はキャンセルされ、そのデータは削除されました。"
+
+msgid "Your task could not be completed"
+msgstr "タスクを完了できませんでした"
+
+msgid "Your task data has been deleted"
+msgstr "タスクのデータが削除されました"
+
+msgid "Your task has started"
+msgstr "タスクが開始されました"
+
+msgid "Your task is in the queue"
+msgstr "タスクがキューに入りました"
+
+msgid "Your task was canceled"
+msgstr "タスクはキャンセルされました"
 
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "仮パスワードは <b>{0}</b> です。初回サインイン時に、ご自身のパスワードを設定していただきます。"
@@ -4164,6 +5070,9 @@ msgstr "管理者が PhotoMigrator アカウント <b>{0}</b> を無効にしま
 msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
 msgstr "管理者が PhotoMigrator アカウント <b>{0}</b> のパスワードをリセットしました。"
 
+msgid "and the"
+msgstr "と"
+
 msgid "backup_schedules ({0})"
 msgstr "backup_schedules ({0})"
 
@@ -4176,11 +5085,17 @@ msgstr "data のサブパス(デフォルトはユーザー名)"
 msgid "e.g. photos-2026 or /app/data/photos-2026"
 msgstr "例: photos-2026 または /app/data/photos-2026"
 
+msgid "empty = sender address of Email (SMTP)"
+msgstr "空欄 = メール (SMTP) の送信元アドレス"
+
 msgid "environment variables."
 msgstr "環境変数。"
 
 msgid "failed"
 msgstr "失敗"
+
+msgid "failed or canceled tasks"
+msgstr "失敗またはキャンセルされたタスク"
 
 msgid "iCloud Takeout"
 msgstr "iCloud Takeout"
@@ -4193,6 +5108,9 @@ msgstr "immich-photos-1 -> immich-photos-1"
 
 msgid "in the backup folder"
 msgstr "バックアップフォルダー内"
+
+msgid "is responsible for the personal data processed by PhotoMigrator Cloud. Contact:"
+msgstr "は、PhotoMigrator Cloud が処理する個人データの管理責任者です。連絡先："
 
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
 msgstr "が「はい」に設定されている場合、アップロードされた .zip ファイルはサーバー上で展開され、.zip ファイルは削除されます。「いいえ」に設定すると、.zip ファイルはアップロードされたまま保持されます。"
@@ -4215,6 +5133,15 @@ msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 msgid "on the backup volume"
 msgstr "バックアップボリューム上"
 
+msgid "paid and not refunded"
+msgstr "支払い済み・未返金"
+
+msgid "privacy policy"
+msgstr "プライバシーポリシー"
+
+msgid "refunded"
+msgstr "返金済み"
+
 msgid "remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "remove_duplicate と replace_duplicate は元に戻せない操作です。"
 
@@ -4233,6 +5160,18 @@ msgstr "synology-photos-1 -> immich-photos-1"
 msgid "synology-photos-1 -> synology-photos-1"
 msgstr "synology-photos-1 -> synology-photos-1"
 
+msgid "tasks waiting"
+msgstr "待機中のタスク"
+
+msgid "terms of service"
+msgstr "利用規約"
+
+msgid "the Takeout files you upload or import, the files PhotoMigrator creates from them, and the credentials of the services you choose."
+msgstr "アップロードまたはインポートされた Takeout ファイル、そこから PhotoMigrator が作成するファイル、および選択されたサービスの認証情報。"
+
+msgid "the amount and the Stripe identifiers of the payment. Stripe processes your card details."
+msgstr "支払い金額と支払いの Stripe 識別子。カード情報は Stripe が処理します。"
+
 msgid "the password of your PhotoMigrator account <b>{0}</b> was changed. If it was not you, contact your administrator right away."
 msgstr "PhotoMigrator アカウント <b>{0}</b> のパスワードが変更されました。ご自身による変更でない場合は、すぐに管理者にご連絡ください。"
 
@@ -4242,11 +5181,17 @@ msgstr "設定したパスワード"
 msgid "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can send account notices (requests, activations and password changes) and the emails of finished tasks."
 msgstr "管理パネルからご依頼いただいたテストメールです。このメールが届いていれば、PhotoMigrator はアカウントに関する通知(申請、有効化、パスワード変更)と、完了したタスクのメールを送信できます。"
 
+msgid "type of task, size, price, dates and the history of each task (without its files or credentials)."
+msgstr "タスクの種類、サイズ、料金、日付、各タスクの履歴（ファイルや認証情報は含みません）。"
+
 msgid "user_configs ({0})"
 msgstr "user_configs ({0})"
 
 msgid "user_states ({0})"
 msgstr "user_states ({0})"
+
+msgid "username, email address, language and the date of your last sign-in."
+msgstr "ユーザー名、メールアドレス、言語、最終ログイン日。"
 
 msgid "users ({0})"
 msgstr "users ({0})"
@@ -4308,6 +5253,9 @@ msgstr "{0} を作成しました"
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr "{0} が PhotoMigrator アカウントを作成しました。ユーザー名 <b>{1}</b> またはこのメールアドレスでサインインしてください。"
 
+msgid "{0} days"
+msgstr "{0} 日"
+
 msgid "{0} days ago"
 msgstr "{0} 日前"
 
@@ -4328,6 +5276,9 @@ msgstr "{0} 個の機能"
 
 msgid "{0} finished"
 msgstr "{0} が完了しました"
+
+msgid "{0} hours"
+msgstr "{0} 時間"
 
 msgid "{0} is active"
 msgstr "{0} は有効です"
@@ -4367,6 +5318,69 @@ msgstr "{0} 人のユーザーを変更しました"
 
 msgid "{0} will change the password at the next sign-in"
 msgstr "{0} は次回のサインイン時にパスワードを変更します"
+
+msgid "{0}. Applicable law"
+msgstr "{0}. 準拠法"
+
+msgid "{0}. Changes"
+msgstr "{0}. 変更"
+
+msgid "{0}. Cookies"
+msgstr "{0}. Cookie"
+
+msgid "{0}. Deletion of your data"
+msgstr "{0}. データの削除"
+
+msgid "{0}. Downloads"
+msgstr "{0}. ダウンロード"
+
+msgid "{0}. How long we keep it"
+msgstr "{0}. 保管期間"
+
+msgid "{0}. How we protect it"
+msgstr "{0}. 保護方法"
+
+msgid "{0}. Liability"
+msgstr "{0}. 責任"
+
+msgid "{0}. Limits"
+msgstr "{0}. 制限"
+
+msgid "{0}. Payment"
+msgstr "{0}. 支払い"
+
+msgid "{0}. Quotes and prices"
+msgstr "{0}. 見積もりと料金"
+
+msgid "{0}. Refunds and cancellation"
+msgstr "{0}. 返金とキャンセル"
+
+msgid "{0}. What data we process"
+msgstr "{0}. 処理するデータ"
+
+msgid "{0}. What the service does"
+msgstr "{0}. サービスの内容"
+
+msgid "{0}. Who is responsible"
+msgstr "{0}. 責任者"
+
+msgid "{0}. Who provides the service"
+msgstr "{0}. サービス提供者"
+
+msgid "{0}. Who receives it"
+msgstr "{0}. 提供先"
+
+msgid "{0}. Why we process it"
+msgstr "{0}. 処理の目的"
+
+msgid "{0}. Your account and your data"
+msgstr "{0}. アカウントとデータ"
+
+msgid "{0}. Your rights"
+msgstr "{0}. お客様の権利"
+
+msgid "← My tasks"
+msgstr "← マイタスク"
 
 msgid "⏱️ Delayed Recovered"
 msgstr "⏱️ 遅延再試行で回復"

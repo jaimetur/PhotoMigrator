@@ -9,6 +9,9 @@ msgstr ""
 msgid "'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "'move' 和 'remove' 会修改文件；如需先检查，请先使用 'list'。"
 
+msgid "(\"we\"). You can contact us at"
+msgstr "（“我们”）。您可以通过以下方式联系我们："
+
 msgid "(Makes your output portable but requires more HDD space)."
 msgstr "（使输出可移植，但需要更多硬盘空间）。"
 
@@ -38,6 +41,12 @@ msgstr "+ 添加"
 
 msgid "+ Add row"
 msgstr "+ 添加行"
+
+msgid ". PhotoMigrator itself is free, open-source software that you can also run on your own computer at no cost."
+msgstr "。PhotoMigrator 本身是免费的开源软件，您也可以在自己的电脑上免费运行。"
+
+msgid ". You can also complain to the Spanish Data Protection Agency (aepd.es) or to the authority of your country."
+msgstr "。您也可以向西班牙数据保护局 (aepd.es) 或您所在国家/地区的主管机构投诉。"
 
 msgid "/app/data subpath"
 msgstr "/app/data 子路径"
@@ -93,17 +102,29 @@ msgstr "<b>{0}</b>（{1}）申请了 PhotoMigrator 账户。"
 msgid "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>"
 msgstr "<b>{0}</b>（{1}）申请了 PhotoMigrator 账户。<br>留言：<i>{2}</i>"
 
+msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
+msgstr "副本仅为此任务加密，并在任务结束时删除。您已保存的账户不会更改。"
+
 msgid "A job${lastMeta ?"
 msgstr "A job${lastMeta ?"
 
 msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
 msgstr "'Albums' 子文件夹中的每个子文件夹都会创建一个新相册。"
 
+msgid "A processed Takeout can be downloaded for {0} days, in ZIP parts of up to {1} GB. After that it is deleted."
+msgstr "处理后的 Takeout 可下载 {0} 天，以最大 {1} GB 的 ZIP 分卷提供。之后将被删除。"
+
 msgid "A whole folder, albums included"
 msgstr "整个文件夹（包含相册）"
 
 msgid "ALL_PHOTOS Folder Name"
 msgstr "ALL_PHOTOS 文件夹名称"
+
+msgid "API key"
+msgstr "API 密钥"
+
+msgid "API key (optional)"
+msgstr "API 密钥（可选）"
 
 msgid "API key admin"
 msgstr "管理员 API 密钥"
@@ -180,6 +201,15 @@ msgstr "关于 iCloud Takeout"
 msgid "About {0}"
 msgstr "关于 {0}"
 
+msgid "About {0} days"
+msgstr "约 {0} 天"
+
+msgid "About {0} hours"
+msgstr "约 {0} 小时"
+
+msgid "Accept the terms of service and the privacy policy to continue."
+msgstr "请接受服务条款和隐私政策以继续。"
+
 msgid "Access Logs"
 msgstr "访问日志"
 
@@ -210,6 +240,9 @@ msgstr "账户 ID"
 msgid "Account name"
 msgstr "账户名称"
 
+msgid "Account of Settings > Service credentials"
+msgstr "设置 > 服务凭据 中的账户"
+
 msgid "Account request"
 msgstr "账户申请"
 
@@ -230,6 +263,12 @@ msgstr "账户 {0}：您的 Immich Photos 密码（未提供 API_KEY 时必填�
 
 msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
 msgstr "账户 {0}：您的 Immich Photos 用户名（未提供 API_KEY 时必填）"
+
+msgid "Account:"
+msgstr "账户："
+
+msgid "Account: until you ask us to delete it."
+msgstr "账户：直至您要求我们删除。"
 
 msgid "Accounts"
 msgstr "账户"
@@ -258,6 +297,9 @@ msgstr "活动"
 msgid "Activity · PhotoMigrator"
 msgstr "活动 · PhotoMigrator"
 
+msgid "Add Takeout files"
+msgstr "添加 Takeout 文件"
+
 msgid "Add row"
 msgstr "添加行"
 
@@ -266,6 +308,12 @@ msgstr "在以下位置添加每个账户的 URL 和凭据："
 
 msgid "Add them in Settings"
 msgstr "在设置中添加"
+
+msgid "Add your Takeout files"
+msgstr "添加您的 Takeout 文件"
+
+msgid "Added to the queue."
+msgstr "已加入队列。"
 
 msgid "Admin"
 msgstr "管理员"
@@ -366,6 +414,9 @@ msgstr "所有照片文件夹结构"
 msgid "All roles"
 msgstr "所有角色"
 
+msgid "All states"
+msgstr "所有状态"
+
 msgid "All users"
 msgstr "所有用户"
 
@@ -389,6 +440,9 @@ msgstr "将向新用户发送包含用户名和密码的电子邮件。"
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
 msgstr "此处保存的任何值都会保留在数据库中，但在该覆盖设置仍然生效期间将被忽略。"
+
+msgid "App password"
+msgstr "应用专用密码"
 
 msgid "App settings"
 msgstr "应用设置"
@@ -531,6 +585,9 @@ msgstr "备份计划"
 msgid "Before a restore"
 msgstr "恢复之前"
 
+msgid "Before a task starts we measure your data and test your destination, and we send you a quote with the price, the estimated start and the estimated duration. The price is 5.00 € minimum, then 0.05 € per GB of data to process, VAT included. A quote is valid for 7 days. Estimates of start and duration are not guaranteed."
+msgstr "任务开始前，我们会测量您的数据并测试您的目标位置，然后向您发送报价，其中包含价格、预计开始时间和预计时长。价格最低 5.00 €，之后每处理 1 GB 数据 0.05 €，含增值税。报价有效期为 7 天。开始时间和时长的估算不作保证。"
+
 msgid "Blue palette"
 msgstr "蓝色调色板"
 
@@ -555,11 +612,32 @@ msgstr "注意：不推荐（Google Takeout 流程的核心）。仅用于测试
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "后端不提供 CSV 接口。请重启或更新网页后端。"
 
+msgid "Calculate VAT with Stripe Tax (prices include VAT)"
+msgstr "使用 Stripe Tax 计算增值税（价格含增值税）"
+
 msgid "Can sign in right away"
 msgstr "可立即登录"
 
 msgid "Cancel"
 msgstr "取消"
+
+msgid "Cancel and delete"
+msgstr "取消并删除"
+
+msgid "Cancel refunds tasks that have not started. A running task can be canceled with or without a refund."
+msgstr "取消会为尚未开始的任务退款。对正在运行的任务，可选择退款或不退款取消。"
+
+msgid "Cancel task"
+msgstr "取消任务"
+
+msgid "Cancel the task of {0} and delete its data? This cannot be undone."
+msgstr "取消 {0} 的任务并删除其数据？此操作无法撤销。"
+
+msgid "Cancel this task and delete its data? You get the full amount back."
+msgstr "取消此任务并删除其数据？您将获得全额退款。"
+
+msgid "Canceled"
+msgstr "已取消"
 
 msgid "Cannot change role of the last active admin."
 msgstr "无法更改最后一个活跃管理员的角色。"
@@ -609,11 +687,29 @@ msgstr "更改会立即生效并自动保存。"
 msgid "Changes your library"
 msgstr "会更改您的图库"
 
+msgid "Check again"
+msgstr "重新检查"
+
+msgid "Check and get a quote"
+msgstr "检查并获取报价"
+
+msgid "Check the accounts"
+msgstr "检查账户"
+
 msgid "Check the command preview, press Run and watch it live in"
 msgstr "检查命令预览，点击“运行”，然后在以下位置实时查看："
 
 msgid "Check the command, press Run and watch it live in"
 msgstr "检查命令，按 Run 并实时查看于"
+
+msgid "Checking"
+msgstr "检查中"
+
+msgid "Checking your task"
+msgstr "正在检查您的任务"
+
+msgid "Checking..."
+msgstr "检查中..."
 
 msgid "Choose a subfolder inside one of your assigned roots."
 msgstr "请在您被分配的根目录之一中选择一个子文件夹。"
@@ -627,14 +723,26 @@ msgstr "选择工具"
 msgid "Choose an action"
 msgstr "选择操作"
 
+msgid "Choose the folder with your Takeout"
+msgstr "选择包含 Takeout 的文件夹"
+
 msgid "Choose the retained asset for '--remove-duplicates-assets'."
 msgstr "选择 '--remove-duplicates-assets' 要保留的资源。"
 
 msgid "Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm)."
 msgstr "选择 '--remove-duplicates-assets' 要保留的资源。more-people/tags 策略会保留人物种类最多的资源，其次是标签最多的，然后按其指定的决胜规则处理。'better-quality' 使用 Immich 的原生建议；'oldest' 和 'newest' 使用上传日期（默认：Immich 原生重复项算法使用 more-people/tags-then-better-quality，PhotoMigrator 重复项算法使用 more-people/tags-then-oldest）。"
 
+msgid "Choose your Takeout folder"
+msgstr "选择您的 Takeout 文件夹"
+
+msgid "Chosen folder: {0}"
+msgstr "已选文件夹：{0}"
+
 msgid "City"
 msgstr "城市"
+
+msgid "Clean my Takeout and upload it to my photo service."
+msgstr "清理我的 Takeout 并上传到我的照片服务。"
 
 msgid "Clean up"
 msgstr "清理"
@@ -663,6 +771,18 @@ msgstr "关闭且不添加"
 msgid "Close without creating"
 msgstr "关闭且不创建"
 
+msgid "Cloud service"
+msgstr "云服务"
+
+msgid "Cloud service terms"
+msgstr "云服务条款"
+
+msgid "Cloud service · PhotoMigrator"
+msgstr "云服务 · PhotoMigrator"
+
+msgid "Cloud → cloud"
+msgstr "云 → 云"
+
 msgid "Collapse panel"
 msgstr "折叠面板"
 
@@ -680,6 +800,9 @@ msgstr "命令"
 
 msgid "Command copied"
 msgstr "命令已复制"
+
+msgid "Completed"
+msgstr "已完成"
 
 msgid "Config status: auto-save failed ({0})"
 msgstr "配置状态：自动保存失败（{0}）"
@@ -771,8 +894,17 @@ msgstr "运行期间使用的确认和外部工具。"
 msgid "Connect your services"
 msgstr "连接您的服务"
 
+msgid "Connect {0}"
+msgstr "连接 {0}"
+
+msgid "Connect {0} with read-only access and choose the folder where Takeout saved the files."
+msgstr "以只读权限连接 {0}，并选择 Takeout 保存文件的文件夹。"
+
 msgid "Connection security"
 msgstr "连接安全"
+
+msgid "Connections use HTTPS, and the servers are in the European Union."
+msgstr "连接使用 HTTPS，服务器位于欧盟。"
 
 msgid "Consolidate Albums Names"
 msgstr "合并相册名称"
@@ -783,6 +915,21 @@ msgstr "合并相似相册"
 msgid "Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets."
 msgstr "直接在目标服务中合并已有的等效云端相册名称族，无需上传新资源。"
 
+msgid "Contact email"
+msgstr "联系邮箱"
+
+msgid "Continue"
+msgstr "继续"
+
+msgid "Continue upload"
+msgstr "继续上传"
+
+msgid "Copied"
+msgstr "已复制"
+
+msgid "Copy"
+msgstr "复制"
+
 msgid "Copy album files instead of symlinks"
 msgstr "复制相册文件而非使用符号链接"
 
@@ -791,6 +938,9 @@ msgstr "复制命令"
 
 msgid "Copy failed"
 msgstr "复制失败"
+
+msgid "Copy link"
+msgstr "复制链接"
 
 msgid "Copy log"
 msgstr "复制日志"
@@ -825,6 +975,9 @@ msgstr "创建 <INPUT_FOLDER> 的处理后副本（或移动后的克隆），�
 msgid "Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date. By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided. Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy. Example: --organize-local-folder-by-date ./UnsortedLibrary"
 msgstr "创建 <INPUT_FOLDER> 的处理后副本（或移动后的克隆），并按日期整理其中的文件。默认情况下，输出使用 'year/month' 结构并保存到 '<INPUT_FOLDER>_processed_<TIMESTAMP>'，除非指定了 '-o/--output-folder'。使用 '--organize-folder-structure' 更改布局，未指定输出文件夹时使用 '--organize-output-folder-suffix' 更改生成的后缀，使用 '--move-original-files' 改为移动而非复制。示例：--organize-local-folder-by-date ./UnsortedLibrary"
 
+msgid "Create a task to migrate a Takeout to your photo service, fix a Takeout or move a library between services."
+msgstr "创建任务，将 Takeout 迁移到您的照片服务、修复 Takeout，或在服务之间移动图库。"
+
 msgid "Create failed: {0}"
 msgstr "创建失败：{0}"
 
@@ -836,6 +989,9 @@ msgstr "为 '--account-id'（默认 1）创建 Google Photos 刷新令牌，并�
 
 msgid "Create user"
 msgstr "创建用户"
+
+msgid "Created"
+msgstr "已创建"
 
 msgid "Created From"
 msgstr "创建时间起"
@@ -851,6 +1007,12 @@ msgstr "正在创建…"
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
 msgstr "凭据和服务设置按用户保存在网页数据库中。敏感数据以加密方式存储，并供所有功能共用。"
+
+msgid "Credentials are encrypted with a key that exists only for that task, and both are destroyed when it ends."
+msgstr "凭据使用仅为该任务存在的密钥加密，任务结束时两者都会被销毁。"
+
+msgid "Credentials encrypted with a key for this task only"
+msgstr "凭据使用仅为此任务的密钥加密"
 
 msgid "Credentials for account {0} found in Settings"
 msgstr "在设置中找到了账户 {0} 的凭据"
@@ -894,8 +1056,29 @@ msgstr "深色界面调色板"
 msgid "Dashboard"
 msgstr "仪表板"
 
+msgid "Data and credentials deleted from our server on {0}."
+msgstr "数据和凭据已于 {0} 从我们的服务器删除。"
+
+msgid "Data and credentials deleted from our server."
+msgstr "数据和凭据已从我们的服务器删除。"
+
+msgid "Data and credentials deleted on {0}"
+msgstr "数据和凭据已于 {0} 删除"
+
+msgid "Data and credentials deleted when it ends"
+msgstr "数据和凭据将在任务结束时删除"
+
+msgid "Data deleted on {0}"
+msgstr "数据已于 {0} 删除"
+
 msgid "Data folder"
 msgstr "数据文件夹"
+
+msgid "Data measured: {0}"
+msgstr "已测量数据：{0}"
+
+msgid "Data to move"
+msgstr "待移动的数据"
 
 msgid "Database"
 msgstr "数据库"
@@ -978,6 +1161,9 @@ msgstr "删除数据库行"
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr "删除接口不可用。请重启网页界面后端后重试。"
 
+msgid "Delete now"
+msgstr "立即删除"
+
 msgid "Delete row"
 msgstr "删除行"
 
@@ -990,6 +1176,9 @@ msgstr "删除备份 {0}？此操作无法撤销。"
 msgid "Delete the {0} selected users? This action cannot be undone."
 msgstr "删除所选的 {0} 个用户？此操作无法撤销。"
 
+msgid "Delete this task and its data?"
+msgstr "删除此任务及其数据？"
+
 msgid "Delete user"
 msgstr "删除用户"
 
@@ -998,6 +1187,12 @@ msgstr "删除用户 {0}？此操作无法撤销。"
 
 msgid "Delete {0}"
 msgstr "删除 {0}"
+
+msgid "Deleted on"
+msgstr "删除时间"
+
+msgid "Deleted on {0}"
+msgstr "删除于 {0}"
 
 msgid "Demo"
 msgstr "演示"
@@ -1011,11 +1206,20 @@ msgstr "演示角色受限"
 msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
 msgstr "演示角色无法直接执行此配置操作。请输入有效的管理员用户名和密码。"
 
+msgid "Destination"
+msgstr "目标位置"
+
 msgid "Destination Required"
 msgstr "需要目标位置"
 
+msgid "Destination checked: it can receive uploads."
+msgstr "目标位置已检查：可以接收上传。"
+
 msgid "Destination folder"
 msgstr "目标文件夹"
+
+msgid "Destination service"
+msgstr "目标服务"
 
 msgid "Details"
 msgstr "详情"
@@ -1047,14 +1251,35 @@ msgstr "将所有相册和所有非相册资源下载到 <OUTPUT_FOLDER>。"
 msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened). - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure. Example: --download-all ./MyLibrary"
 msgstr "将所有相册和所有非相册资源下载到 <OUTPUT_FOLDER>。- 相册将下载到 <OUTPUT_FOLDER>/Albums/<AlbumName>（扁平化）。- 非相册资源存放在 <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ 下，采用 year/month 结构。示例：--download-all ./MyLibrary"
 
+msgid "Download days"
+msgstr "下载天数"
+
+msgid "Download ready."
+msgstr "下载已就绪。"
+
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
 msgstr "将指定相册下载到 <OUTPUT_FOLDER>（必需：-o/--output-folder）。"
 
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder). - Use 'ALL' to download ALL albums. - Use patterns: e.g. --download-albums 'dron*' - Multiple albums can be separated by comma or space and quoted. Example: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
 msgstr "将指定相册下载到 <OUTPUT_FOLDER>（必需：-o/--output-folder）。- 使用 'ALL' 下载所有相册。- 使用模式：例如 --download-albums 'dron*' - 多个相册可用逗号或空格分隔，并加引号。示例：--download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
 
+msgid "Download speed (Mbps)"
+msgstr "下载速度 (Mbps)"
+
 msgid "Drag from bottom edge or bottom corners to resize the log panel"
 msgstr "从底部边缘或底角拖动可调整日志面板大小"
+
+msgid "Drop your Takeout ZIP files here"
+msgstr "将您的 Takeout ZIP 文件拖放到此处"
+
+msgid "Dropbox App key"
+msgstr "Dropbox 应用密钥"
+
+msgid "Dropbox App secret"
+msgstr "Dropbox 应用机密"
+
+msgid "Dropbox redirect URI"
+msgstr "Dropbox 重定向 URI"
 
 msgid "Dup asset keeper"
 msgstr "重复资源保留策略"
@@ -1086,6 +1311,9 @@ msgstr "重复项 CSV"
 msgid "Duplicates, folders"
 msgstr "重复项、文件夹"
 
+msgid "Duration"
+msgstr "时长"
+
 msgid "Duration: <b>{0}</b>. Last lines of the log:"
 msgstr "时长：<b>{0}</b>。日志最后几行："
 
@@ -1094,6 +1322,12 @@ msgstr "上传期间，将已有的等效相册名称视为一个族，并将其
 
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
 msgstr "上传期间，将已有的等效相册名称视为一个族，并将其资源合并到规范保留的相册中。仅当服务支持删除相册时，才会删除多余的相册。"
+
+msgid "Each task can use up to 10.0 TB of working space on our server, enough for a Takeout of about a third of that size. Tasks run in order of payment."
+msgstr "每个任务在我们的服务器上最多可使用 10.0 TB 的工作空间，足以处理约为其三分之一大小的 Takeout。任务按付款顺序运行。"
+
+msgid "Each task runs in its own isolated folder that no other user can reach."
+msgstr "每个任务都在各自独立的文件夹中运行，其他用户无法访问。"
 
 msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
 msgstr "编辑值后点击 ✓ 保存该行。主键受保护。每页 {0} 行。"
@@ -1112,6 +1346,9 @@ msgstr "电子邮件"
 
 msgid "Email (SMTP)"
 msgstr "电子邮件 (SMTP)"
+
+msgid "Email (optional)"
+msgstr "电子邮件（可选）"
 
 msgid "Email check"
 msgstr "电子邮件检查"
@@ -1191,6 +1428,12 @@ msgstr "已启用"
 msgid "Enabled by default; use '--no-preview-album-actions' to disable it."
 msgstr "默认启用；使用 '--no-preview-album-actions' 可将其禁用。"
 
+msgid "Enabled · free"
+msgstr "已启用 · 免费"
+
+msgid "Enabled · paid"
+msgstr "已启用 · 付费"
+
 msgid "Encryption"
 msgstr "加密"
 
@@ -1199,6 +1442,9 @@ msgstr "结束"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "请输入文件夹名称，或以下位置内的绝对路径："
+
+msgid "Enter them for this task only"
+msgstr "仅为此任务输入"
 
 msgid "Env override"
 msgstr "环境变量覆盖"
@@ -1211,6 +1457,12 @@ msgstr "错误：{0}"
 
 msgid "Estimated End"
 msgstr "预计结束"
+
+msgid "Estimated start"
+msgstr "预计开始时间"
+
+msgid "Estimated start: {0}. Estimated duration: {1}."
+msgstr "预计开始时间：{0}。预计时长：{1}。"
 
 msgid "Event"
 msgstr "事件"
@@ -1392,6 +1644,9 @@ msgstr "展开面板"
 msgid "Expand/collapse section"
 msgstr "展开/折叠区域"
 
+msgid "Expired"
+msgstr "已过期"
+
 msgid "Export Config"
 msgstr "导出配置"
 
@@ -1410,11 +1665,17 @@ msgstr "已解压的 ZIP：{0}（{1} 个文件）|"
 msgid "Extracted ZIPs: {0}\\n"
 msgstr "已解压的 ZIP：{0}\\n"
 
+msgid "Failed"
+msgstr "失败"
+
 msgid "Failed sign in"
 msgstr "登录失败"
 
 msgid "Failed: {0}"
 msgstr "失败：{0}"
+
+msgid "Files and credentials deleted when it ends"
+msgstr "文件和凭据将在任务结束时删除"
 
 msgid "Fill at least one value."
 msgstr "请至少填写一个值。"
@@ -1470,6 +1731,9 @@ msgstr "查找重复项"
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr "通过文件大小和内容检查，在一个或多个文件夹中查找重复项。"
 
+msgid "Finished"
+msgstr "已结束"
+
 msgid "First page"
 msgstr "首页"
 
@@ -1491,8 +1755,14 @@ msgstr "修复来自 Google 或 Apple 的导出"
 msgid "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."
 msgstr "修复 Google Photos Takeout 导出的日期和元数据，并将其相册重建为整洁的图库。"
 
+msgid "Fix my Takeout"
+msgstr "修复我的 Takeout"
+
 msgid "Fix symlinks · Rename folders · Organize by date · Duplicates"
 msgstr "修复符号链接 · 重命名文件夹 · 按日期整理 · 重复项"
+
+msgid "Fix the problem shown above and check again, or delete the task and create it again with other credentials."
+msgstr "请解决上方显示的问题后重新检查，或删除该任务并使用其他凭据重新创建。"
 
 msgid "Folder"
 msgstr "文件夹"
@@ -1536,8 +1806,14 @@ msgstr "已更改 {0} 的文件夹"
 msgid "Folders to scan"
 msgstr "要扫描的文件夹"
 
+msgid "Follow it"
+msgstr "跟踪"
+
 msgid "Follow its live progress and log in Activity."
 msgstr "在“活动”中实时查看进度和日志。"
+
+msgid "Follow the live dashboard and the log in Activity. A task that has started is not refunded if you stop it."
+msgstr "可在“活动”中查看实时仪表板和日志。已开始的任务若被停止，将不予退款。"
 
 msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: 3). Only used when '--try-small-albums-grouping' is enabled."
 msgstr "对于 Consolidate Albums Names，设置相册被视为小相册的最大资源数量（默认：3）。仅在启用 '--try-small-albums-grouping' 时使用。"
@@ -1599,14 +1875,23 @@ msgstr "强制更改密码"
 msgid "Force password change on first login"
 msgstr "首次登录时强制更改密码"
 
+msgid "Free"
+msgstr "免费"
+
 msgid "Free disk space"
 msgstr "可用磁盘空间"
+
+msgid "Free for your account"
+msgstr "对您的账户免费"
 
 msgid "Friday"
 msgstr "星期五"
 
 msgid "From"
 msgstr "发件人"
+
+msgid "Full refund if a task fails"
+msgstr "任务失败时全额退款"
 
 msgid "GPTH messages"
 msgstr "GPTH 消息"
@@ -1671,6 +1956,12 @@ msgstr "Google Takeout"
 msgid "Google Takeout · PhotoMigrator"
 msgstr "Google Takeout · PhotoMigrator"
 
+msgid "Google Takeout → Download"
+msgstr "Google Takeout → 下载"
+
+msgid "Google Takeout → Immich Photos"
+msgstr "Google Takeout → Immich Photos"
+
 msgid "Green palette"
 msgstr "绿色调色板"
 
@@ -1689,6 +1980,9 @@ msgstr "{0}，您好："
 msgid "Hide password"
 msgstr "隐藏密码"
 
+msgid "History"
+msgstr "历史记录"
+
 msgid "Home"
 msgstr "主页"
 
@@ -1703,6 +1997,12 @@ msgstr "每小时"
 
 msgid "How to migrate"
 msgstr "如何迁移"
+
+msgid "How we protect your data"
+msgstr "我们如何保护您的数据"
+
+msgid "I accept the"
+msgstr "我接受"
 
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "Config.ini 中必须存在 IMMICH_USERNAME_2/IMMICH_PASSWORD_2 或 IMMICH_API_KEY_USER_2 条目。"
@@ -1739,6 +2039,12 @@ msgstr "如果"
 
 msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
 msgstr "如果同时传入 '-AlbFolder, --albums-folders <ALBUMS_FOLDER>'，也会为这些文件夹创建相册。"
+
+msgid "If a task fails, we refund the full amount automatically. If you cancel a task before it starts, we refund the full amount. Once a task has started, it can be stopped but it is not refunded. Refunds reach your card in {0} to {1} days."
+msgstr "如果任务失败，我们会自动全额退款。如果您在任务开始前取消，我们会全额退款。任务一旦开始，可以停止，但不予退款。退款将在 {0} 至 {1} 天内到达您的银行卡。"
+
+msgid "If a task fails, you get the full amount back. If you cancel before it starts, too."
+msgstr "如果任务失败，您将获得全额退款。在任务开始前取消也一样。"
 
 msgid "If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input."
 msgstr "如果其中发现任何 ZIP 文件，将先把这些 ZIP 解压到 '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>'，并使用该文件夹作为输入。"
@@ -1803,8 +2109,23 @@ msgstr "当存在 Takeout 人物映射时，将 Google Takeout 的人物标签�
 msgid "Import Google Takeout person labels into Immich when a Takeout people map is available. Only applies to an Immich destination or Immich Upload All/Upload Albums. (default: True)."
 msgstr "当存在 Takeout 人物映射时，将 Google Takeout 的人物标签导入 Immich。仅适用于 Immich 目标，或 Immich 的“上传全部”/“上传相册”。（默认：True）。"
 
+msgid "Import from Dropbox"
+msgstr "从 Dropbox 导入"
+
+msgid "Import from OneDrive"
+msgstr "从 OneDrive 导入"
+
 msgid "Import people"
 msgstr "导入人物"
+
+msgid "Imports · Dropbox and OneDrive"
+msgstr "导入 · Dropbox 和 OneDrive"
+
+msgid "In short"
+msgstr "简而言之"
+
+msgid "In the queue"
+msgstr "队列中"
 
 msgid "Inactive"
 msgstr "未活跃"
@@ -1893,6 +2214,9 @@ msgstr "最近 {0} 天"
 msgid "Last {0} hours"
 msgstr "最近 {0} 小时"
 
+msgid "Legal"
+msgstr "法律信息"
+
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr "字母、数字、点、连字符或下划线"
 
@@ -1907,6 +2231,9 @@ msgstr "仅列出、将重复项移动到文件夹，或删除它们。"
 
 msgid "List, move or remove duplicates"
 msgstr "列出、移动或删除重复项"
+
+msgid "Live mode"
+msgstr "正式模式"
 
 msgid "Load Table"
 msgstr "加载表格"
@@ -1980,6 +2307,12 @@ msgstr "留言：{0}"
 msgid "Migrate"
 msgstr "迁移"
 
+msgid "Migrations and Takeout processing that remote users run on this server, with Stripe payments. Administrators never see the files or credentials of a task."
+msgstr "远程用户在此服务器上运行的迁移和 Takeout 处理，并通过 Stripe 付款。管理员永远看不到任务的文件或凭据。"
+
+msgid "Minimum price (€)"
+msgstr "最低价格 (€)"
+
 msgid "Missing Required Arguments"
 msgstr "缺少必需参数"
 
@@ -2007,6 +2340,9 @@ msgstr "一次迁移整个图库"
 msgid "Move mode is on"
 msgstr "移动模式已开启"
 
+msgid "Move my library from one service to another."
+msgstr "将我的图库从一个服务移动到另一个服务。"
+
 msgid "Move the original folder into the processed output instead of copying it first."
 msgstr "将原始文件夹移动到处理后的输出中，而不是先复制。"
 
@@ -2024,6 +2360,9 @@ msgstr "多个相册可用逗号或空格分隔，并加引号。"
 
 msgid "Must change password"
 msgstr "必须更改密码"
+
+msgid "My tasks"
+msgstr "我的任务"
 
 msgid "Names of the folders that PhotoMigrator creates."
 msgstr "PhotoMigrator 创建的文件夹名称。"
@@ -2052,6 +2391,9 @@ msgstr "新密码"
 msgid "New password for {0}"
 msgstr "{0} 的新密码"
 
+msgid "New task"
+msgstr "新建任务"
+
 msgid "New user"
 msgstr "新用户"
 
@@ -2072,6 +2414,9 @@ msgstr "NextCloud Photos · PhotoMigrator"
 
 msgid "No"
 msgstr "否"
+
+msgid "No Takeout files here"
+msgstr "此处没有 Takeout 文件"
 
 msgid "No additional help for this field."
 msgstr "此字段没有更多帮助信息。"
@@ -2103,6 +2448,18 @@ msgstr "没有正在运行的任务"
 msgid "No log file"
 msgstr "没有日志文件"
 
+msgid "No other user and no person on our side looks at your photos."
+msgstr "没有其他用户，我们这边也没有任何人会查看您的照片。"
+
+msgid "No other user or person can see them"
+msgstr "没有其他用户或任何人可以看到它们"
+
+msgid "No tasks yet"
+msgstr "暂无任务"
+
+msgid "No tasks yet."
+msgstr "暂无任务。"
+
 msgid "No users match the current filters."
 msgstr "没有符合当前筛选条件的用户。"
 
@@ -2127,6 +2484,12 @@ msgstr "未设置"
 msgid "Notice"
 msgstr "提示"
 
+msgid "Number"
+msgstr "编号"
+
+msgid "Number {0} in the queue · starts about {1}"
+msgstr "队列中第 {0} 位 · 约 {1} 开始"
+
 msgid "OAuth Client ID for Google Photos account {0}"
 msgstr "Google Photos 账户 {0} 的 OAuth 客户端 ID"
 
@@ -2135,6 +2498,12 @@ msgstr "Google Photos 账户 {0} 的 OAuth 客户端密钥"
 
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Google Photos 账户 {0} 的 OAuth 刷新令牌"
+
+msgid "OAuth client ID"
+msgstr "OAuth 客户端 ID"
+
+msgid "OAuth client secret"
+msgstr "OAuth 客户端密钥"
 
 msgid "Ocean"
 msgstr "海洋蓝"
@@ -2169,6 +2538,15 @@ msgstr "一次性密码"
 msgid "One value per line or comma-separated"
 msgstr "每行一个值，或以逗号分隔"
 
+msgid "OneDrive Client ID"
+msgstr "OneDrive 客户端 ID"
+
+msgid "OneDrive Client secret"
+msgstr "OneDrive 客户端密钥"
+
+msgid "OneDrive redirect URI"
+msgstr "OneDrive 重定向 URI"
+
 msgid "Online now"
 msgstr "当前在线"
 
@@ -2180,6 +2558,12 @@ msgstr "仅包含在这些日期之间拍摄的项目。留空一侧表示不限
 
 msgid "Only assets taken in this country or city, or where this person appears."
 msgstr "仅包含在此国家或城市拍摄、或出现此人的项目。"
+
+msgid "Only to provide the service you request: to quote, run and deliver your tasks, to send you emails about them and to keep the accounting records the law requires. The legal basis is the contract you accept when you create a task, and our legal obligations for payment records."
+msgstr "仅用于提供您请求的服务：为您的任务报价、运行和交付，向您发送相关邮件，以及保存法律要求的会计记录。法律依据是您创建任务时接受的合同，以及我们对付款记录的法律义务。"
+
+msgid "Open"
+msgstr "打开"
 
 msgid "Open Activity"
 msgstr "打开活动"
@@ -2208,8 +2592,14 @@ msgstr "打开路线图"
 msgid "Open folder selector"
 msgstr "打开文件夹选择器"
 
+msgid "Open in Activity"
+msgstr "在“活动”中打开"
+
 msgid "Open menu"
 msgstr "打开菜单"
+
+msgid "Operator name"
+msgstr "运营方名称"
 
 msgid "Optional"
 msgstr "可选"
@@ -2322,6 +2712,9 @@ msgstr "覆盖配置？"
 msgid "Page {0} of {1}"
 msgstr "第 {0} 页，共 {1} 页"
 
+msgid "Paid"
+msgstr "已付款"
+
 msgid "Parallel Migration"
 msgstr "并行迁移"
 
@@ -2331,6 +2724,9 @@ msgstr "密码"
 msgid "Password (at least {0} characters)"
 msgstr "密码（至少 {0} 个字符）"
 
+msgid "Password (optional)"
+msgstr "密码（可选）"
+
 msgid "Password of {0} changed"
 msgstr "已更改 {0} 的密码"
 
@@ -2339,6 +2735,39 @@ msgstr "密码重置"
 
 msgid "Pattern and replacement"
 msgstr "模式和替换内容"
+
+msgid "Pay"
+msgstr "付款"
+
+msgid "Pay <b>{0}</b> to download it. You have {1} days; after that the result is deleted."
+msgstr "支付 <b>{0}</b> 即可下载。您有 {1} 天时间；之后结果将被删除。"
+
+msgid "Pay and download"
+msgstr "付款并下载"
+
+msgid "Pay {0} and start"
+msgstr "支付 {0} 并开始"
+
+msgid "Payment page opened."
+msgstr "已打开付款页面。"
+
+msgid "Payment received"
+msgstr "已收到付款"
+
+msgid "Payment received."
+msgstr "已收到付款。"
+
+msgid "Payment refunded."
+msgstr "付款已退还。"
+
+msgid "Payments are made through Stripe. We never see or store your card details. Migrations are paid when you accept the quote. Takeout processing is paid when the result is ready, and the payment is required to download it."
+msgstr "付款通过 Stripe 进行。我们不会看到或存储您的银行卡信息。迁移在您接受报价时付款。Takeout 处理在结果就绪时付款，需付款后才能下载。"
+
+msgid "Payments · Stripe"
+msgstr "付款 · Stripe"
+
+msgid "Payments:"
+msgstr "付款："
 
 msgid "Pending access requests"
 msgstr "待处理的访问申请"
@@ -2358,6 +2787,12 @@ msgstr "PhotoMigrator"
 msgid "PhotoMigrator Admin"
 msgstr "PhotoMigrator 管理"
 
+msgid "PhotoMigrator Cloud is provided by"
+msgstr "PhotoMigrator Cloud 由以下主体提供："
+
+msgid "PhotoMigrator Cloud · version 2026-11-25"
+msgstr "PhotoMigrator Cloud · 版本 2026-11-25"
+
 msgid "PhotoMigrator Login"
 msgstr "PhotoMigrator 登录"
 
@@ -2367,11 +2802,20 @@ msgstr "PhotoMigrator 内置了 ExifTool 的嵌入版本，但如果您想使用
 msgid "PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
 msgstr "PhotoMigrator 内置了 GPTH 的嵌入版本，但如果您想使用其他版本，可以使用此参数。"
 
+msgid "PhotoMigrator is open source, so anyone can check what it does."
+msgstr "PhotoMigrator 是开源的，任何人都可以检查它的运行方式。"
+
+msgid "PhotoMigrator is working on your task."
+msgstr "PhotoMigrator 正在处理您的任务。"
+
 msgid "PhotoMigrator website"
 msgstr "PhotoMigrator 网站"
 
 msgid "Photos"
 msgstr "照片"
+
+msgid "Photos folder"
+msgstr "照片文件夹"
 
 msgid "Photos, videos and albums from a source to a target, with a live dashboard."
 msgstr "照片、视频和相册从源迁移到目标，并带实时仪表盘。"
@@ -2403,6 +2847,9 @@ msgstr "端口"
 msgid "Port ({0}, {1} or {2})"
 msgstr "端口（{0}、{1} 或 {2}）"
 
+msgid "Position"
+msgstr "位置"
+
 msgid "Possible values:"
 msgstr "可能的值："
 
@@ -2423,6 +2870,15 @@ msgstr "设置网页界面对您的用户的外观和行为。主题和时区的
 
 msgid "Prefix album folders with their dates"
 msgstr "在相册文件夹名称前添加日期"
+
+msgid "Preparing download"
+msgstr "正在准备下载"
+
+msgid "Preparing the download"
+msgstr "正在准备下载"
+
+msgid "Preparing your download"
+msgstr "正在准备您的下载"
 
 msgid "Preview Album Actions"
 msgstr "预览相册操作"
@@ -2445,8 +2901,35 @@ msgstr "预览不可用：{0}"
 msgid "Previous page"
 msgstr "上一页"
 
+msgid "Price"
+msgstr "价格"
+
+msgid "Price per GB (€)"
+msgstr "每 GB 价格 (€)"
+
+msgid "Price {0} · starts about {1}"
+msgstr "价格 {0} · 约 {1} 开始"
+
+msgid "Price · VAT incl."
+msgstr "价格 · 含增值税"
+
+msgid "Price: <b>{0}</b> (VAT included)."
+msgstr "价格：<b>{0}</b>（含增值税）。"
+
+msgid "Price: <b>{0}</b>. This task is free for your account."
+msgstr "价格：<b>{0}</b>。此任务对您的账户免费。"
+
 msgid "Primary-key values are protected"
 msgstr "主键值受保护"
+
+msgid "Privacy"
+msgstr "隐私"
+
+msgid "Privacy policy"
+msgstr "隐私政策"
+
+msgid "Privacy policy · PhotoMigrator Cloud"
+msgstr "隐私政策 · PhotoMigrator Cloud"
 
 msgid "Process Duplicates"
 msgstr "处理重复项"
@@ -2487,6 +2970,9 @@ msgstr "处理 Apple iCloud 照片导出文件夹 <ICLOUD_EXPORT_FOLDER>：从 '
 msgid "Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from 'Photo Details.csv' files, assign those dates to the media files, and organize assets. If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input. The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "处理 Apple iCloud 照片导出文件夹 <ICLOUD_EXPORT_FOLDER>：从 'Photo Details.csv' 文件中恢复日期，将这些日期赋给媒体文件，并整理资源。如果其中发现任何 ZIP 文件，会先将它们解压到 '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>'，并以该文件夹作为输入。处理后的导出将保存到文件夹 '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'。"
 
+msgid "Process it and let me download the result."
+msgstr "处理它，并让我下载结果。"
+
 msgid "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it."
 msgstr "处理 Takeout 文件夹 <TAKEOUT_FOLDER>，修复所有元数据并整理其中的资源。"
 
@@ -2502,8 +2988,29 @@ msgstr "请提供要插入的 JSON 值。"
 msgid "Push Asset Max Size (MB)"
 msgstr "推送资源最大大小（MB）"
 
+msgid "Queue"
+msgstr "队列"
+
+msgid "Queued"
+msgstr "排队中"
+
+msgid "Queued again after a server restart."
+msgstr "服务器重启后已重新排队。"
+
 msgid "Quick tools"
 msgstr "快捷工具"
+
+msgid "Quote ready"
+msgstr "报价已就绪"
+
+msgid "Quote sent"
+msgstr "报价已发送"
+
+msgid "Quote sent to your email."
+msgstr "报价已发送到您的邮箱。"
+
+msgid "Quote valid for (days)"
+msgstr "报价有效期（天）"
 
 msgid "Range separator"
 msgstr "范围分隔符"
@@ -2514,11 +3021,23 @@ msgstr "从 JSON 附带文件中读取 Google Takeout 的人物标签，并将�
 msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
 msgstr "从 JSON 附带文件中读取 Google Takeout 的人物标签，并将人物映射保存到处理后的输出中。（默认：True）。"
 
+msgid "Read-only access. In Google Takeout choose “Add to Dropbox” or “Add to OneDrive”, then connect it in the next step."
+msgstr "只读权限。在 Google Takeout 中选择“添加到 Dropbox”或“添加到 OneDrive”，然后在下一步中连接。"
+
 msgid "Readme"
 msgstr "自述文件"
 
+msgid "Ready to download"
+msgstr "可下载"
+
 msgid "Ready to run"
 msgstr "准备运行"
+
+msgid "Ready · pay to download"
+msgstr "就绪 · 付款后下载"
+
+msgid "Ready · unpaid"
+msgstr "就绪 · 未付款"
 
 msgid "Reason: {0}"
 msgstr "原因：{0}"
@@ -2541,6 +3060,21 @@ msgstr "刷新表格"
 msgid "Refresh token"
 msgstr "刷新令牌"
 
+msgid "Refund"
+msgstr "退款"
+
+msgid "Refund and cancel"
+msgstr "退款并取消"
+
+msgid "Refund {0} to {1} as well? Choose Cancel to stop the task without a refund."
+msgstr "同时向 {1} 退还 {0}？选择“取消”可在不退款的情况下停止任务。"
+
+msgid "Refund {0} to {1}? Stripe keeps its fee."
+msgstr "向 {1} 退还 {0}？Stripe 会保留其手续费。"
+
+msgid "Refunded"
+msgstr "已退款"
+
 msgid "Reject Account Request"
 msgstr "拒绝账户申请"
 
@@ -2552,6 +3086,9 @@ msgstr "拒绝申请"
 
 msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
 msgstr "拒绝 {0} 的访问申请？该账户将被删除，并向用户发送电子邮件。"
+
+msgid "Rejected: too large."
+msgstr "已拒绝：太大。"
 
 msgid "Release Notes"
 msgstr "发行说明"
@@ -2727,11 +3264,29 @@ msgstr "恢复此功能所显示字段的默认值"
 msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
 msgstr "恢复 {0}？用户、设置和凭据将替换为备份中的内容。当前数据会先保存为恢复前备份，您可能需要重新登录。"
 
+msgid "Restricted key"
+msgstr "受限密钥"
+
+msgid "Result"
+msgstr "结果"
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "结果会导出为 CSV，以便审核重复项以及每一项所选的操作。"
 
+msgid "Revenue"
+msgstr "收入"
+
+msgid "Review and pay"
+msgstr "检查并付款"
+
+msgid "Review and start"
+msgstr "检查并开始"
+
 msgid "Review the request"
 msgstr "审核申请"
+
+msgid "Review the task"
+msgstr "查看任务"
 
 msgid "Roadmap"
 msgstr "路线图"
@@ -2817,6 +3372,9 @@ msgstr "保存计划"
 msgid "Save app settings"
 msgstr "保存应用设置"
 
+msgid "Save cloud service settings"
+msgstr "保存云服务设置"
+
 msgid "Save config"
 msgstr "保存配置"
 
@@ -2846,6 +3404,12 @@ msgstr "已自动保存。"
 
 msgid "Saved · leave empty to keep it"
 msgstr "已保存 · 留空则保留"
+
+msgid "Saved."
+msgstr "已保存。"
+
+msgid "Saved. Leave it empty to keep it."
+msgstr "已保存。留空则保持不变。"
 
 msgid "Saving..."
 msgstr "正在保存..."
@@ -2885,6 +3449,9 @@ msgstr "搜索用户"
 
 msgid "Search users by username or email"
 msgstr "按用户名或电子邮件搜索用户"
+
+msgid "Secure payment with Stripe. Valid for {0} days. If the task fails you get the full amount back."
+msgstr "通过 Stripe 安全付款。有效期 {0} 天。如果任务失败，您将获得全额退款。"
 
 msgid "Segoe UI"
 msgstr "Segoe UI"
@@ -2994,6 +3561,12 @@ msgstr "正在发送…"
 msgid "Server"
 msgstr "服务器"
 
+msgid "Server address"
+msgstr "服务器地址"
+
+msgid "Service"
+msgstr "服务"
+
 msgid "Service credentials"
 msgstr "服务凭据"
 
@@ -3002,6 +3575,9 @@ msgstr "设置新密码并确认。"
 
 msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
 msgstr "为 {0} 设置临时密码？该用户将在所有浏览器上退出登录，并且必须在下次登录时选择新密码。"
+
+msgid "Set by an environment variable"
+msgstr "由环境变量设置"
 
 msgid "Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1)."
 msgstr "设置 Synology Photos、Immich Photos、NextCloud Photos 或 Google Photos 的账户 ID（默认：1）。"
@@ -3063,6 +3639,9 @@ msgstr "显示 {0}"
 msgid "Showing the first {0} matching values. Search to narrow them."
 msgstr "显示前 {0} 个匹配的值。请搜索以缩小范围。"
 
+msgid "Shown in the"
+msgstr "显示在"
+
 msgid "Sign in"
 msgstr "登录"
 
@@ -3074,6 +3653,9 @@ msgstr "登录"
 
 msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
 msgstr "登录和管理面板更改：谁在何时、从何处做了什么。"
+
+msgid "Size"
+msgstr "大小"
 
 msgid "Skip GPTH tool (not recommended)"
 msgstr "跳过 GPTH 工具（不推荐）"
@@ -3146,6 +3728,9 @@ msgstr "源服务"
 
 msgid "Source to target"
 msgstr "从源到目标"
+
+msgid "Space per task (TB)"
+msgstr "每个任务的空间 (TB)"
 
 msgid "Specify Date Separator used by feature `Auto-Rename Albums Content Based`."
 msgstr "指定“按内容自动重命名相册”功能使用的日期分隔符。"
@@ -3267,6 +3852,9 @@ msgstr "指定输出文件夹的后缀。默认值：'processed'。输出文件�
 msgid "Start"
 msgstr "开始"
 
+msgid "Start (you pay when it is ready)"
+msgstr "开始（就绪后付款）"
+
 msgid "Start Time: -"
 msgstr "开始时间：-"
 
@@ -3281,6 +3869,12 @@ msgstr "开始迁移{0}"
 
 msgid "Start here"
 msgstr "从这里开始"
+
+msgid "Starting"
+msgstr "正在启动"
+
+msgid "State"
+msgstr "状态"
 
 msgid "Status: authenticating..."
 msgstr "状态：正在验证..."
@@ -3357,8 +3951,23 @@ msgstr "停止"
 msgid "Stop Running Module?"
 msgstr "停止正在运行的模块？"
 
+msgid "Stop this task and delete its data? A task that has started is not refunded."
+msgstr "停止此任务并删除其数据？已开始的任务不予退款。"
+
+msgid "Storage connected (read-only)."
+msgstr "存储已连接（只读）。"
+
 msgid "Stored backups"
 msgstr "已存储的备份"
+
+msgid "Stripe (payments), the destination and source services you choose, and Dropbox or Microsoft OneDrive only if you connect them to import your Takeout (read-only). We do not sell your data or use it for advertising."
+msgstr "Stripe（付款）、您选择的目标和来源服务，以及仅在您连接以导入 Takeout 时使用的 Dropbox 或 Microsoft OneDrive（只读）。我们不会出售您的数据，也不会将其用于广告。"
+
+msgid "Stripe answered correctly ({0} mode)."
+msgstr "Stripe 响应正常（{0} 模式）。"
+
+msgid "Summary"
+msgstr "摘要"
 
 msgid "Sunday"
 msgstr "星期日"
@@ -3374,6 +3983,9 @@ msgstr "Synology Photos"
 
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Synology Photos → Immich Photos"
+msgstr "Synology Photos → Immich Photos"
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "提示：如果 <TAKEOUT_FOLDER> 包含原始 zip 文件，它们无论如何都会被保留。"
@@ -3414,11 +4026,20 @@ msgstr "表状态：{0}"
 msgid "Takeout"
 msgstr "Takeout"
 
+msgid "Takeout files imported."
+msgstr "Takeout 文件已导入。"
+
 msgid "Takeout folder"
 msgstr "Takeout 文件夹"
 
 msgid "Takeout input and output"
 msgstr "Takeout 输入和输出"
+
+msgid "Takeout type"
+msgstr "Takeout 类型"
+
+msgid "Takeout → my cloud"
+msgstr "Takeout → 我的云"
 
 msgid "Target"
 msgstr "目标"
@@ -3432,6 +4053,57 @@ msgstr "迁移的目标端点或本地文件夹。"
 msgid "Target service"
 msgstr "目标服务"
 
+msgid "Task"
+msgstr "任务"
+
+msgid "Task canceled."
+msgstr "任务已取消。"
+
+msgid "Task completed."
+msgstr "任务已完成。"
+
+msgid "Task created. Terms of service accepted."
+msgstr "任务已创建。已接受服务条款。"
+
+msgid "Task data:"
+msgstr "任务数据："
+
+msgid "Task failed."
+msgstr "任务失败。"
+
+msgid "Task files and credentials are not included in our backups."
+msgstr "任务文件和凭据不包含在我们的备份中。"
+
+msgid "Task files and credentials: until the task ends, fails or is canceled, or until the end of the download period ({0} days)."
+msgstr "任务文件和凭据：直至任务结束、失败或被取消，或直至下载期限结束（{0} 天）。"
+
+msgid "Task records and payments: as long as tax and accounting laws require."
+msgstr "任务记录和付款：按税务和会计法律要求的期限保存。"
+
+msgid "Task records:"
+msgstr "任务记录："
+
+msgid "Task started."
+msgstr "任务已开始。"
+
+msgid "Tasks and queue"
+msgstr "任务和队列"
+
+msgid "Tasks at a time"
+msgstr "同时运行的任务数"
+
+msgid "Tasks run on this server"
+msgstr "任务在此服务器上运行"
+
+msgid "Terms of service"
+msgstr "服务条款"
+
+msgid "Terms of service · PhotoMigrator Cloud"
+msgstr "服务条款 · PhotoMigrator Cloud"
+
+msgid "Test connection"
+msgstr "测试连接"
+
 msgid "Test email"
 msgstr "测试邮件"
 
@@ -3441,11 +4113,26 @@ msgstr "测试邮件发送失败："
 msgid "Test email sent to {0}."
 msgstr "测试邮件已发送至 {0}。"
 
+msgid "Test mode"
+msgstr "测试模式"
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr "该账户尚未启用。启用后我们会通过电子邮件通知您。"
 
 msgid "The changes could not be saved. Try again."
 msgstr "无法保存更改，请重试。"
+
+msgid "The check failed."
+msgstr "检查失败。"
+
+msgid "The cloud service is not enabled on this server."
+msgstr "此服务器未启用云服务。"
+
+msgid "The data and credentials of the task have been deleted from our server."
+msgstr "该任务的数据和凭据已从我们的服务器删除。"
+
+msgid "The data and credentials of your task <b>{0}</b> were deleted from our server on {1}."
+msgstr "您的任务 <b>{0}</b> 的数据和凭据已于 {1} 从我们的服务器删除。"
 
 msgid "The demo role cannot save configuration changes except TimeZone and Theme."
 msgstr "演示角色除 TimeZone 和 Theme 外，无法保存配置更改。"
@@ -3453,11 +4140,20 @@ msgstr "演示角色除 TimeZone 和 Theme 外，无法保存配置更改。"
 msgid "The demo role cannot {0} configuration directly."
 msgstr "演示角色无法直接{0}配置。"
 
+msgid "The exact price comes with the quote, after we measure the data and test the destination with a tiny upload. Nothing is charged until you accept it."
+msgstr "确切价格随报价提供，我们会先测量数据，并通过一次极小的上传测试目标位置。在您接受之前不会收取任何费用。"
+
+msgid "The files and credentials of a task are deleted when the task ends, fails, is canceled or its download period ends. We email you when it happens. See the"
+msgstr "任务的文件和凭据会在任务结束、失败、被取消或其下载期限结束时删除。发生时我们会向您发送邮件。请参阅"
+
 msgid "The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr "输出文件夹的名称与输入文件夹相同，后面跟此后缀和执行时间戳。"
 
 msgid "The password needs at least {0} characters."
 msgstr "密码至少需要 {0} 个字符。"
+
+msgid "The payment was canceled. You can pay whenever you are ready."
+msgstr "付款已取消。您可以在准备好时随时付款。"
 
 msgid "The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "处理后的 Takeout 将保存到文件夹 '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'。"
@@ -3465,14 +4161,35 @@ msgstr "处理后的 Takeout 将保存到文件夹 '<TAKEOUT_FOLDER>_processed_<
 msgid "The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
 msgstr "处理后的导出内容将保存到文件夹 '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'。"
 
+msgid "The quote is valid for {0} days. After that the task and its data are deleted."
+msgstr "报价有效期为 {0} 天。之后任务及其数据将被删除。"
+
+msgid "The refund failed; we will review it."
+msgstr "退款失败；我们将进行审核。"
+
+msgid "The result of your task <b>{0}</b> is deleted on {1}. Download it before then."
+msgstr "您的任务 <b>{0}</b> 的结果将于 {1} 删除。请在此之前下载。"
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "所选路径包含 '{0}'，这是 Google 保留的特殊文件夹名称。\\n\\n"
+
+msgid "The server must be reachable from the internet."
+msgstr "服务器必须可从互联网访问。"
+
+msgid "The task failed"
+msgstr "任务失败"
+
+msgid "The task is too large"
+msgstr "任务太大"
 
 msgid "The temporary password was emailed to {0}."
 msgstr "临时密码已通过电子邮件发送至 {0}。"
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
 msgstr "该工具会在同一文件夹树中搜索有效的目标文件，并尽可能重新建立链接。"
+
+msgid "The upload could not continue. Add the file again."
+msgstr "上传无法继续。请重新添加该文件。"
 
 msgid "The user can sign in with this email and receives account and task notices there."
 msgstr "用户可使用此电子邮件登录，并在此接收账户和任务通知。"
@@ -3485,6 +4202,9 @@ msgstr "PhotoMigrator 网页界面使用的主题。"
 
 msgid "There are no changed values in this row."
 msgstr "此行没有更改的值。"
+
+msgid "These terms are governed by the laws of Spain and the European Union, without prejudice to the consumer protection rules of your country of residence."
+msgstr "本条款受西班牙和欧盟法律管辖，但不影响您居住国的消费者保护规定。"
 
 msgid "This argument is mandatory to run the Google Takeout Processor feature."
 msgstr "运行 Google Takeout Processor 功能必须提供此参数。"
@@ -3696,6 +4416,15 @@ msgstr "时区"
 msgid "Timestamp ▼"
 msgstr "时间戳 ▼"
 
+msgid "Tip: create an API key just for this task in Immich (Account settings → API keys) and delete it when the task ends."
+msgstr "提示：在 Immich 中专为此任务创建一个 API 密钥（账户设置 → API 密钥），并在任务结束时将其删除。"
+
+msgid "Tip: use an account without two-step verification, ideally one created only for this task."
+msgstr "提示：使用未启用两步验证的账户，最好是仅为此任务创建的账户。"
+
+msgid "Tip: use an app password (Personal settings → Security) and revoke it when the task ends."
+msgstr "提示：使用应用专用密码（个人设置 → 安全），并在任务结束时撤销。"
+
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr "要保存任何其他配置字段，请输入有效的管理员凭据。"
 
@@ -3704,6 +4433,9 @@ msgstr "今天"
 
 msgid "Toggle {0}"
 msgstr "切换 {0}"
+
+msgid "Too large"
+msgstr "太大"
 
 msgid "Tools"
 msgstr "工具"
@@ -3771,6 +4503,12 @@ msgstr "无法发送申请"
 msgid "Unable to stop job"
 msgstr "无法停止任务"
 
+msgid "Up"
+msgstr "上一级"
+
+msgid "Up to {0} in total."
+msgstr "总计最多 {0}。"
+
 msgid "Upload Albums"
 msgstr "上传相册"
 
@@ -3819,6 +4557,9 @@ msgstr "将 <INPUT_FOLDER> 中的所有资源上传到所选客户端。- 'Album
 msgid "Upload behavior: ZIP extraction follows the \"Extract ZIPs on upload\" option (Yes/No) in Upload to Server."
 msgstr "上传行为：ZIP 解压遵循“上传到服务器”中的“上传时解压 ZIP”选项（是/否）。"
 
+msgid "Upload from this browser"
+msgstr "从此浏览器上传"
+
 msgid "Upload from this computer"
 msgstr "从此计算机上传"
 
@@ -3846,6 +4587,9 @@ msgstr "上传到服务器"
 msgid "Upload to Server · PhotoMigrator"
 msgstr "上传到服务器 · PhotoMigrator"
 
+msgid "Upload your Takeout files"
+msgstr "上传您的 Takeout 文件"
+
 msgid "Upload, download, organize and clean up albums and assets in your Google Photos library."
 msgstr "上传、下载、整理和清理 Google Photos 图库中的相册和资源。"
 
@@ -3861,8 +4605,17 @@ msgstr "上传、下载、整理和清理 Synology Photos 图库中的相册和�
 msgid "Upload, download, rename, clean up and deduplicate albums and assets."
 msgstr "上传、下载、重命名、清理相册和资源并去重。"
 
+msgid "Uploaded"
+msgstr "已上传"
+
 msgid "Uploaded: {0}\\n"
 msgstr "已上传：{0}\\n"
+
+msgid "Uploading"
+msgstr "上传中"
+
+msgid "Uploads resume if the connection drops: add the same file again to continue."
+msgstr "连接中断后上传可以恢复：再次添加同一文件即可继续。"
 
 msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
 msgstr "使用 '--organize-folder-structure' 更改布局，未指定输出文件夹时使用 '--organize-output-folder-suffix' 更改生成的后缀，使用 '--move-original-files' 改为移动而非复制。"
@@ -3891,14 +4644,23 @@ msgstr "使用所选"
 msgid "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
 msgstr "请在“上传到服务器”面板中使用“上传本地文件夹”或“上传本地 ZIP”。"
 
+msgid "Use my saved account"
+msgstr "使用我已保存的账户"
+
 msgid "Use patterns: e.g. --download-albums 'dron*'"
 msgstr "使用模式：例如 --download-albums 'dron*'"
+
+msgid "Use the client ID, client secret and refresh token of your own Google OAuth client (see the Google Photos help)."
+msgstr "请使用您自己的 Google OAuth 客户端的客户端 ID、客户端密钥和刷新令牌（参见 Google Photos 帮助）。"
 
 msgid "Use the password your administrator gave you."
 msgstr "请使用管理员提供给您的密码。"
 
 msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
 msgstr "在 '--find-duplicates' 之后使用，以应用您在已审核 CSV 中做出的手动决定。"
+
+msgid "Use this folder ({0} files)"
+msgstr "使用此文件夹（{0} 个文件）"
 
 msgid "Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
 msgstr "与 '--remove-albums' 一起使用；可接受的格式包括 YYYY、YYYY-MM 和 YYYY-MM-DD。"
@@ -3969,6 +4731,9 @@ msgstr "使用设置中的默认值"
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "有效操作：restore_duplicate / remove_duplicate / replace_duplicate。"
 
+msgid "Valid for {0} days."
+msgstr "有效期 {0} 天。"
+
 msgid "Values come from the whole table, not just this page."
 msgstr "值来自整个表，而不仅是当前页。"
 
@@ -3981,17 +4746,65 @@ msgstr "视频"
 msgid "Volumes folder"
 msgstr "卷文件夹"
 
+msgid "Waiting for data"
+msgstr "等待数据"
+
+msgid "Waiting for payment"
+msgstr "等待付款"
+
+msgid "Waiting for your data"
+msgstr "等待您的数据"
+
 msgid "Warm palette"
 msgstr "暖色调色板"
 
+msgid "We checked your task <b>{0}</b>: {1} of photos and videos."
+msgstr "我们已检查您的任务 <b>{0}</b>：照片和视频共 {1}。"
+
+msgid "We do our best to keep your albums, dates and locations, but we cannot guarantee that every file is supported by the destination service. PhotoMigrator only reads your source and never deletes it, so keep your originals until you have checked the result. To the extent permitted by law, our liability is limited to the amount you paid for the task."
+msgstr "我们会尽力保留您的相册、日期和位置，但无法保证目标服务支持每个文件。PhotoMigrator 只读取您的来源，从不删除，因此在您检查结果之前，请保留原始文件。在法律允许的范围内，我们的责任以您为该任务支付的金额为限。"
+
+msgid "We email you when it starts and when it ends. You can cancel it until then with a full refund."
+msgstr "任务开始和结束时我们会给您发邮件。在此之前您可以随时取消并获得全额退款。"
+
+msgid "We may update these terms. The version you accepted is recorded with each task and applies to it."
+msgstr "我们可能会更新这些条款。您接受的版本会随每个任务记录，并适用于该任务。"
+
+msgid "We measure your data and test the destination with a tiny upload that we delete right away. It takes a few minutes."
+msgstr "我们会测量您的数据，并通过一次立即删除的极小上传测试目标位置。这需要几分钟。"
+
+msgid "We never delete anything in your source"
+msgstr "我们从不删除您来源中的任何内容"
+
 msgid "We received your account request"
 msgstr "我们已收到您的账户申请"
+
+msgid "We received your payment of <b>{0}</b>. Your task <b>{1}</b> is number {2} in the queue."
+msgstr "我们已收到您的付款 <b>{0}</b>。您的任务 <b>{1}</b> 在队列中排第 {2} 位。"
+
+msgid "We refunded the full amount of <b>{0}</b>. It reaches your card in 5 to 10 days."
+msgstr "我们已全额退款 <b>{0}</b>。款项将在 5 至 10 天内到达您的银行卡。"
+
+msgid "We run PhotoMigrator on our server for you: we process Google or iCloud Takeout exports and upload them to the photo service you choose, we let you download a processed Takeout, or we move a library from one photo service to another."
+msgstr "我们在服务器上为您运行 PhotoMigrator：处理 Google 或 iCloud Takeout 导出文件并上传到您选择的照片服务，让您下载处理后的 Takeout，或将图库从一个照片服务移动到另一个。"
+
+msgid "We run your migration or Takeout processing on our server. You pay only for tasks that work."
+msgstr "我们在服务器上运行您的迁移或 Takeout 处理。您只需为成功的任务付费。"
+
+msgid "We use one cookie to keep you signed in and one to remember your language. No advertising or tracking cookies."
+msgstr "我们使用一个 Cookie 保持您的登录状态，另一个用于记住您的语言。没有广告或跟踪 Cookie。"
 
 msgid "Web Interface"
 msgstr "网页界面"
 
 msgid "Web database"
 msgstr "Web 数据库"
+
+msgid "Webhook URL"
+msgstr "Webhook URL"
+
+msgid "Webhook signing secret"
+msgstr "Webhook 签名密钥"
 
 msgid "Website"
 msgstr "网站"
@@ -4007,6 +4820,9 @@ msgstr "欢迎回来，admin"
 
 msgid "Welcome back, {0}"
 msgstr "欢迎回来，{0}"
+
+msgid "What do you want to do?"
+msgstr "您想做什么？"
 
 msgid "What do you want to move today?"
 msgstr "今天想迁移什么？"
@@ -4077,6 +4893,12 @@ msgstr "每个功能处理哪些照片和视频。"
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "启用此标志后，无害的变体（例如下划线与空格，以及末尾类似重复的数字后缀）会被规范化"
 
+msgid "Without Stripe keys every task is free. Administrators never pay. {0} Mbps means no download limit."
+msgstr "没有 Stripe 密钥时，所有任务都免费。管理员无需付费。{0} Mbps 表示不限制下载速度。"
+
+msgid "Working on it"
+msgstr "处理中"
+
 msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
 msgstr "支持 Google Photos、Synology Photos、Immich Photos、NextCloud Photos 和本地文件夹，可任意方向迁移。"
 
@@ -4091,6 +4913,15 @@ msgstr "昨天"
 
 msgid "You"
 msgstr "您"
+
+msgid "You add the files in the next step. Uploads resume if the connection drops, so you can close the page and continue later."
+msgstr "您将在下一步添加文件。连接中断后上传可以恢复，因此您可以关闭页面，稍后继续。"
+
+msgid "You can ask for access to your data, its correction or deletion, limit or object to its processing, and ask for a copy of it, by writing to"
+msgstr "您可以要求访问、更正或删除您的数据，限制或反对对其的处理，并索取副本，请写信至"
+
+msgid "You can download it until {0}. After that it is deleted from our server."
+msgstr "您可以在 {0} 之前下载。之后它将从我们的服务器删除。"
 
 msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
 msgstr "您可以编辑单元格并点击“保存行”，或点击“删除行”。插入操作使用 JSON 对象语法。"
@@ -4107,8 +4938,17 @@ msgstr "您不能删除自己的用户"
 msgid "You cannot delete your own user."
 msgstr "您不能删除自己的用户。"
 
+msgid "You have not been charged."
+msgstr "您尚未被扣费。"
+
 msgid "You need"
 msgstr "您需要"
+
+msgid "You need a PhotoMigrator account. You may only send us photos, videos and credentials that you own or are allowed to use. You must not send content that is illegal. You are responsible for the credentials you give us; we recommend creating keys or app passwords just for the task and revoking them when it ends."
+msgstr "您需要一个 PhotoMigrator 账户。您只能向我们发送您拥有或有权使用的照片、视频和凭据，不得发送非法内容。您对提供给我们的凭据负责；我们建议专为该任务创建密钥或应用专用密码，并在任务结束时撤销。"
+
+msgid "You pay one price per task: 5.00 € minimum, then 0.05 € per GB, VAT included."
+msgstr "每个任务只需支付一次价格：最低 5.00 €，之后每 GB 0.05 €，含增值税。"
 
 msgid "You will be asked to confirm before it runs."
 msgstr "运行前会要求您确认。"
@@ -4118,6 +4958,12 @@ msgstr "您的 Immich Photos ADMIN_API_KEY（可在 账户设置 --> API_KEY 密
 
 msgid "Your PhotoMigrator account"
 msgstr "您的 PhotoMigrator 账户"
+
+msgid "Your PhotoMigrator quote"
+msgstr "您的 PhotoMigrator 报价"
+
+msgid "Your Takeout"
+msgstr "您的 Takeout"
 
 msgid "Your account has been disabled"
 msgstr "您的账户已被停用"
@@ -4131,6 +4977,21 @@ msgstr "您的账户已启用"
 msgid "Your account request"
 msgstr "您的账户申请"
 
+msgid "Your card details go to Stripe, never to us."
+msgstr "您的银行卡信息会发送给 Stripe，不会发送给我们。"
+
+msgid "Your download expires soon"
+msgstr "您的下载即将过期"
+
+msgid "Your files and credentials are deleted when the task ends. We never delete anything in your source."
+msgstr "您的文件和凭据会在任务结束时删除。我们从不删除您来源中的任何内容。"
+
+msgid "Your migration is complete"
+msgstr "您的迁移已完成"
+
+msgid "Your name or company"
+msgstr "您的姓名或公司名称"
+
 msgid "Your own library"
 msgstr "你自己的图库"
 
@@ -4139,6 +5000,51 @@ msgstr "您的密码已更改"
 
 msgid "Your password was reset"
 msgstr "您的密码已被重置"
+
+msgid "Your photos and credentials are used only to run your task, and are deleted when it ends."
+msgstr "您的照片和凭据仅用于运行您的任务，并在任务结束时删除。"
+
+msgid "Your processed Takeout is ready"
+msgstr "您处理后的 Takeout 已就绪"
+
+msgid "Your quote"
+msgstr "您的报价"
+
+msgid "Your quote is ready"
+msgstr "您的报价已就绪"
+
+msgid "Your task <b>{0}</b> failed: {1}"
+msgstr "您的任务 <b>{0}</b> 失败：{1}"
+
+msgid "Your task <b>{0}</b> finished successfully. The result takes {1}."
+msgstr "您的任务 <b>{0}</b> 已成功完成。结果大小为 {1}。"
+
+msgid "Your task <b>{0}</b> finished successfully: {1} of photos and videos were moved."
+msgstr "您的任务 <b>{0}</b> 已成功完成：已移动 {1} 的照片和视频。"
+
+msgid "Your task <b>{0}</b> has started. You can follow it in Activity."
+msgstr "您的任务 <b>{0}</b> 已开始。您可以在“活动”中跟踪。"
+
+msgid "Your task <b>{0}</b> is number {1} in the queue."
+msgstr "您的任务 <b>{0}</b> 在队列中排第 {1} 位。"
+
+msgid "Your task <b>{0}</b> was canceled and its data deleted."
+msgstr "您的任务 <b>{0}</b> 已取消，其数据已删除。"
+
+msgid "Your task could not be completed"
+msgstr "您的任务无法完成"
+
+msgid "Your task data has been deleted"
+msgstr "您的任务数据已删除"
+
+msgid "Your task has started"
+msgstr "您的任务已开始"
+
+msgid "Your task is in the queue"
+msgstr "您的任务已进入队列"
+
+msgid "Your task was canceled"
+msgstr "您的任务已取消"
 
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "您的临时密码是 <b>{0}</b>。首次登录时，您需要设置自己的密码。"
@@ -4164,6 +5070,9 @@ msgstr "管理员已停用您的 PhotoMigrator 账户 <b>{0}</b>。如果您认�
 msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
 msgstr "管理员已重置您的 PhotoMigrator 账户 <b>{0}</b> 的密码。"
 
+msgid "and the"
+msgstr "和"
+
 msgid "backup_schedules ({0})"
 msgstr "backup_schedules ({0})"
 
@@ -4176,11 +5085,17 @@ msgstr "data 子路径（默认为用户名）"
 msgid "e.g. photos-2026 or /app/data/photos-2026"
 msgstr "例如 photos-2026 或 /app/data/photos-2026"
 
+msgid "empty = sender address of Email (SMTP)"
+msgstr "留空 = 电子邮件 (SMTP) 的发件人地址"
+
 msgid "environment variables."
 msgstr "环境变量。"
 
 msgid "failed"
 msgstr "失败"
+
+msgid "failed or canceled tasks"
+msgstr "失败或已取消的任务"
 
 msgid "iCloud Takeout"
 msgstr "iCloud Takeout"
@@ -4193,6 +5108,9 @@ msgstr "immich-photos-1 -> immich-photos-1"
 
 msgid "in the backup folder"
 msgstr "在备份文件夹中"
+
+msgid "is responsible for the personal data processed by PhotoMigrator Cloud. Contact:"
+msgstr "负责处理 PhotoMigrator Cloud 的个人数据。联系方式："
 
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
 msgstr "设置为“是”时，上传的 .zip 文件会在服务器上解压，并删除该 .zip 文件。设置为“否”时，.zip 文件保持上传时的原样。"
@@ -4215,6 +5133,15 @@ msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 msgid "on the backup volume"
 msgstr "在备份卷上"
 
+msgid "paid and not refunded"
+msgstr "已付款且未退款"
+
+msgid "privacy policy"
+msgstr "隐私政策"
+
+msgid "refunded"
+msgstr "已退款"
+
 msgid "remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "remove_duplicate 和 replace_duplicate 是不可逆的操作。"
 
@@ -4233,6 +5160,18 @@ msgstr "synology-photos-1 -> immich-photos-1"
 msgid "synology-photos-1 -> synology-photos-1"
 msgstr "synology-photos-1 -> synology-photos-1"
 
+msgid "tasks waiting"
+msgstr "等待中的任务"
+
+msgid "terms of service"
+msgstr "服务条款"
+
+msgid "the Takeout files you upload or import, the files PhotoMigrator creates from them, and the credentials of the services you choose."
+msgstr "您上传或导入的 Takeout 文件、PhotoMigrator 据此创建的文件，以及您选择的服务的凭据。"
+
+msgid "the amount and the Stripe identifiers of the payment. Stripe processes your card details."
+msgstr "付款金额和付款的 Stripe 标识符。Stripe 处理您的银行卡信息。"
+
 msgid "the password of your PhotoMigrator account <b>{0}</b> was changed. If it was not you, contact your administrator right away."
 msgstr "您的 PhotoMigrator 账户 <b>{0}</b> 的密码已更改。如果不是您本人操作，请立即联系管理员。"
 
@@ -4242,11 +5181,17 @@ msgstr "您设置的密码"
 msgid "this is the test email you asked for from the Administration Panel. If you got it, PhotoMigrator can send account notices (requests, activations and password changes) and the emails of finished tasks."
 msgstr "这是您在管理面板中请求发送的测试邮件。如果您收到了它，说明 PhotoMigrator 可以发送账户通知（申请、启用和密码更改）以及任务完成邮件。"
 
+msgid "type of task, size, price, dates and the history of each task (without its files or credentials)."
+msgstr "任务类型、大小、价格、日期以及每个任务的历史记录（不含其文件或凭据）。"
+
 msgid "user_configs ({0})"
 msgstr "user_configs ({0})"
 
 msgid "user_states ({0})"
 msgstr "user_states ({0})"
+
+msgid "username, email address, language and the date of your last sign-in."
+msgstr "用户名、电子邮件地址、语言和您上次登录的日期。"
 
 msgid "users ({0})"
 msgstr "users ({0})"
@@ -4308,6 +5253,9 @@ msgstr "已创建 {0}"
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr "{0} 为您创建了 PhotoMigrator 账户。请使用用户名 <b>{1}</b> 或此电子邮件地址登录。"
 
+msgid "{0} days"
+msgstr "{0} 天"
+
 msgid "{0} days ago"
 msgstr "{0} 天前"
 
@@ -4328,6 +5276,9 @@ msgstr "{0} 个功能"
 
 msgid "{0} finished"
 msgstr "{0} 已完成"
+
+msgid "{0} hours"
+msgstr "{0} 小时"
 
 msgid "{0} is active"
 msgstr "{0} 处于活跃状态"
@@ -4367,6 +5318,69 @@ msgstr "已更改 {0} 个用户"
 
 msgid "{0} will change the password at the next sign-in"
 msgstr "{0} 将在下次登录时更改密码"
+
+msgid "{0}. Applicable law"
+msgstr "{0}. 适用法律"
+
+msgid "{0}. Changes"
+msgstr "{0}. 变更"
+
+msgid "{0}. Cookies"
+msgstr "{0}. Cookie"
+
+msgid "{0}. Deletion of your data"
+msgstr "{0}. 删除您的数据"
+
+msgid "{0}. Downloads"
+msgstr "{0}. 下载"
+
+msgid "{0}. How long we keep it"
+msgstr "{0}. 保存多长时间"
+
+msgid "{0}. How we protect it"
+msgstr "{0}. 我们如何保护数据"
+
+msgid "{0}. Liability"
+msgstr "{0}. 责任"
+
+msgid "{0}. Limits"
+msgstr "{0}. 限制"
+
+msgid "{0}. Payment"
+msgstr "{0}. 付款"
+
+msgid "{0}. Quotes and prices"
+msgstr "{0}. 报价和价格"
+
+msgid "{0}. Refunds and cancellation"
+msgstr "{0}. 退款和取消"
+
+msgid "{0}. What data we process"
+msgstr "{0}. 我们处理哪些数据"
+
+msgid "{0}. What the service does"
+msgstr "{0}. 服务内容"
+
+msgid "{0}. Who is responsible"
+msgstr "{0}. 谁负责"
+
+msgid "{0}. Who provides the service"
+msgstr "{0}. 谁提供服务"
+
+msgid "{0}. Who receives it"
+msgstr "{0}. 谁会接收"
+
+msgid "{0}. Why we process it"
+msgstr "{0}. 为什么处理"
+
+msgid "{0}. Your account and your data"
+msgstr "{0}. 您的账户和您的数据"
+
+msgid "{0}. Your rights"
+msgstr "{0}. 您的权利"
+
+msgid "← My tasks"
+msgstr "← 我的任务"
 
 msgid "⏱️ Delayed Recovered"
 msgstr "⏱️ 延迟恢复"

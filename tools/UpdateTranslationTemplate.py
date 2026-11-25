@@ -8,7 +8,7 @@ Texts come from three places:
   1. a JSON list of the visible texts of a running local Web Interface (collected with --ui-texts, see
      tools/CollectUiTexts.py),
   2. the literal UI strings of the page scripts (statuses, dialogs and notices),
-  3. the email texts of src/web_interface/app.py (EMAIL_TEXTS below).
+  3. the email texts of src/web_interface/app.py (EMAIL_TEXTS below) and of the cloud service (service.EMAIL_TEXTS).
 Numbers inside texts become placeholders ("3 accounts" -> "{0} accounts").
 
     python tools/UpdateTranslationTemplate.py --ui-texts ui_texts.json
@@ -29,7 +29,7 @@ LANG_DIR = ROOT / "lang"
 sys.path.insert(0, str(ROOT))
 from lang import i18n  # noqa: E402
 
-TEMPLATES = ["_main_app_page.html", "admin.html", "login.html", "doc_view.html"]
+TEMPLATES = ["_main_app_page.html", "admin.html", "login.html", "doc_view.html", "legal.html", "../static/service.js"]
 EMAIL_TEXTS = [
     "Account request from {0}", "New account request",
     "<b>{0}</b> ({1}) asked for a PhotoMigrator account.<br>Message: <i>{2}</i>",
@@ -191,7 +191,9 @@ def main() -> int:
     texts |= script_literals()
     help_keys = help_texts()
     # Help lines are translated verbatim (numbers included), so they are not turned into {0} patterns.
-    keys = sorted({numbered(text) for text in texts} | set(EMAIL_TEXTS) | set(ADMIN_TEXTS) | help_keys)
+    sys.path.insert(0, str(ROOT / "src"))
+    from web_interface.service import EMAIL_TEXTS as SERVICE_EMAIL_TEXTS  # emails of the cloud service
+    keys = sorted({numbered(text) for text in texts} | set(EMAIL_TEXTS) | set(SERVICE_EMAIL_TEXTS) | set(ADMIN_TEXTS) | help_keys)
     write_po(LANG_DIR / "messages.pot", keys, {}, None)
     for code in i18n.LANGS:
         if code == i18n.DEFAULT:

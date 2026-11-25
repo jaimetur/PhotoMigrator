@@ -25,6 +25,7 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
   - `Database`: pick a table, filter any column by its values, edit a row in place and save it with ✓, delete it with × or add one with `Add row`.
   - `Backups`: stored backups, size, free space, last and next backup; `Back up now`, download, delete or restore a backup (the current data is saved first as a pre-restore backup), and recurring backups (hourly, every 4 hours, daily, weekly or monthly, at a chosen time, keeping the scheduled backups of the last N days; backups made with `Back up now` are never deleted automatically).
   - `Access logs`: sign-ins, failed sign-ins and the changes made from the Administration Panel, filtered by period, user and event.
+  - `Cloud service`: turns the cloud service on, sets its prices and limits, the Stripe keys and the Dropbox and OneDrive apps, and lists every task with its payment and state (see [Cloud service](13-cloud-service.md)).
 - Choose the language of the interface (and of your emails) with the language picker on the login page, next to your user in the sidebar, or in the Administration Panel. By default the Web Interface uses the language of your browser.
 
 ### 1. Sidebar
@@ -33,6 +34,7 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
   - **Process Takeout:** Google Takeout, iCloud Takeout
   - **Photo libraries:** Google Photos, Synology Photos, Immich Photos, NextCloud Photos, Local Photos Folder
   - **Tools:** Other Features, Upload to Server
+- `Cloud service > My tasks` when the server offers the cloud service: migrations and Takeout processing that run on the server, with resumable uploads, quote, payment, progress and download (see [Cloud service](13-cloud-service.md)).
 - `Activity` (with a `Running` badge while a job runs) and `Settings`.
 - Links to `Help`, `Readme`, `Release Notes` and `Roadmap`, your user, the `Admin Panel` (admins only) and `Logout`.
 - On a phone, the sidebar opens from the menu button in the top bar.
