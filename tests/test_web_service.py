@@ -241,6 +241,18 @@ class TestCloudService(unittest.TestCase):
         self._login("alice", "alice-pass-123")
         self.assertEqual(self.client.get("/api/docs/config").status_code, 200)
 
+    def test_website_is_english_by_default_and_follows_the_chosen_language(self):
+        page = self.client.get("/", headers={"accept-language": "es-ES,es;q=0.9"}).text
+        self.assertIn('<html lang="en">', page)
+        self.assertIn('window.PM_LANG = "en"', page)
+        self.assertIn('class="lang"', page)
+        self.client.post("/api/lang", json={"lang": "es"})
+        page = self.client.get("/").text
+        self.assertIn('<html lang="es">', page)
+        self.assertIn("/api/i18n/es.js", page)
+        catalog = self.client.get("/api/i18n/es.js").text
+        self.assertIn("Read the documentation", catalog)
+
     def test_sign_in_keeps_the_language_of_accounts_without_one(self):
         self.client.post("/api/auth/login", json={"username": "alice", "password": "alice-pass-123"},
                          headers={"accept-language": "es-ES,es;q=0.9"})

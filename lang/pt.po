@@ -6,6 +6,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language: pt\n"
 
+msgid "# Fix a Google Takeout"
+msgstr "# Fix a Google Takeout"
+
+msgid "# Migrate it to Immich"
+msgstr "# Migrate it to Immich"
+
+msgid "# Windows, macOS or Linux"
+msgstr "# Windows, macOS or Linux"
+
 msgid "'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "'move' e 'remove' modificam ficheiros; comece com 'list' se quiser rever primeiro."
 
@@ -42,11 +51,17 @@ msgstr "+ Adicionar"
 msgid "+ Add row"
 msgstr "+ Adicionar linha"
 
+msgid ", free forever"
+msgstr ", gratuito para sempre"
+
 msgid ". PhotoMigrator itself is free, open-source software that you can also run on your own computer at no cost."
 msgstr ". O próprio PhotoMigrator é software livre e de código aberto que também pode executar no seu computador sem custos."
 
 msgid ". You can also complain to the Spanish Data Protection Agency (aepd.es) or to the authority of your country."
 msgstr ". Pode ainda apresentar uma reclamação à Agência Espanhola de Proteção de Dados (aepd.es) ou à autoridade do seu país."
+
+msgid ".zip"
+msgstr ".zip"
 
 msgid "/app/data subpath"
 msgstr "Subcaminho de /app/data"
@@ -108,14 +123,26 @@ msgstr "<b>{0}</b> ({1}) criou a tarefa <b>{2}</b>."
 msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
 msgstr "É cifrada uma cópia apenas para esta tarefa, que é eliminada quando esta termina. A sua conta guardada não é alterada."
 
+msgid "A full interface over SSH"
+msgstr "Uma interface completa por SSH"
+
 msgid "A job${lastMeta ?"
 msgstr "A job${lastMeta ?"
+
+msgid "A keyboard-driven terminal interface with the same features, ideal for headless servers and Docker consoles."
+msgstr "Uma interface de terminal controlada pelo teclado com as mesmas funcionalidades, ideal para servidores sem ecrã e consolas Docker."
+
+msgid "A native window"
+msgstr "Uma janela nativa"
 
 msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
 msgstr "Será criado um novo álbum por cada subpasta encontrada na subpasta 'Albums'."
 
 msgid "A processed Takeout can be downloaded for {0} days, in ZIP parts of up to {1} GB. After that it is deleted."
 msgstr "Um Takeout processado pode ser transferido durante {0} dias, em partes ZIP de até {1} GB. Depois é eliminado."
+
+msgid "a tidy library"
+msgstr "uma biblioteca arrumada"
 
 msgid "A whole folder, albums included"
 msgstr "Uma pasta inteira, com os álbuns incluídos"
@@ -126,8 +153,38 @@ msgstr "Cerca de 1 hora"
 msgid "About {0} minutes"
 msgstr "Cerca de {0} minutos"
 
+msgid "Add the address and credentials of each account once. Up to three accounts per service."
+msgstr "Adicione uma só vez o endereço e as credenciais de cada conta. Até três contas por serviço."
+
+msgid "Albums"
+msgstr "Álbuns"
+
+msgid "Albums as links to one copy of each photo, so nothing is duplicated"
+msgstr "Álbuns como ligações a uma única cópia de cada fotografia, para que nada fique duplicado"
+
+msgid "Albums, dates and GPS"
+msgstr "Álbuns, datas e GPS"
+
+msgid "All releases"
+msgstr "Todas as versões"
+
 msgid "ALL_PHOTOS Folder Name"
 msgstr "Nome da pasta ALL_PHOTOS"
+
+msgid "and Docker"
+msgstr "e Docker"
+
+msgid "and sign in. The first admin account is created for you; change its password before you expose the service on your network."
+msgstr "e inicie sessão. A primeira conta de administrador é criada por si; altere a respetiva palavra-passe antes de expor o serviço na sua rede."
+
+msgid "answered"
+msgstr "respondidas"
+
+msgid "Any direction"
+msgstr "Em qualquer direção"
+
+msgid "Any folder on your disk or NAS, used as a source, a target or a library you manage like a cloud service."
+msgstr "Qualquer pasta do seu disco ou NAS, usada como origem, destino ou biblioteca que gere como um serviço na nuvem."
 
 msgid "API key"
 msgstr "Chave API"
@@ -468,6 +525,15 @@ msgstr "Apple Photos"
 msgid "Apple iCloud Photos export"
 msgstr "Exportação do Apple iCloud Photos"
 
+msgid "Apple silicon"
+msgstr "Apple silicon"
+
+msgid "Apple silicon and Intel."
+msgstr "Apple silicon e Intel."
+
+msgid "Apple's privacy export of iCloud Photos, with dates restored and albums and Memories rebuilt."
+msgstr "A exportação de privacidade da Apple do iCloud Photos, com as datas restauradas e os álbuns e Memories reconstruídos."
+
 msgid "Application activity"
 msgstr "Atividade da aplicação"
 
@@ -491,6 +557,9 @@ msgstr "Tem a certeza?"
 
 msgid "Arguments must be passed as two values separated by comma."
 msgstr "Os argumentos têm de ser indicados como dois valores separados por vírgula."
+
+msgid "arm64"
+msgstr "arm64"
 
 msgid "Asked at the first sign-in"
 msgstr "Pedida no primeiro início de sessão"
@@ -521,6 +590,12 @@ msgstr "Painel em direto da Migração automática"
 
 msgid "Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run, with a live dashboard."
 msgstr "A Migração automática copia (ou move) todas as fotos, vídeos e álbuns de uma origem para um destino numa só execução, com um painel em direto."
+
+msgid "Automatic Migration screens"
+msgstr "Ecrãs da Migração automática"
+
+msgid "Automatic Migration with Synology Photos as source and Immich as target"
+msgstr "Migração automática com o Synology Photos como origem e o Immich como destino"
 
 msgid "Automatic Migration · PhotoMigrator"
 msgstr "Migração automática · PhotoMigrator"
@@ -606,6 +681,12 @@ msgstr "Procurar"
 msgid "Browse, edit or remove individual records of any table of the Web Interface database."
 msgstr "Consulte, edite ou remova registos individuais de qualquer tabela da base de dados da interface web."
 
+msgid "Built for big libraries"
+msgstr "Feito para grandes bibliotecas"
+
+msgid "Built so you never have to"
+msgstr "Concebido para que nunca tenha de"
+
 msgid "By default migration runs in parallel with live dashboard enabled."
 msgstr "Por predefinição, a migração é executada em paralelo com o painel em direto ativado."
 
@@ -615,8 +696,44 @@ msgstr "Por predefinição, a saída usa a estrutura 'year/month' e é guardada 
 msgid "By default, a new destination album keeps the original source name."
 msgstr "Por predefinição, um novo álbum de destino mantém o nome original da origem."
 
+msgid "Calculate the price"
+msgstr "Calcular o preço"
+
+msgid "Can I cancel a cloud task?"
+msgstr "Posso cancelar uma tarefa na nuvem?"
+
+msgid "Can I migrate out of Google Photos?"
+msgstr "Posso migrar para fora do Google Photos?"
+
+msgid "Can I use more than one account?"
+msgstr "Posso usar mais do que uma conta?"
+
 msgid "CAUTION: NOT RECOMMENDED (core of the Google Takeout process). Use only for testing."
 msgstr "ATENÇÃO: NÃO RECOMENDADO (núcleo do processo do Google Takeout). Utilize apenas para testes."
+
+msgid "Check the exact command, press Run and watch the progress and the log live, from any device."
+msgstr "Verifique o comando exato, prima Executar e veja o progresso e o registo em direto, a partir de qualquer dispositivo."
+
+msgid "Choose where your photos are and where they should go. PhotoMigrator downloads and uploads in parallel, recreates every album on the target and shows a live dashboard while it works."
+msgstr "Escolha onde estão as suas fotografias e para onde devem ir. O PhotoMigrator descarrega e carrega em paralelo, recria cada álbum no destino e mostra um painel em direto enquanto trabalha."
+
+msgid "CLOUD TO CLOUD"
+msgstr "DE NUVEM PARA NUVEM"
+
+msgid "Command line"
+msgstr "Linha de comandos"
+
+msgid "Command line in a container, on any platform."
+msgstr "Linha de comandos num contentor, em qualquer plataforma."
+
+msgid "computer or NAS"
+msgstr "computador ou NAS"
+
+msgid "Connect up to three accounts per service and move your library in any direction, including between two accounts of the same service."
+msgstr "Ligue até três contas por serviço e mude a sua biblioteca em qualquer direção, incluindo entre duas contas do mesmo serviço."
+
+msgid "Copy or move assets, with albums and non-album photos"
+msgstr "Copie ou mova itens, com álbuns e fotografias sem álbum"
 
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "O endpoint CSV não está disponível no backend. Reinicie/atualize o backend web."
@@ -1026,6 +1143,9 @@ msgstr "Credenciais cifradas com uma chave só para esta tarefa"
 msgid "Credentials for account {0} found in Settings"
 msgstr "Credenciais da conta {0} encontradas nas Definições"
 
+msgid "curl -L -o docker-compose.yml https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/docker-compose.yml\ncurl -L -o .env https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/.env\ndocker compose pull\ndocker compose up -d"
+msgstr "curl -L -o docker-compose.yml https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/docker-compose.yml\ncurl -L -o .env https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/.env\ndocker compose pull\ndocker compose up -d"
+
 msgid "Current run"
 msgstr "Execução atual"
 
@@ -1040,6 +1160,18 @@ msgstr "Atual: {0} | Selecionado: {1}"
 
 msgid "Current: {0} | {1}"
 msgstr "Atual: {0} | {1}"
+
+msgid "Data deleted when it ends"
+msgstr "Dados eliminados no fim"
+
+msgid "Dates and locations restored from JSON sidecars or Photo Details.csv"
+msgstr "Datas e localizações restauradas a partir de sidecars JSON ou Photo Details.csv"
+
+msgid "Dates fixed"
+msgstr "Datas corrigidas"
+
+msgid "Dates fixed, albums rebuilt, everything uploaded. Follow it live and get an email at each step."
+msgstr "Datas corrigidas, álbuns reconstruídos, tudo carregado. Acompanhe em direto e receba um e-mail em cada passo."
 
 msgid "DB Delete Error"
 msgstr "Erro ao eliminar da BD"
@@ -1215,6 +1347,9 @@ msgstr "Perfil de demonstração restrito"
 msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
 msgstr "O perfil de demonstração não pode executar esta ação de configuração diretamente. Introduza o nome de utilizador e a palavra-passe de um administrador ativo."
 
+msgid "Desktop"
+msgstr "Ambiente de trabalho"
+
 msgid "Destination"
 msgstr "Destino"
 
@@ -1230,14 +1365,29 @@ msgstr "Pasta de destino"
 msgid "Destination service"
 msgstr "Serviço de destino"
 
+msgid "Destroyed when it ends"
+msgstr "Destruído no fim"
+
+msgid "Destructive actions are marked in red and ask for confirmation. Copy is the default; move is your choice."
+msgstr "As ações destrutivas são assinaladas a vermelho e pedem confirmação. Copiar é o predefinido; mover é decisão sua."
+
 msgid "Details"
 msgstr "Detalhes"
 
 msgid "Disabled"
 msgstr "Desativado"
 
+msgid "Discord"
+msgstr "Discord"
+
 msgid "Do not save the GPTH log"
 msgstr "Não guardar o registo do GPTH"
+
+msgid "Docker"
+msgstr "Docker"
+
+msgid "Docker launcher"
+msgstr "Iniciador Docker"
 
 msgid "Document"
 msgstr "Documento"
@@ -1245,8 +1395,14 @@ msgstr "Documento"
 msgid "Documentation"
 msgstr "Documentação"
 
+msgid "Double-click the app on Windows, macOS or Linux to open the desktop interface, with native folder pickers and a light or dark theme."
+msgstr "Faça duplo clique na aplicação no Windows, macOS ou Linux para abrir a interface de ambiente de trabalho, com seletores de pastas nativos e um tema claro ou escuro."
+
 msgid "Download"
 msgstr "Transferir"
+
+msgid "DOWNLOAD"
+msgstr "TRANSFERÊNCIA"
 
 msgid "Download Albums"
 msgstr "Transferir álbuns"
@@ -1262,6 +1418,12 @@ msgstr "Transfere todos os álbuns e todos os elementos fora de álbuns para <OU
 
 msgid "Download days"
 msgstr "Dias de transferência"
+
+msgid "Download for free"
+msgstr "Descarregar gratuitamente"
+
+msgid "Download PhotoMigrator, connect your services and move your whole library in a single run."
+msgstr "Descarregue o PhotoMigrator, ligue os seus serviços e mude toda a sua biblioteca numa só execução."
 
 msgid "Download ready."
 msgstr "Transferência pronta."
@@ -1337,6 +1499,9 @@ msgstr "Cada tarefa pode usar até 10,0 TB de espaço de trabalho no nosso servi
 
 msgid "Each task runs in its own isolated folder that no other user can reach."
 msgstr "Cada tarefa é executada na sua própria pasta isolada, à qual nenhum outro utilizador tem acesso."
+
+msgid "Each task runs in its own isolated folder. No other user, and no person on our side, opens your photos."
+msgstr "Cada tarefa corre na sua própria pasta isolada. Nenhum outro utilizador, nem ninguém do nosso lado, abre as suas fotografias."
 
 msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
 msgstr "Edite um valor e prima ✓ para guardar essa linha. As chaves estão protegidas. {0} linhas por página."
@@ -1443,6 +1608,9 @@ msgstr "Ativado · gratuito"
 msgid "Enabled · paid"
 msgstr "Ativado · pago"
 
+msgid "Encrypted, per task"
+msgstr "Encriptado, por tarefa"
+
 msgid "Encryption"
 msgstr "Encriptação"
 
@@ -1473,6 +1641,9 @@ msgstr "Início estimado"
 msgid "Estimated start: {0}. Estimated duration: {1}."
 msgstr "Início estimado: {0}. Duração estimada: {1}."
 
+msgid "EU servers, open source"
+msgstr "Servidores na UE, código aberto"
+
 msgid "Event"
 msgstr "Evento"
 
@@ -1491,11 +1662,20 @@ msgstr "Todos os dias (02:00)"
 msgid "Every day at {0}"
 msgstr "Todos os dias às {0}"
 
+msgid "Every feature is a command-line flag, so you can automate migrations and repeat them with the same settings."
+msgstr "Todas as funcionalidades são uma opção da linha de comandos, por isso pode automatizar as migrações e repeti-las com as mesmas definições."
+
 msgid "Every hour"
 msgstr "Todas as horas"
 
 msgid "Every hour at minute {0}"
 msgstr "A cada hora no minuto {0}"
+
+msgid "Every screen shows the command it will run. Copy it to repeat the job or to put it in a script."
+msgstr "Cada ecrã mostra o comando que vai executar. Copie-o para repetir a tarefa ou para o usar num script."
+
+msgid "Every task shows only the options it needs, explains each one in plain language and shows the exact command before anything runs."
+msgstr "Cada tarefa mostra apenas as opções de que precisa, explica cada uma em linguagem simples e mostra o comando exato antes de executar o que quer que seja."
 
 msgid "Every week (Monday 2:00 AM)"
 msgstr "Todas as semanas (segunda-feira às 02:00)"
@@ -1505,6 +1685,12 @@ msgstr "Cada {0} às {1}"
 
 msgid "Every {0} hours"
 msgstr "A cada {0} horas"
+
+msgid "Everything else your library needs"
+msgstr "Tudo o resto de que a sua biblioteca precisa"
+
+msgid "Everything is deleted"
+msgstr "Tudo é eliminado"
 
 msgid "Example"
 msgstr "Exemplo"
@@ -1659,6 +1845,9 @@ msgstr "Expirada"
 msgid "Export Config"
 msgstr "Exportar configuração"
 
+msgid "Exports that make sense again"
+msgstr "Exportações que voltam a fazer sentido"
+
 msgid "Extract ZIPs on upload"
 msgstr "Extrair ZIPs ao carregar"
 
@@ -1683,8 +1872,20 @@ msgstr "Início de sessão falhado"
 msgid "Failed: {0}"
 msgstr "Falhou: {0}"
 
+msgid "Failed? You pay nothing"
+msgstr "Falhou? Não paga nada"
+
+msgid "FAQ"
+msgstr "FAQ"
+
+msgid "Features"
+msgstr "Funcionalidades"
+
 msgid "Files and credentials deleted when it ends"
 msgstr "Ficheiros e credenciais eliminados no fim"
+
+msgid "Files, credentials and their key are erased as soon as the task ends, and we email you the confirmation."
+msgstr "Os ficheiros, as credenciais e a respetiva chave são apagados assim que a tarefa termina, e enviamos-lhe a confirmação por e-mail."
 
 msgid "Fill at least one value."
 msgstr "Preencha pelo menos um valor."
@@ -1700,6 +1901,9 @@ msgstr "Filtrar por cidade"
 
 msgid "Filter by country"
 msgstr "Filtrar por país"
+
+msgid "Filter by date, type, country, city or person"
+msgstr "Filtre por data, tipo, país, cidade ou pessoa"
 
 msgid "Filter by person"
 msgstr "Filtrar por pessoa"
@@ -1731,6 +1935,9 @@ msgstr "Filtros"
 msgid "Find Duplicates"
 msgstr "Procurar duplicados"
 
+msgid "Find duplicates across folders, review them and apply your decisions"
+msgstr "Encontre duplicados entre pastas, reveja-os e aplique as suas decisões"
+
 msgid "Find Duplicates Input"
 msgstr "Entrada de Procurar duplicados"
 
@@ -1745,6 +1952,9 @@ msgstr "Terminada"
 
 msgid "First page"
 msgstr "Primeira página"
+
+msgid "Fix"
+msgstr "Corrigir"
 
 msgid "Fix Broken Symlinks"
 msgstr "Reparar ligações simbólicas quebradas"
@@ -1791,6 +2001,9 @@ msgstr "Pasta a reparar"
 msgid "Folder(s)"
 msgstr "Pasta(s)"
 
+msgid "Folder-based albums on your own NextCloud, with parallel uploads and downloads."
+msgstr "Álbuns baseados em pastas no seu próprio NextCloud, com carregamentos e transferências em paralelo."
+
 msgid "Foldername albums"
 msgstr "Nome da pasta de álbuns"
 
@@ -1823,6 +2036,9 @@ msgstr "Acompanhe o progresso e o registo em direto em Atividade."
 
 msgid "Follow the live dashboard and the log in Activity. A task that has started is not refunded if you stop it."
 msgstr "Acompanhe o painel em direto e o registo em Atividade. Uma tarefa que já começou não é reembolsada se a parar."
+
+msgid "Follow the run"
+msgstr "Acompanhar a execução"
 
 msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: 3). Only used when '--try-small-albums-grouping' is enabled."
 msgstr "Para Consolidate Albums Names, defina o número máximo de ativos para um álbum ser considerado pequeno (predefinição: 3). Só é utilizado quando '--try-small-albums-grouping' está ativado."
@@ -1878,14 +2094,23 @@ msgstr "Em Remover álbuns, corresponde apenas a álbuns criados em ou antes de 
 msgid "For Remove Albums, only match albums created on or before <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
 msgstr "Em Remover álbuns, corresponde apenas a álbuns criados em ou antes de <DATE>. Use com '--remove-albums'; os formatos aceites incluem YYYY, YYYY-MM e YYYY-MM-DD."
 
+msgid "for what works"
+msgstr "pelo que funciona"
+
 msgid "Force Password Change"
 msgstr "Forçar alteração da palavra-passe"
 
 msgid "Force password change on first login"
 msgstr "Forçar a alteração da palavra-passe no primeiro início de sessão"
 
+msgid "Four steps, and you only pay"
+msgstr "Quatro passos, e só paga"
+
 msgid "Free"
 msgstr "Gratuito"
+
+msgid "Free and open source"
+msgstr "Gratuito e de código aberto"
 
 msgid "Free disk space"
 msgstr "Espaço livre em disco"
@@ -1899,8 +2124,41 @@ msgstr "Sexta-feira"
 msgid "From"
 msgstr "De"
 
+msgid "From a messy export to"
+msgstr "De uma exportação desorganizada a"
+
+msgid "From Immich, Synology Photos or NextCloud to any other service, with albums and dates."
+msgstr "Do Immich, Synology Photos ou NextCloud para qualquer outro serviço, com álbuns e datas."
+
 msgid "Full refund if a task fails"
 msgstr "Reembolso total se uma tarefa falhar"
+
+msgid "Get PhotoMigrator"
+msgstr "Obtenha o PhotoMigrator"
+
+msgid "Get started"
+msgstr "Começar"
+
+msgid "GitHub"
+msgstr "GitHub"
+
+msgid "Google & iCloud Takeout"
+msgstr "Google e iCloud Takeout"
+
+msgid "Google or iCloud Takeout, cleaned and uploaded to Immich, Synology Photos, NextCloud or Google Photos."
+msgstr "Takeout do Google ou do iCloud, limpo e carregado para o Immich, Synology Photos, NextCloud ou Google Photos."
+
+msgid "Google Takeout fixing screen with the input folder and the folder structure options"
+msgstr "Ecrã de correção do Google Takeout com a pasta de entrada e as opções da estrutura de pastas"
+
+msgid "GPL-3.0"
+msgstr "GPL-3.0"
+
+msgid "GPL-3.0 licensed, developed in the open on GitHub with a friendly community on Discord."
+msgstr "Com licença GPL-3.0, desenvolvido às claras no GitHub com uma comunidade amigável no Discord."
+
+msgid "GPL-3.0 · © 2024-2026 Jaime Tur"
+msgstr "GPL-3.0 · © 2024-2026 Jaime Tur"
 
 msgid "GPTH messages"
 msgstr "Mensagens do GPTH"
@@ -1983,6 +2241,9 @@ msgstr "Índice de ajuda vazio"
 msgid "Help index unavailable"
 msgstr "Índice de ajuda indisponível"
 
+msgid "Helpers for the folders on your disk, and one place for the credentials of every account, encrypted in the Web Interface."
+msgstr "Ajudas para as pastas do seu disco e um único local para as credenciais de cada conta, encriptadas na interface web."
+
 msgid "Hi {0},"
 msgstr "Olá {0},"
 
@@ -2004,17 +2265,35 @@ msgstr "Início (volumes)"
 msgid "Hourly"
 msgstr "A cada hora"
 
+msgid "How big is your Takeout?"
+msgstr "Qual o tamanho do seu Takeout?"
+
+msgid "How do I get a processed Takeout?"
+msgstr "Como obtenho um Takeout processado?"
+
+msgid "How it works"
+msgstr "Como funciona"
+
 msgid "How to migrate"
 msgstr "Como migrar"
 
 msgid "How we protect your data"
 msgstr "Como protegemos os seus dados"
 
+msgid "http://localhost:{0}"
+msgstr "http://localhost:{0}"
+
 msgid "I accept the"
 msgstr "Aceito os"
 
+msgid "Immich Photos actions grouped into Transfer, Organize and Clean up"
+msgstr "Ações do Immich Photos agrupadas em Transferir, Organizar e Limpar"
+
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "As entradas IMMICH_USERNAME_2/IMMICH_PASSWORD_2 ou IMMICH_API_KEY_USER_2 têm de existir em Config.ini."
+
+msgid "Import and export your configuration"
+msgstr "Importe e exporte a sua configuração"
 
 msgid "import from Dropbox"
 msgstr "importação do Dropbox"
@@ -2040,8 +2319,20 @@ msgstr "IMPORTANTE: Este módulo é um pipeline local de pré-processamento. Por
 msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "IMPORTANTE: remove_duplicate e replace_duplicate são operações irreversíveis."
 
+msgid "In the browser, from Docker"
+msgstr "No navegador, a partir do Docker"
+
 msgid "Input: {0}. The task is waiting for its files and the quote."
 msgstr "Entrada: {0}. A tarefa aguarda os ficheiros e o orçamento."
+
+msgid "Intel"
+msgstr "Intel"
+
+msgid "Interfaces"
+msgstr "Interfaces"
+
+msgid "Invisible to others"
+msgstr "Invisível para os outros"
 
 msgid "IP Address"
 msgstr "Endereço IP"
@@ -2178,11 +2469,17 @@ msgstr "Credenciais de administrador inválidas ou permissões insuficientes."
 msgid "Invalid credentials"
 msgstr "Credenciais inválidas"
 
+msgid "Is PhotoMigrator really free?"
+msgstr "O PhotoMigrator é mesmo gratuito?"
+
 msgid "It contains the Albums and No_Albums folders used by Local Photos Folder modules."
 msgstr "Contém as pastas Albums e No_Albums utilizadas pelos módulos Local Photos Folder."
 
 msgid "It opens Google's consent page and asks for the scopes needed to upload media and create albums."
 msgstr "Abre a página de consentimento da Google e pede os âmbitos necessários para carregar multimédia e criar álbuns."
+
+msgid "It runs on your own machine or NAS. Your photos go straight from one service to the other."
+msgstr "Corre na sua própria máquina ou NAS. As suas fotografias vão diretamente de um serviço para o outro."
 
 msgid "Job linked to your session"
 msgstr "Tarefa associada à sua sessão"
@@ -2195,6 +2492,9 @@ msgstr "Mantém uma cópia intacta do Takeout original (requer o dobro do espaç
 
 msgid "Keep an untouched copy of original Takeout (requires double space). TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "Mantém uma cópia intacta do Takeout original (requer o dobro do espaço). DICA: Se <TAKEOUT_FOLDER> contiver os ficheiros zip originais, estes ficam sempre preservados."
+
+msgid "Keep every memory."
+msgstr "Guarde todas as memórias."
 
 msgid "Keep last N backups"
 msgstr "Manter as últimas N cópias de segurança"
@@ -2241,8 +2541,14 @@ msgstr "Letras, números, pontos, hífenes ou sublinhados"
 msgid "Libraries & tools"
 msgstr "Bibliotecas e ferramentas"
 
+msgid "Light"
+msgstr "Claro"
+
 msgid "Links are only fixed when a valid target can be inferred from current files."
 msgstr "As ligações só são corrigidas quando é possível inferir um destino válido a partir dos ficheiros atuais."
+
+msgid "Linux"
+msgstr "Linux"
 
 msgid "List only, move the duplicates to a folder, or delete them."
 msgstr "Apenas listar, mover os duplicados para uma pasta ou eliminá-los."
@@ -2250,11 +2556,17 @@ msgstr "Apenas listar, mover os duplicados para uma pasta ou eliminá-los."
 msgid "List, move or remove duplicates"
 msgstr "Listar, mover ou remover duplicados"
 
+msgid "Live dashboard"
+msgstr "Painel em direto"
+
 msgid "Live mode"
 msgstr "Modo real"
 
 msgid "Load Table"
 msgstr "Carregar tabela"
+
+msgid "Local folders"
+msgstr "Pastas locais"
 
 msgid "Local Photos Folder"
 msgstr "Pasta local de fotos"
@@ -2271,6 +2583,9 @@ msgstr "Ferramentas locais"
 msgid "Local helpers: repair symlinks, rename or organize folders, and find or process duplicates."
 msgstr "Ferramentas locais: reparar ligações simbólicas, mudar o nome ou organizar pastas e procurar ou processar duplicados."
 
+msgid "Local tools & settings"
+msgstr "Ferramentas e definições locais"
+
 msgid "Log"
 msgstr "Registo"
 
@@ -2286,8 +2601,14 @@ msgstr "Terminar sessão"
 msgid "Logs"
 msgstr "Registos"
 
+msgid "macOS"
+msgstr "macOS"
+
 msgid "Main navigation"
 msgstr "Navegação principal"
+
+msgid "Manage"
+msgstr "Gerir"
 
 msgid "Manage a library"
 msgstr "Gerir uma biblioteca"
@@ -2313,6 +2634,9 @@ msgstr "Une álbuns duplicados (mesmo nome): move os elementos para o álbum mai
 msgid "Merge equivalent album families"
 msgstr "Unir famílias de álbuns equivalentes"
 
+msgid "Merge, consolidate and clean up albums"
+msgstr "Una, consolide e limpe álbuns"
+
 msgid "Message"
 msgstr "Mensagem"
 
@@ -2324,6 +2648,9 @@ msgstr "Mensagem: {0}"
 
 msgid "Migrate"
 msgstr "Migrar"
+
+msgid "Migrate photos, videos and albums between Google Photos, Synology Photos, Immich, NextCloud and local folders, and turn messy Google or iCloud Takeout exports into a clean library with the right dates."
+msgstr "Migre fotografias, vídeos e álbuns entre Google Photos, Synology Photos, Immich, NextCloud e pastas locais, e transforme exportações desorganizadas do Google ou do iCloud Takeout numa biblioteca limpa com as datas certas."
 
 msgid "Migrations and Takeout processing that remote users run on this server, with Stripe payments. Administrators never see the files or credentials of a task."
 msgstr "Migrações e processamento de Takeout que os utilizadores remotos executam neste servidor, com pagamentos através do Stripe. Os administradores nunca veem os ficheiros nem as credenciais de uma tarefa."
@@ -2346,6 +2673,9 @@ msgstr "Segunda-feira"
 msgid "Monthly"
 msgstr "Mensal"
 
+msgid "MOST POPULAR"
+msgstr "MAIS POPULAR"
+
 msgid "Move Assets"
 msgstr "Mover elementos"
 
@@ -2366,6 +2696,9 @@ msgstr "Move a pasta original para a saída processada em vez de a copiar primei
 
 msgid "Move the original folder into the processed output instead of copying it first. Useful to avoid duplicating disk usage for large local libraries."
 msgstr "Move a pasta original para a saída processada em vez de a copiar primeiro. Útil para evitar duplicar a utilização de disco em bibliotecas locais grandes."
+
+msgid "Move your photo library."
+msgstr "Mude a sua biblioteca de fotografias."
 
 msgid "Move your photo library. Keep every memory."
 msgstr "Mova a sua biblioteca de fotos. Guarde cada memória."
@@ -2391,8 +2724,14 @@ msgstr "Nomes e pastas"
 msgid "Never"
 msgstr "Nunca"
 
+msgid "Never deletes the source"
+msgstr "Nunca apaga a origem"
+
 msgid "Never shown. Leave it empty to keep the saved password."
 msgstr "Nunca é mostrada. Deixe vazio para manter a palavra-passe guardada."
+
+msgid "NEW"
+msgstr "NOVO"
 
 msgid "New account request"
 msgstr "Novo pedido de conta"
@@ -2438,6 +2777,18 @@ msgstr "NextCloud Photos · PhotoMigrator"
 
 msgid "No"
 msgstr "Não"
+
+msgid "No card details here"
+msgstr "Sem dados de cartão aqui"
+
+msgid "No Docker or no free disk space? Let us migrate your Takeout for you, from {0} €."
+msgstr "Sem Docker ou sem espaço livre no disco? Deixe-nos migrar o seu Takeout por si, a partir de {0} €."
+
+msgid "No Docker. No free disk space."
+msgstr "Sem Docker. Sem espaço livre no disco."
+
+msgid "no surprises"
+msgstr "sem surpresas"
 
 msgid "No Takeout files here"
 msgstr "Não há ficheiros do Takeout aqui"
@@ -2538,6 +2889,9 @@ msgstr "As cópias agendadas mais antigas são eliminadas, exceto a mais recente
 msgid "On"
 msgstr "Ativado"
 
+msgid "On a NAS or server, the Web Interface with Docker. On your own computer, the desktop app. Over SSH, the terminal interface. For automation, the command line with"
+msgstr "Num NAS ou servidor, a interface web com Docker. No seu próprio computador, a aplicação de ambiente de trabalho. Por SSH, a interface de terminal. Para automatizar, a linha de comandos com"
+
 msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
 msgstr "Nos destinos na nuvem suportados, as variantes redundantes são unidas no álbum preferido a manter. Quando a API suporta a eliminação de álbuns (Immich, Synology, NextCloud), os álbuns redundantes são removidos depois. O Google Photos mantém as variantes redundantes porque a API pública não permite eliminar álbuns."
 
@@ -2550,14 +2904,23 @@ msgstr "Nos destinos na nuvem suportados, é usado o nome limpo preferido do ál
 msgid "One album per subfolder"
 msgstr "Um álbum por subpasta"
 
+msgid "One download for your system, nothing to install. Unzip it and open the app, or run the Web Interface with Docker."
+msgstr "Uma única transferência para o seu sistema, nada para instalar. Descompacte-a e abra a aplicação, ou execute a interface web com Docker."
+
 msgid "One file pattern per line or comma-separated"
 msgstr "Um padrão de ficheiros por linha ou separados por vírgulas"
 
 msgid "One folder pattern per line or comma-separated"
 msgstr "Um padrão de pastas por linha ou separados por vírgulas"
 
+msgid "One payment per task, VAT included. No subscription, no hidden fees. If the task fails, you get every cent back automatically."
+msgstr "Um pagamento por tarefa, IVA incluído. Sem subscrição, sem custos ocultos. Se a tarefa falhar, recebe cada cêntimo de volta automaticamente."
+
 msgid "One time password"
 msgstr "Palavra-passe de uso único"
+
+msgid "One tool, every library"
+msgstr "Uma ferramenta, todas as bibliotecas"
 
 msgid "One value per line or comma-separated"
 msgstr "Um valor por linha ou separados por vírgulas"
@@ -2583,8 +2946,14 @@ msgstr "Apenas os itens captados entre estas datas. Deixe um lado vazio para nã
 msgid "Only assets taken in this country or city, or where this person appears."
 msgstr "Apenas os itens captados neste país ou cidade, ou onde aparece esta pessoa."
 
+msgid "Only the ones of your destination: an Immich API key, a NextCloud app password, a Synology account or a Google Photos token. Create them just for the task and revoke them when it ends."
+msgstr "Apenas as do seu destino: uma chave de API do Immich, uma palavra-passe de aplicação do NextCloud, uma conta Synology ou um token do Google Photos. Crie-as só para a tarefa e revogue-as quando terminar."
+
 msgid "Only to provide the service you request: to quote, run and deliver your tasks, to send you emails about them and to keep the accounting records the law requires. The legal basis is the contract you accept when you create a task, and our legal obligations for payment records."
 msgstr "Apenas para prestar o serviço que solicita: orçamentar, executar e entregar as suas tarefas, enviar-lhe emails sobre elas e manter os registos contabilísticos exigidos por lei. O fundamento jurídico é o contrato que aceita ao criar uma tarefa e as nossas obrigações legais relativas aos registos de pagamentos."
+
+msgid "Only where you send them. PhotoMigrator runs on your own computer, NAS or server and talks directly to the services you configure. In the Web Interface, passwords and API keys are stored encrypted for each user."
+msgstr "Apenas para onde as enviar. O PhotoMigrator corre no seu próprio computador, NAS ou servidor e comunica diretamente com os serviços que configurar. Na interface web, as palavras-passe e chaves de API são guardadas encriptadas para cada utilizador."
 
 msgid "Open"
 msgstr "Abrir"
@@ -2630,6 +2999,9 @@ msgstr "Nome do operador"
 
 msgid "Optional"
 msgstr "Opcional"
+
+msgid "Optional album name clean-up and consolidation on the target"
+msgstr "Limpeza e consolidação opcionais dos nomes de álbuns no destino"
 
 msgid "Optional arguments:"
 msgstr "Argumentos opcionais:"
@@ -2697,8 +3069,14 @@ msgstr "Opções de Carregar tudo"
 msgid "Options for {0}"
 msgstr "Opções de {0}"
 
+msgid "or command line"
+msgstr "ou linha de comandos"
+
 msgid "Organize"
 msgstr "Organizar"
+
+msgid "Organize a folder by date and rename album folders from their content"
+msgstr "Organize uma pasta por data e mude o nome das pastas de álbuns com base no conteúdo"
 
 msgid "Organize Local Folder By Date"
 msgstr "Organizar pasta local por data"
@@ -2742,8 +3120,20 @@ msgstr "Página {0} de {1}"
 msgid "Paid"
 msgstr "Paga"
 
+msgid "Paid after a test with your accounts."
+msgstr "Paga-se depois de um teste com as suas contas."
+
+msgid "Paid after we check your destination works."
+msgstr "Paga-se depois de verificarmos que o seu destino funciona."
+
+msgid "Paid only when the result is ready. {0} days to download it."
+msgstr "Paga-se apenas quando o resultado está pronto. {0} dias para o descarregar."
+
 msgid "Parallel Migration"
 msgstr "Migração em paralelo"
+
+msgid "Parallel transfers, delayed retries and size limits for libraries with tens of thousands of photos."
+msgstr "Transferências em paralelo, novas tentativas diferidas e limites de tamanho para bibliotecas com dezenas de milhares de fotografias."
 
 msgid "Password"
 msgstr "Palavra-passe"
@@ -2790,6 +3180,9 @@ msgstr "Pagamento reembolsado."
 msgid "Payments are made through Stripe. We never see or store your card details. Migrations are paid when you accept the quote. Takeout processing is paid when the result is ready, and the payment is required to download it."
 msgstr "Os pagamentos são feitos através do Stripe. Nunca vemos nem guardamos os dados do seu cartão. As migrações são pagas ao aceitar o orçamento. O processamento de Takeout é pago quando o resultado está pronto, e o pagamento é necessário para o transferir."
 
+msgid "Payments go through Stripe: your card never touches our server. A task fails? Full refund, automatically."
+msgstr "Os pagamentos passam pelo Stripe: o seu cartão nunca toca no nosso servidor. Uma tarefa falha? Reembolso total, automaticamente."
+
 msgid "Payments · Stripe"
 msgstr "Pagamentos · Stripe"
 
@@ -2798,6 +3191,9 @@ msgstr "Pagamentos:"
 
 msgid "Pending access requests"
 msgstr "Pedidos de acesso pendentes"
+
+msgid "People labels kept for Immich, iCloud Memories rebuilt as albums"
+msgstr "Etiquetas de pessoas mantidas para o Immich, Memories do iCloud reconstruídos como álbuns"
 
 msgid "Period"
 msgstr "Período"
@@ -2808,8 +3204,20 @@ msgstr "Pessoa"
 msgid "Photo libraries"
 msgstr "Bibliotecas de fotos"
 
+msgid "Photo library screens"
+msgstr "Ecrãs das bibliotecas de fotografias"
+
 msgid "PhotoMigrator"
 msgstr "PhotoMigrator"
+
+msgid "PhotoMigrator --google-takeout=./Takeout"
+msgstr "PhotoMigrator --google-takeout=./Takeout"
+
+msgid "PhotoMigrator --gui"
+msgstr "PhotoMigrator --gui"
+
+msgid "PhotoMigrator --source=./Takeout --target=immich-photos-1"
+msgstr "PhotoMigrator --source=./Takeout --target=immich-photos-1"
 
 msgid "PhotoMigrator Admin"
 msgstr "Administração do PhotoMigrator"
@@ -2817,8 +3225,14 @@ msgstr "Administração do PhotoMigrator"
 msgid "PhotoMigrator Cloud is provided by"
 msgstr "O PhotoMigrator Cloud é prestado por"
 
+msgid "PhotoMigrator Cloud · runs on our servers"
+msgstr "PhotoMigrator Cloud · funciona nos nossos servidores"
+
 msgid "PhotoMigrator Cloud · version 2026-11-25"
 msgstr "PhotoMigrator Cloud · versão 2026-11-25"
+
+msgid "PhotoMigrator is open source: anyone can read exactly what the service does with your files and credentials."
+msgstr "O PhotoMigrator é de código aberto: qualquer pessoa pode ler exatamente o que o serviço faz com os seus ficheiros e credenciais."
 
 msgid "PhotoMigrator Login"
 msgstr "Início de sessão no PhotoMigrator"
@@ -2835,8 +3249,17 @@ msgstr "O PhotoMigrator é de código aberto, pelo que qualquer pessoa pode veri
 msgid "PhotoMigrator is working on your task."
 msgstr "O PhotoMigrator está a trabalhar na sua tarefa."
 
+msgid "PhotoMigrator Web Interface home screen with the tasks grouped by Migrate, Process Takeout, Photo libraries and Tools"
+msgstr "Ecrã inicial da interface web do PhotoMigrator com as tarefas agrupadas em Migrar, Processar Takeout, Bibliotecas de fotografias e Ferramentas"
+
+msgid "PhotoMigrator Web Interface on a phone"
+msgstr "Interface web do PhotoMigrator num telemóvel"
+
 msgid "PhotoMigrator website"
 msgstr "Site do PhotoMigrator"
+
+msgid "PhotoMigrator · Move your photo library, keep every memory"
+msgstr "PhotoMigrator · Mude a sua biblioteca de fotografias, guarde todas as memórias"
 
 msgid "Photos"
 msgstr "Fotos"
@@ -2852,6 +3275,12 @@ msgstr "Fotos, vídeos e álbuns de uma origem para um destino, com um painel em
 
 msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
 msgstr "Escolha uma tarefa. O PhotoMigrator só mostra as opções de que essa tarefa precisa e o comando exato antes de executar seja o que for."
+
+msgid "Pick an action from a visual menu: upload or download albums, rename them by pattern, merge duplicates or clean up empty albums. Destructive actions are clearly marked and ask before they run."
+msgstr "Escolha uma ação num menu visual: carregue ou descarregue álbuns, mude-lhes o nome por padrão, una duplicados ou limpe álbuns vazios. As ações destrutivas estão claramente assinaladas e pedem confirmação antes de serem executadas."
+
+msgid "Pick what you want to do. Only the fields that task needs are shown, with the defaults already set."
+msgstr "Escolha o que quer fazer. Só são mostrados os campos de que essa tarefa precisa, com os valores predefinidos já definidos."
 
 msgid "Place and people"
 msgstr "Local e pessoas"
@@ -2895,6 +3324,9 @@ msgstr "Prefere o gravador EXIF nativo para os ficheiros de fotos do iCloud supo
 msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool. Disabled by default in CLI."
 msgstr "Prefere o gravador EXIF nativo para os ficheiros de fotos do iCloud suportados antes de recorrer ao ExifTool. Desativado por predefinição na CLI."
 
+msgid "Prefer to do it yourself? PhotoMigrator stays free and open source on your own computer or NAS."
+msgstr "Prefere fazer você mesmo? O PhotoMigrator continua gratuito e de código aberto no seu próprio computador ou NAS."
+
 msgid "Preferences for how the Web Interface looks and behaves for your user. Theme and time zone changes are applied immediately."
 msgstr "Preferências sobre o aspeto e o comportamento da interface web para o seu utilizador. As alterações de tema e fuso horário são aplicadas de imediato."
 
@@ -2909,6 +3341,9 @@ msgstr "A preparar a transferência"
 
 msgid "Preparing your download"
 msgstr "A preparar a sua transferência"
+
+msgid "preserved"
+msgstr "preservados"
 
 msgid "Preview Album Actions"
 msgstr "Pré-visualizar ações de álbuns"
@@ -2960,6 +3395,9 @@ msgstr "Política de privacidade"
 
 msgid "Privacy policy · PhotoMigrator Cloud"
 msgstr "Política de privacidade · PhotoMigrator Cloud"
+
+msgid "Private by design"
+msgstr "Privado por conceção"
 
 msgid "Process Duplicates"
 msgstr "Processar duplicados"
@@ -3015,8 +3453,14 @@ msgstr "A processar"
 msgid "Provide JSON values to insert."
 msgstr "Indique os valores JSON a inserir."
 
+msgid "Pull and push progress, queues, retries and estimated end time while a migration runs."
+msgstr "Progresso de transferência e carregamento, filas, novas tentativas e hora estimada de conclusão enquanto uma migração decorre."
+
 msgid "Push Asset Max Size (MB)"
 msgstr "Tamanho máximo de elemento para envio (MB)"
+
+msgid "Questions,"
+msgstr "Perguntas,"
 
 msgid "Queue"
 msgstr "Fila"
@@ -3050,6 +3494,9 @@ msgstr "Lê as etiquetas de pessoas do Google Takeout dos ficheiros JSON auxilia
 
 msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
 msgstr "Lê as etiquetas de pessoas do Google Takeout dos ficheiros JSON auxiliares e guarda o mapa de pessoas na saída processada. (predefinição: True)."
+
+msgid "Read the documentation"
+msgstr "Leia a documentação"
 
 msgid "Read-only access. In Google Takeout choose “Add to Dropbox” or “Add to OneDrive”, then connect it in the next step."
 msgstr "Acesso só de leitura. No Google Takeout escolha «Adicionar ao Dropbox» ou «Adicionar ao OneDrive» e depois ligue-o no passo seguinte."
@@ -3123,6 +3570,9 @@ msgstr "Rejeitada: demasiado grande."
 msgid "Release Notes"
 msgstr "Notas de versão"
 
+msgid "Release notes"
+msgstr "Notas da versão"
+
 msgid "Remaining Time"
 msgstr "Tempo restante"
 
@@ -3140,6 +3590,9 @@ msgstr "Remover todos os álbuns"
 
 msgid "Remove All Assets"
 msgstr "Remover todos os elementos"
+
+msgid "Remove duplicate assets, keeping the best copy and its people"
+msgstr "Remova itens duplicados, mantendo a melhor cópia e as suas pessoas"
 
 msgid "Remove Duplicates Albums"
 msgstr "Remover álbuns duplicados"
@@ -3195,6 +3648,9 @@ msgstr "Removidos: {0} | Falhados: {1}"
 msgid "Rename Albums"
 msgstr "Mudar o nome dos álbuns"
 
+msgid "Rename albums with text, wildcards or regular expressions"
+msgstr "Mude o nome dos álbuns com texto, carateres universais ou expressões regulares"
+
 msgid "Rename Pattern"
 msgstr "Padrão de nome"
 
@@ -3218,6 +3674,9 @@ msgstr "Padrão de nome"
 
 msgid "Repair broken album links"
 msgstr "Reparar ligações de álbuns quebradas"
+
+msgid "Repair broken album links after moving folders"
+msgstr "Repare ligações de álbuns quebradas depois de mover pastas"
 
 msgid "Repair, rename, organize and deduplicate folders, or upload files to this server."
 msgstr "Repare, mude o nome, organize e elimine duplicados em pastas, ou carregue ficheiros para este servidor."
@@ -3303,6 +3762,9 @@ msgstr "Resultado"
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "O resultado é exportado para um CSV para rever os duplicados e a ação selecionada para cada item."
 
+msgid "Retries, upload size limits and timeouts for big libraries"
+msgstr "Novas tentativas, limites de tamanho de carregamento e tempos limite para bibliotecas grandes"
+
 msgid "Revenue"
 msgstr "Receitas"
 
@@ -3336,6 +3798,9 @@ msgstr "Função…"
 msgid "Run"
 msgstr "Executar"
 
+msgid "Run and follow it"
+msgstr "Execute e acompanhe"
+
 msgid "Run Backup Now"
 msgstr "Executar cópia de segurança agora"
 
@@ -3348,14 +3813,68 @@ msgstr "Executa uma migração completa de <SOURCE> para <TARGET>, incluindo ál
 msgid "Run and follow the progress"
 msgstr "Execute e acompanhe o progresso"
 
+msgid "Run it on your NAS or server"
+msgstr "Execute-o no seu NAS ou servidor"
+
+msgid "Run it on your NAS or server and use it from any computer or phone. Multiple users, an admin panel, encrypted credentials and live progress."
+msgstr "Execute-o no seu NAS ou servidor e use-o a partir de qualquer computador ou telemóvel. Vários utilizadores, um painel de administração, credenciais encriptadas e progresso em direto."
+
 msgid "Run this feature"
 msgstr "Executar esta funcionalidade"
 
 msgid "Running"
 msgstr "Em execução"
 
+msgid "Runs on your own"
+msgstr "Funciona no seu próprio"
+
 msgid "Runtime override active from environment variable {0}"
 msgstr "Substituição em tempo de execução ativa pela variável de ambiente {0}"
+
+msgid "Safe by default"
+msgstr "Seguro por predefinição"
+
+msgid "Scriptable, every option"
+msgstr "Programável, com todas as opções"
+
+msgid "Sections"
+msgstr "Secções"
+
+msgid "See the cloud service →"
+msgstr "Ver o serviço na nuvem →"
+
+msgid "See what it does"
+msgstr "Veja o que faz"
+
+msgid "Select and copy"
+msgstr "Selecionar e copiar"
+
+msgid "Self-hosted photos with people labels from your Takeout, burst stacks and visual duplicate detection."
+msgstr "Fotografias alojadas por si, com etiquetas de pessoas do seu Takeout, pilhas de rajadas e deteção visual de duplicados."
+
+msgid "Send us your Google or iCloud Takeout and PhotoMigrator fixes the dates, rebuilds the albums and uploads everything to Immich, Synology Photos, NextCloud or Google Photos. You only pay for a task that works."
+msgstr "Envie-nos o seu Takeout do Google ou do iCloud e o PhotoMigrator corrige as datas, reconstrói os álbuns e carrega tudo para o Immich, Synology Photos, NextCloud ou Google Photos. Só paga por uma tarefa que funciona."
+
+msgid "Send your Takeout"
+msgstr "Envie o seu Takeout"
+
+msgid "Servers in the EU"
+msgstr "Servidores na UE"
+
+msgid "Services"
+msgstr "Serviços"
+
+msgid "Set up"
+msgstr "Configurar"
+
+msgid "Settings with the Immich account credentials"
+msgstr "Definições com as credenciais da conta do Immich"
+
+msgid "Simple pricing"
+msgstr "Preços simples"
+
+msgid "Since April {0} Google no longer lets third-party apps read your whole Google Photos library. Request a Google Takeout of your photos and use it as the source: PhotoMigrator fixes it and migrates it. Google Photos still works as a target."
+msgstr "Desde abril de {0}, o Google deixou de permitir que aplicações de terceiros leiam toda a sua biblioteca do Google Photos. Peça um Google Takeout das suas fotografias e use-o como origem: o PhotoMigrator corrige-o e migra-o. O Google Photos continua a funcionar como destino."
 
 msgid "SMTP password"
 msgstr "Palavra-passe SMTP"
@@ -4005,6 +4524,9 @@ msgstr "Domingo"
 msgid "Sunset"
 msgstr "Pôr do sol"
 
+msgid "Supported services"
+msgstr "Serviços suportados"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -4017,8 +4539,41 @@ msgstr "Synology Photos · PhotoMigrator"
 msgid "Synology Photos → Immich Photos"
 msgstr "Synology Photos → Immich Photos"
 
+msgid "Synology to Immich, Takeout to NextCloud, Immich to a local folder… pick a source and a target and run."
+msgstr "Do Synology para o Immich, do Takeout para o NextCloud, do Immich para uma pasta local… escolha uma origem e um destino e execute."
+
+msgid "Takeout exports scatter dates and albums into side files. PhotoMigrator reads them, writes the real date, GPS and camera data back into every photo and rebuilds your albums."
+msgstr "As exportações do Takeout espalham datas e álbuns por ficheiros auxiliares. O PhotoMigrator lê-os, escreve de novo a data real, o GPS e os dados da câmara em cada fotografia e reconstrói os seus álbuns."
+
 msgid "Takeout files checked."
 msgstr "Ficheiros do Takeout verificados."
+
+msgid "Takeout → your cloud"
+msgstr "Takeout → a sua nuvem"
+
+msgid "Takeouts of up to about {0} TB ({1} TB of working space per task)."
+msgstr "Takeouts até cerca de {0} TB ({1} TB de espaço de trabalho por tarefa)."
+
+msgid "Terminal"
+msgstr "Terminal"
+
+msgid "Terminal interface of PhotoMigrator"
+msgstr "Interface de terminal do PhotoMigrator"
+
+msgid "The exact command"
+msgstr "O comando exato"
+
+msgid "The export of your Google Photos account, fixed and organized before it goes anywhere else."
+msgstr "A exportação da sua conta do Google Photos, corrigida e organizada antes de seguir para qualquer outro lado."
+
+msgid "The same features in four interfaces. Use the one that fits where your photos live."
+msgstr "As mesmas funcionalidades em quatro interfaces. Use a que melhor se adapta ao local onde estão as suas fotografias."
+
+msgid "Three steps,"
+msgstr "Três passos,"
+
+msgid "Tidy up any library, safely"
+msgstr "Arrume qualquer biblioteca, em segurança"
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "DICA: se <TAKEOUT_FOLDER> contiver os ficheiros zip originais, estes serão preservados de qualquer forma."
@@ -4488,6 +5043,9 @@ msgstr "Trata os nomes de álbuns de destino equivalentes como uma só família 
 msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album. Redundant albums are removed only when the target service supports album deletion."
 msgstr "Trata os nomes de álbuns de destino equivalentes como uma só família e une depois os seus elementos no álbum canónico a manter. Os álbuns redundantes só são removidos quando o serviço de destino suporta a eliminação de álbuns."
 
+msgid "trust us blindly"
+msgstr "confiar cegamente em nós"
+
 msgid "Try Date Prefix Albums Grouping"
 msgstr "Tentar agrupar álbuns por prefixo de data"
 
@@ -4502,6 +5060,9 @@ msgstr "Tentar agrupar álbuns truncados"
 
 msgid "Tuesday"
 msgstr "Terça-feira"
+
+msgid "Two files and one command. Then open"
+msgstr "Dois ficheiros e um comando. Depois abra"
 
 msgid "Type"
 msgstr "Tipo"
@@ -4547,6 +5108,9 @@ msgstr "Carregar álbuns"
 
 msgid "Upload All"
 msgstr "Carregar tudo"
+
+msgid "Upload and download albums or the whole library"
+msgstr "Carregue e descarregue álbuns ou toda a biblioteca"
 
 msgid "Upload Completed with Warnings"
 msgstr "Carregamento concluído com avisos"
@@ -4617,11 +5181,17 @@ msgstr "Estado do carregamento: inativo"
 msgid "Upload status: uploading..."
 msgstr "Estado do carregamento: a carregar..."
 
+msgid "Upload the ZIP files from your browser, or let Takeout save them to Dropbox or OneDrive and connect it."
+msgstr "Carregue os ficheiros ZIP a partir do navegador, ou deixe o Takeout guardá-los no Dropbox ou no OneDrive e ligue-o."
+
 msgid "Upload to Server"
 msgstr "Carregar para o servidor"
 
 msgid "Upload to Server · PhotoMigrator"
 msgstr "Carregar para o servidor · PhotoMigrator"
+
+msgid "Upload your library and albums to Google Photos. To bring photos out of Google, use your Google Takeout export."
+msgstr "Carregue a sua biblioteca e os seus álbuns para o Google Photos. Para tirar fotografias do Google, use a sua exportação do Google Takeout."
 
 msgid "Upload your Takeout files"
 msgstr "Carregue os seus ficheiros do Takeout"
@@ -4652,6 +5222,9 @@ msgstr "A carregar"
 
 msgid "Uploads resume if the connection drops: add the same file again to continue."
 msgstr "Os carregamentos retomam se a ligação cair: adicione o mesmo ficheiro novamente para continuar."
+
+msgid "Uploads that fail are retried, and assets that keep failing are kept aside and listed so you can review them. You can run the migration again with the same settings by copying its command."
+msgstr "Os carregamentos que falham são repetidos, e os itens que continuam a falhar ficam de lado e são listados para os poder rever. Pode voltar a executar a migração com as mesmas definições copiando o respetivo comando."
 
 msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
 msgstr "Use '--organize-folder-structure' para alterar a organização, '--organize-output-folder-suffix' para alterar o sufixo gerado quando não é indicada uma pasta de saída explícita e '--move-original-files' para mover em vez de copiar."
@@ -4764,6 +5337,12 @@ msgstr "Usa a mesma lógica de famílias de álbuns que '--consolidate-similar-a
 msgid "Using Settings defaults"
 msgstr "A usar as predefinições das Definições"
 
+msgid "v5.0.0"
+msgstr "v5.0.0"
+
+msgid "v5.0.0 · Free and open source"
+msgstr "v5.0.0 · Gratuito e de código aberto"
+
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "Ações válidas: restore_duplicate / remove_duplicate / replace_duplicate."
 
@@ -4794,11 +5373,17 @@ msgstr "À espera dos seus dados"
 msgid "Warm palette"
 msgstr "Paleta quente"
 
+msgid "We check and quote"
+msgstr "Verificamos e orçamentamos"
+
 msgid "We checked your task <b>{0}</b>: {1} of photos and videos."
 msgstr "Verificámos a sua tarefa <b>{0}</b>: {1} de fotos e vídeos."
 
 msgid "We do our best to keep your albums, dates and locations, but we cannot guarantee that every file is supported by the destination service. PhotoMigrator only reads your source and never deletes it, so keep your originals until you have checked the result. To the extent permitted by law, our liability is limited to the amount you paid for the task."
 msgstr "Fazemos o possível para manter os seus álbuns, datas e localizações, mas não podemos garantir que todos os ficheiros sejam suportados pelo serviço de destino. O PhotoMigrator apenas lê a sua origem e nunca a elimina, por isso conserve os seus originais até ter verificado o resultado. Na medida permitida por lei, a nossa responsabilidade limita-se ao valor que pagou pela tarefa."
+
+msgid "We do the work"
+msgstr "Nós fazemos o trabalho"
 
 msgid "We email you when it starts and when it ends. You can cancel it until then with a full refund."
 msgstr "Enviamos-lhe um email quando começa e quando termina. Pode cancelá-la até lá com reembolso total."
@@ -4809,14 +5394,29 @@ msgstr "Podemos atualizar estes termos. A versão que aceitou fica registada em 
 msgid "We measure your data and test the destination with a tiny upload that we delete right away. It takes a few minutes."
 msgstr "Medimos os seus dados e testamos o destino com um carregamento minúsculo que eliminamos de imediato. Demora alguns minutos."
 
+msgid "We measure your data and test your destination with a tiny upload. You get the price and the start time by email."
+msgstr "Medimos os seus dados e testamos o seu destino com um carregamento minúsculo. Recebe o preço e a hora de início por e-mail."
+
+msgid "We move it for you."
+msgstr "Nós tratamos disso."
+
 msgid "We never delete anything in your source"
 msgstr "Nunca eliminamos nada na sua origem"
+
+msgid "We only read your Takeout or your library. Nothing is ever removed from where your photos come from."
+msgstr "Apenas lemos o seu Takeout ou a sua biblioteca. Nunca é removido nada do local de onde vêm as suas fotografias."
+
+msgid "We process your Takeout and you download a tidy library with the right dates, in ZIP parts you can resume."
+msgstr "Processamos o seu Takeout e descarrega uma biblioteca organizada com as datas certas, em partes ZIP que pode retomar."
 
 msgid "We received your account request"
 msgstr "Recebemos o seu pedido de conta"
 
 msgid "We received your payment of <b>{0}</b>. Your task <b>{1}</b> is number {2} in the queue."
 msgstr "Recebemos o seu pagamento de <b>{0}</b>. A sua tarefa <b>{1}</b> é o número {2} da fila."
+
+msgid "We refund the full amount automatically and delete your data. You never pay for a task that did not finish."
+msgstr "Reembolsamos o valor total automaticamente e eliminamos os seus dados. Nunca paga por uma tarefa que não terminou."
 
 msgid "We refunded the full amount of <b>{0}</b>. It reaches your card in 5 to 10 days."
 msgstr "Reembolsámos o valor total de <b>{0}</b>. Chega ao seu cartão em 5 a 10 dias."
@@ -4835,6 +5435,12 @@ msgstr "Interface web"
 
 msgid "Web database"
 msgstr "Base de dados web"
+
+msgid "Web Interface in the dark theme"
+msgstr "Interface web no tema escuro"
+
+msgid "Web, desktop, terminal"
+msgstr "Web, ambiente de trabalho, terminal"
 
 msgid "Webhook URL"
 msgstr "URL do webhook"
@@ -4863,8 +5469,17 @@ msgstr "O que pretende fazer?"
 msgid "What do you want to move today?"
 msgstr "O que quer mover hoje?"
 
+msgid "What happens if a migration is interrupted?"
+msgstr "O que acontece se uma migração for interrompida?"
+
+msgid "What if the cloud service fails?"
+msgstr "E se o serviço na nuvem falhar?"
+
 msgid "What is written to the log file and where."
 msgstr "O que é escrito no ficheiro de registo e onde."
+
+msgid "What it does"
+msgstr "O que faz"
 
 msgid "What to do with detected duplicates: list, move, or delete."
 msgstr "O que fazer com os duplicados detetados: listar, mover ou eliminar."
@@ -4905,6 +5520,9 @@ msgstr "Quando o serviço de destino suporta a eliminação de álbuns (Immich, 
 msgid "When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow."
 msgstr "Quando a entrada é um Takeout só de álbuns, sem pastas de anos, o PhotoMigrator deteta-o automaticamente e muda o GPTH para o fluxo de recuperação adequado."
 
+msgid "When the task ends, your files and credentials are erased from our server and we confirm it by email."
+msgstr "Quando a tarefa termina, os seus ficheiros e credenciais são apagados do nosso servidor e confirmamos por e-mail."
+
 msgid "When the task finishes, PhotoMigrator emails {0} with the result and the last lines of the log."
 msgstr "Quando a tarefa terminar, o PhotoMigrator envia um email para {0} com o resultado e as últimas linhas do registo."
 
@@ -4917,14 +5535,35 @@ msgstr "Ao carregar álbuns para um serviço na nuvem ou ao executar a migraçã
 msgid "When you run a feature, its progress and log appear here."
 msgstr "Quando executar uma funcionalidade, o progresso e o registo aparecem aqui."
 
+msgid "Where do my photos go?"
+msgstr "Para onde vão as minhas fotografias?"
+
 msgid "Where from and where to"
 msgstr "De onde e para onde"
 
 msgid "Where to put the files on the server"
 msgstr "Onde colocar os ficheiros no servidor"
 
+msgid "wherever you want them"
+msgstr "onde quiser"
+
+msgid "Which credentials do I give the cloud service?"
+msgstr "Que credenciais dou ao serviço na nuvem?"
+
+msgid "Which interface should I use?"
+msgstr "Que interface devo usar?"
+
 msgid "Which photos and videos every feature processes."
 msgstr "Que fotos e vídeos cada funcionalidade processa."
+
+msgid "Will I keep my albums, dates and locations?"
+msgstr "Vou manter os meus álbuns, datas e localizações?"
+
+msgid "Windows"
+msgstr "Windows"
+
+msgid "Windows, macOS, Linux"
+msgstr "Windows, macOS, Linux"
 
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "Com esta opção ativada, variantes inofensivas, como sublinhados vs espaços e sufixos numéricos finais semelhantes a duplicados, são normalizadas"
@@ -4938,11 +5577,35 @@ msgstr "Em curso"
 msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
 msgstr "Funciona com Google Photos, Synology Photos, Immich Photos, NextCloud Photos e pastas locais, em qualquer sentido."
 
+msgid "Works with the services"
+msgstr "Funciona com os serviços"
+
 msgid "Workspace"
 msgstr "Área de trabalho"
 
+msgid "x64"
+msgstr "x64"
+
+msgid "x64 and arm64."
+msgstr "x64 e arm64."
+
+msgid "Year or year/month folders, duplicate removal and dated album names"
+msgstr "Pastas por ano ou ano/mês, remoção de duplicados e nomes de álbuns com data"
+
 msgid "Yes"
 msgstr "Sim"
+
+msgid "Yes. Albums are recreated on the target, and when you start from a Google or iCloud Takeout the original date, GPS location and camera data are written back into each photo before it is migrated."
+msgstr "Sim. Os álbuns são recriados no destino e, quando parte de um Takeout do Google ou do iCloud, a data original, a localização GPS e os dados da câmara são escritos de novo em cada fotografia antes de ser migrada."
+
+msgid "Yes. Before your task starts you get a full refund. Once it is running it can be stopped, but it is not refunded."
+msgstr "Sim. Antes de a tarefa começar, recebe o reembolso total. Depois de iniciada, pode ser parada, mas não é reembolsada."
+
+msgid "Yes. Each service supports up to three accounts, so you can also migrate between two accounts of the same service, for example from one Immich user to another."
+msgstr "Sim. Cada serviço suporta até três contas, por isso também pode migrar entre duas contas do mesmo serviço, por exemplo de um utilizador do Immich para outro."
+
+msgid "Yes. It is open source under the GPL-3.0 license, with no paid tiers, accounts or ads. You can read every line of code on GitHub."
+msgstr "Sim. É de código aberto sob a licença GPL-3.0, sem planos pagos, contas nem anúncios. Pode ler cada linha de código no GitHub."
 
 msgid "Yesterday"
 msgstr "Ontem"
@@ -4952,6 +5615,9 @@ msgstr "Você"
 
 msgid "You add the files in the next step. Uploads resume if the connection drops, so you can close the page and continue later."
 msgstr "Adiciona os ficheiros no passo seguinte. Os carregamentos retomam se a ligação cair, por isso pode fechar a página e continuar mais tarde."
+
+msgid "you already use"
+msgstr "que já usa"
 
 msgid "You can ask for access to your data, its correction or deletion, limit or object to its processing, and ask for a copy of it, by writing to"
 msgstr "Pode pedir o acesso aos seus dados, a sua retificação ou eliminação, limitar ou opor-se ao seu tratamento e pedir uma cópia dos mesmos, escrevendo para"
@@ -4974,6 +5640,9 @@ msgstr "Não pode eliminar o seu próprio utilizador"
 msgid "You cannot delete your own user."
 msgstr "Não pode eliminar o seu próprio utilizador."
 
+msgid "You download it in ZIP parts of up to {0} GB that you can resume. The link works for {1} days and you pay only when the result is ready."
+msgstr "Descarrega-o em partes ZIP até {0} GB que pode retomar. A ligação funciona durante {1} dias e só paga quando o resultado está pronto."
+
 msgid "You have not been charged."
 msgstr "Não lhe foi cobrado nada."
 
@@ -4992,11 +5661,35 @@ msgstr "Ser-lhe-á pedido que confirme antes de a executar."
 msgid "Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
 msgstr "A sua ADMIN_API_KEY para o Immich Photos (pode criar uma API_KEY em Definições da conta-->Chaves API_KEY)"
 
+msgid "Your credentials are encrypted for this task only and destroyed when it ends."
+msgstr "As suas credenciais são encriptadas apenas para esta tarefa e destruídas no fim."
+
+msgid "Your data stays in the European Union, and the whole tool is open source on GitHub for anyone to audit."
+msgstr "Os seus dados ficam na União Europeia, e toda a ferramenta é de código aberto no GitHub para qualquer pessoa auditar."
+
+msgid "Your memories stay yours"
+msgstr "As suas memórias continuam suas"
+
+msgid "Your memories,"
+msgstr "As suas memórias,"
+
+msgid "Your NAS library, with 2-step verification support and up to three accounts."
+msgstr "A biblioteca do seu NAS, com suporte para verificação em dois passos e até três contas."
+
+msgid "Your passwords and keys are encrypted with a key made only for your task. No other task can read them."
+msgstr "As suas palavras-passe e chaves são encriptadas com uma chave criada apenas para a sua tarefa. Nenhuma outra tarefa as pode ler."
+
 msgid "Your PhotoMigrator account"
 msgstr "A sua conta PhotoMigrator"
 
 msgid "Your PhotoMigrator quote"
 msgstr "O seu orçamento do PhotoMigrator"
+
+msgid "Your price"
+msgstr "O seu preço"
+
+msgid "Your system"
+msgstr "O seu sistema"
 
 msgid "Your Takeout"
 msgstr "O seu Takeout"
@@ -5265,6 +5958,12 @@ msgstr "a sua tarefa <b>{0}</b> terminou com sucesso."
 msgid "your task <b>{0}</b> was stopped before it finished."
 msgstr "a sua tarefa <b>{0}</b> foi parada antes de terminar."
 
+msgid "Your way"
+msgstr "À sua maneira"
+
+msgid "Your whole library, moved in one run"
+msgstr "Toda a sua biblioteca, movida numa só execução"
+
 msgid "{0} / {1} rows"
 msgstr "{0} / {1} linhas"
 
@@ -5280,8 +5979,14 @@ msgstr "{0} conta"
 msgid "{0} accounts"
 msgstr "Contas de {0}"
 
+msgid "{0} accounts each"
+msgstr "{0} contas cada"
+
 msgid "{0} activated"
 msgstr "{0} ativado"
+
+msgid "{0} cents per GB"
+msgstr "{0} cêntimos por GB"
 
 msgid "{0} created"
 msgstr "{0} criado"
@@ -5312,6 +6017,12 @@ msgstr "{0} funcionalidades"
 
 msgid "{0} finished"
 msgstr "{0} concluído"
+
+msgid "{0} GB"
+msgstr "{0} GB"
+
+msgid "{0} GB · {1},{2} photos and videos"
+msgstr "{0} GB · {1},{2} fotografias e vídeos"
 
 msgid "{0} hour"
 msgstr "{0} hora"
@@ -5352,6 +6063,9 @@ msgstr "{0} selecionados"
 msgid "{0} stopped"
 msgstr "{0} parado"
 
+msgid "{0} TB"
+msgstr "{0} TB"
+
 msgid "{0} users"
 msgstr "{0} utilizadores"
 
@@ -5360,6 +6074,9 @@ msgstr "{0} utilizadores alterados"
 
 msgid "{0} will change the password at the next sign-in"
 msgstr "{0} vai alterar a palavra-passe no próximo início de sessão"
+
+msgid "{0} € minimum, then"
+msgstr "{0} € no mínimo, depois"
 
 msgid "{0}. Applicable law"
 msgstr "{0}. Lei aplicável"

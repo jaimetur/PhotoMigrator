@@ -3637,15 +3637,36 @@ def _project_website_url() -> str:
 WEB_APP_HOME_PATH = "/features?view=home"
 
 
-def _landing_page_html() -> str | None:
-    """landing/index.html adapted to be served at "/": absolute media URLs and a "Sign in" button to the app."""
+def _landing_lang(request: Request | None) -> str:
+    """Language of the website: English unless the visitor chose one (picker, cookie or account)."""
+    if request is None:
+        return ui_i18n.DEFAULT
+    user = _user_from_session_token(request.cookies.get(WEB_SESSION_COOKIE))
+    return ui_i18n.clean(request.cookies.get(ui_i18n.COOKIE)) or ui_i18n.clean((user or {}).get("lang")) or ui_i18n.DEFAULT
+
+
+def _landing_page_html(request: Request | None = None) -> str | None:
+    """landing/index.html adapted to be served at "/": absolute media URLs, a "Sign in" button to the app and the
+    translator of the Web Interface in the language chosen with its picker (English by default)."""
     index = LANDING_ROOT / "index.html"
     if not index.is_file():
         return None
     page = index.read_text(encoding="utf-8")
     page = re.sub(r'(src|href|content)="media/', r'\1="/landing/media/', page)
     sign_in = '<a class="btn sec" href="/app/">Sign in</a>\n  '
-    return page.replace('<a class="btn sec gh"', sign_in + '<a class="btn sec gh"', 1)
+    page = page.replace('<a class="btn sec gh"', sign_in + '<a class="btn sec gh"', 1)
+    lang = _landing_lang(request)
+    try:
+        js_stamp = int(LANG_JS_PATH.stat().st_mtime)
+    except OSError:
+        js_stamp = 0
+    head = (
+        f'<script>window.PM_LANG = "{lang}"; window.PM_LANGS = {json.dumps(ui_i18n.LANGS, ensure_ascii=False)};</script>\n'
+        f'<script src="/api/i18n/{lang}.js?v={ui_i18n.stamp(lang)}"></script>\n'
+        f'<script src="/lang/i18n.js?v={js_stamp}"></script>\n'
+    )
+    page = page.replace('<html lang="en">', f'<html lang="{lang}">', 1)
+    return page.replace("</head>", head + "</head>", 1)
 
 
 def _tab_for_dest(dest: str) -> str:
@@ -4737,8 +4758,8 @@ def _render_main_page(request: Request, current_user: Dict[str, Any], template_n
 
 
 @app.get("/", response_class=HTMLResponse)
-def home(session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
-    landing = _landing_page_html()
+def home(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
+    landing = _landing_page_html(request)
     if landing is not None:
         return HTMLResponse(landing)
     current_user = _user_from_session_token(session_token)

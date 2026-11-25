@@ -8,7 +8,8 @@ Texts come from three places:
   1. a JSON list of the visible texts of a running local Web Interface (collected with --ui-texts, see
      tools/CollectUiTexts.py),
   2. the literal UI strings of the page scripts (statuses, dialogs and notices),
-  3. the email texts of src/web_interface/app.py (EMAIL_TEXTS below) and of the cloud service (service.EMAIL_TEXTS).
+  3. the email texts of src/web_interface/app.py (EMAIL_TEXTS below) and of the cloud service (service.EMAIL_TEXTS),
+  4. the visible texts of the website (landing/index.html), which has a language picker too.
 Numbers inside texts become placeholders ("3 accounts" -> "{0} accounts").
 
     python tools/UpdateTranslationTemplate.py --ui-texts ui_texts.json
@@ -22,6 +23,7 @@ import json
 import re
 import sys
 import zoneinfo
+from html.parser import HTMLParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -178,6 +180,63 @@ def write_po(path: Path, keys: list, translations: dict, lang: str | None) -> No
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
+LANDING_PAGE = ROOT / "landing" / "index.html"
+LANDING_SCRIPT_TEXTS = ["Copied", "Select and copy", "Copy"]  # set by the scripts of the website
+
+
+def landing_texts() -> set:
+    """Texts of the website as lang/i18n.js sees them: text nodes and title/placeholder/aria-label/alt attributes
+    outside code, scripts and [data-no-i18n] elements, trimmed the same way."""
+    if not LANDING_PAGE.is_file():
+        return set()
+    edge = re.compile(r"^([\s:·—–]*)([\s\S]*?)(\s*)$")
+    skip_tags = {"code", "pre", "kbd", "samp", "script", "style", "textarea"}
+    void = {"br", "img", "input", "meta", "link", "hr", "source", "wbr", "path", "circle", "rect", "line", "polyline",
+            "polygon", "ellipse", "use", "stop"}
+    found = []
+
+    def add(value):
+        core = edge.match(value).group(2)
+        if core and re.search(r"[A-Za-z]", core):
+            found.append(core)
+
+    class Parser(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.stack, self.skip = [], 0
+
+        def attributes(self, attrs):
+            if not self.skip:
+                values = dict(attrs)
+                for name in ("title", "placeholder", "aria-label", "alt"):
+                    if values.get(name):
+                        add(values[name])
+
+        def handle_starttag(self, tag, attrs):
+            values = dict(attrs)
+            skipped = tag in skip_tags or "data-no-i18n" in values or "command" in (values.get("class") or "").split()
+            self.attributes(attrs)
+            if tag not in void:
+                self.stack.append(skipped)
+                self.skip += skipped
+
+        def handle_startendtag(self, tag, attrs):
+            self.attributes(attrs)
+
+        def handle_endtag(self, tag):
+            if tag not in void and self.stack:
+                self.skip -= self.stack.pop()
+
+        def handle_data(self, data):
+            if not self.skip:
+                add(data)
+
+    page = LANDING_PAGE.read_text(encoding="utf-8")
+    title = re.search(r"<title>(.*?)</title>", page, re.S)
+    Parser().feed(page[page.index("<body"):])
+    return set(found) | ({title.group(1).strip()} if title else set()) | set(LANDING_SCRIPT_TEXTS) | {"Sign in"}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--ui-texts", required=True, help="JSON list of visible texts collected from a running Web Interface")
@@ -189,6 +248,7 @@ def main() -> int:
         if is_ui_text(text, timezones):
             texts.add(text)
     texts |= script_literals()
+    texts |= landing_texts()
     help_keys = help_texts()
     # Help lines are translated verbatim (numbers included), so they are not turned into {0} patterns.
     sys.path.insert(0, str(ROOT / "src"))

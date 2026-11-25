@@ -6,6 +6,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language: ja\n"
 
+msgid "# Fix a Google Takeout"
+msgstr "# Fix a Google Takeout"
+
+msgid "# Migrate it to Immich"
+msgstr "# Migrate it to Immich"
+
+msgid "# Windows, macOS or Linux"
+msgstr "# Windows, macOS or Linux"
+
 msgid "'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "'move' と 'remove' はファイルを変更します。先に確認したい場合は 'list' から始めてください。"
 
@@ -42,11 +51,17 @@ msgstr "+ 追加"
 msgid "+ Add row"
 msgstr "+ 行を追加"
 
+msgid ", free forever"
+msgstr "、ずっと無料"
+
 msgid ". PhotoMigrator itself is free, open-source software that you can also run on your own computer at no cost."
 msgstr "。PhotoMigrator 自体は無料のオープンソースソフトウェアで、ご自身のコンピューターでも無料で実行できます。"
 
 msgid ". You can also complain to the Spanish Data Protection Agency (aepd.es) or to the authority of your country."
 msgstr "。スペインのデータ保護機関 (aepd.es) またはお住まいの国の当局に苦情を申し立てることもできます。"
+
+msgid ".zip"
+msgstr ".zip"
 
 msgid "/app/data subpath"
 msgstr "/app/data のサブパス"
@@ -108,14 +123,26 @@ msgstr "<b>{0}</b> ({1}) がタスク <b>{2}</b> を作成しました。"
 msgid "A copy is encrypted for this task only and deleted when it ends. Your saved account is not changed."
 msgstr "コピーはこのタスク専用に暗号化され、終了時に削除されます。保存済みのアカウントは変更されません。"
 
+msgid "A full interface over SSH"
+msgstr "SSH 越しのフル機能インターフェース"
+
 msgid "A job${lastMeta ?"
 msgstr "A job${lastMeta ?"
+
+msgid "A keyboard-driven terminal interface with the same features, ideal for headless servers and Docker consoles."
+msgstr "キーボードで操作できるターミナルインターフェースで、機能はすべて同じ。ヘッドレスサーバーや Docker コンソールに最適です。"
+
+msgid "A native window"
+msgstr "ネイティブウィンドウ"
 
 msgid "A new Album will be created per subfolder found in 'Albums' subfolder."
 msgstr "'Albums' サブフォルダー内のサブフォルダーごとに新しいアルバムが作成されます。"
 
 msgid "A processed Takeout can be downloaded for {0} days, in ZIP parts of up to {1} GB. After that it is deleted."
 msgstr "処理済みの Takeout は {0} 日間、最大 {1} GB の ZIP 分割ファイルでダウンロードできます。その後は削除されます。"
+
+msgid "a tidy library"
+msgstr "整ったライブラリへ"
 
 msgid "A whole folder, albums included"
 msgstr "アルバムを含むフォルダー全体"
@@ -126,8 +153,38 @@ msgstr "約1時間"
 msgid "About {0} minutes"
 msgstr "約{0}分"
 
+msgid "Add the address and credentials of each account once. Up to three accounts per service."
+msgstr "各アカウントのアドレスと認証情報を一度登録するだけ。サービスごとに最大 3 アカウントまで。"
+
+msgid "Albums"
+msgstr "アルバム"
+
+msgid "Albums as links to one copy of each photo, so nothing is duplicated"
+msgstr "アルバムは各写真の 1 つの実体へのリンクなので、重複は発生しません"
+
+msgid "Albums, dates and GPS"
+msgstr "アルバム、日付、GPS"
+
+msgid "All releases"
+msgstr "すべてのリリース"
+
 msgid "ALL_PHOTOS Folder Name"
 msgstr "ALL_PHOTOS フォルダー名"
+
+msgid "and Docker"
+msgstr "と Docker に対応"
+
+msgid "and sign in. The first admin account is created for you; change its password before you expose the service on your network."
+msgstr "ログインしてください。最初の管理者アカウントは自動で作成されます。ネットワークにサービスを公開する前に、パスワードを変更してください。"
+
+msgid "answered"
+msgstr "お答えします"
+
+msgid "Any direction"
+msgstr "どの方向にも"
+
+msgid "Any folder on your disk or NAS, used as a source, a target or a library you manage like a cloud service."
+msgstr "ディスクや NAS 上の任意のフォルダーを、移行元、移行先、またはクラウドサービスのように管理できるライブラリとして利用できます。"
 
 msgid "API key"
 msgstr "API キー"
@@ -468,6 +525,15 @@ msgstr "Apple Photos"
 msgid "Apple iCloud Photos export"
 msgstr "Apple iCloud 写真のエクスポート"
 
+msgid "Apple silicon"
+msgstr "Apple シリコン"
+
+msgid "Apple silicon and Intel."
+msgstr "Apple シリコンと Intel。"
+
+msgid "Apple's privacy export of iCloud Photos, with dates restored and albums and Memories rebuilt."
+msgstr "Apple のプライバシーデータ書き出しによる iCloud Photos。日付を復元し、アルバムとメモリーを再構築します。"
+
 msgid "Application activity"
 msgstr "アプリケーションのアクティビティ"
 
@@ -491,6 +557,9 @@ msgstr "よろしいですか?"
 
 msgid "Arguments must be passed as two values separated by comma."
 msgstr "引数はカンマ区切りの 2 つの値として渡す必要があります。"
+
+msgid "arm64"
+msgstr "arm64"
 
 msgid "Asked at the first sign-in"
 msgstr "初回サインイン時に確認"
@@ -521,6 +590,12 @@ msgstr "自動移行ライブダッシュボード"
 
 msgid "Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run, with a live dashboard."
 msgstr "自動移行は、ライブダッシュボードを表示しながら、すべての写真、動画、アルバムをソースからターゲットへ 1 回の実行でコピー(または移動)します。"
+
+msgid "Automatic Migration screens"
+msgstr "自動移行の画面"
+
+msgid "Automatic Migration with Synology Photos as source and Immich as target"
+msgstr "Synology Photos を移行元、Immich を移行先にした自動移行"
 
 msgid "Automatic Migration · PhotoMigrator"
 msgstr "自動移行 · PhotoMigrator"
@@ -606,6 +681,12 @@ msgstr "参照"
 msgid "Browse, edit or remove individual records of any table of the Web Interface database."
 msgstr "Web インターフェースのデータベースにある任意のテーブルの個別のレコードを参照、編集、削除します。"
 
+msgid "Built for big libraries"
+msgstr "大規模ライブラリ向けに設計"
+
+msgid "Built so you never have to"
+msgstr "盲目的に私たちを"
+
 msgid "By default migration runs in parallel with live dashboard enabled."
 msgstr "デフォルトでは、移行はライブダッシュボードを有効にして並列実行されます。"
 
@@ -615,8 +696,44 @@ msgstr "デフォルトでは、出力は 'year/month' 構造を使用し、'-o/
 msgid "By default, a new destination album keeps the original source name."
 msgstr "デフォルトでは、新しい宛先アルバムは元のソース名を維持します。"
 
+msgid "Calculate the price"
+msgstr "料金を計算する"
+
+msgid "Can I cancel a cloud task?"
+msgstr "クラウドタスクはキャンセルできますか？"
+
+msgid "Can I migrate out of Google Photos?"
+msgstr "Google Photos から移行できますか？"
+
+msgid "Can I use more than one account?"
+msgstr "複数のアカウントを使えますか？"
+
 msgid "CAUTION: NOT RECOMMENDED (core of the Google Takeout process). Use only for testing."
 msgstr "注意: 非推奨 (Google Takeout 処理の中核です)。テスト目的でのみ使用してください。"
+
+msgid "Check the exact command, press Run and watch the progress and the log live, from any device."
+msgstr "実際のコマンドを確認して実行を押すだけ。進捗とログを、どのデバイスからでもリアルタイムで確認できます。"
+
+msgid "Choose where your photos are and where they should go. PhotoMigrator downloads and uploads in parallel, recreates every album on the target and shows a live dashboard while it works."
+msgstr "写真の場所と移行先を選ぶだけ。PhotoMigrator がダウンロードとアップロードを並列で行い、すべてのアルバムを移行先に再作成し、処理中はライブダッシュボードを表示します。"
+
+msgid "CLOUD TO CLOUD"
+msgstr "クラウドからクラウドへ"
+
+msgid "Command line"
+msgstr "コマンドライン"
+
+msgid "Command line in a container, on any platform."
+msgstr "コンテナー内のコマンドライン。あらゆるプラットフォームで動作。"
+
+msgid "computer or NAS"
+msgstr "パソコンまたは NAS で動作"
+
+msgid "Connect up to three accounts per service and move your library in any direction, including between two accounts of the same service."
+msgstr "サービスごとに最大 3 つのアカウントを接続し、同じサービスの 2 つのアカウント間も含め、あらゆる方向にライブラリを移行できます。"
+
+msgid "Copy or move assets, with albums and non-album photos"
+msgstr "アルバム内外の写真を含め、アセットをコピーまたは移動"
 
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "バックエンドで CSV エンドポイントが利用できません。Web バックエンドを再起動または更新してください。"
@@ -1026,6 +1143,9 @@ msgstr "認証情報はこのタスク専用のキーで暗号化"
 msgid "Credentials for account {0} found in Settings"
 msgstr "設定でアカウント {0} の認証情報が見つかりました"
 
+msgid "curl -L -o docker-compose.yml https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/docker-compose.yml\ncurl -L -o .env https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/.env\ndocker compose pull\ndocker compose up -d"
+msgstr "curl -L -o docker-compose.yml https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/docker-compose.yml\ncurl -L -o .env https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/.env\ndocker compose pull\ndocker compose up -d"
+
 msgid "Current run"
 msgstr "現在の実行"
 
@@ -1040,6 +1160,18 @@ msgstr "現在: {0} | 選択中: {1}"
 
 msgid "Current: {0} | {1}"
 msgstr "現在: {0} | {1}"
+
+msgid "Data deleted when it ends"
+msgstr "終了時にデータを削除"
+
+msgid "Dates and locations restored from JSON sidecars or Photo Details.csv"
+msgstr "JSON サイドカーまたは Photo Details.csv から日付と位置情報を復元"
+
+msgid "Dates fixed"
+msgstr "日付を修復"
+
+msgid "Dates fixed, albums rebuilt, everything uploaded. Follow it live and get an email at each step."
+msgstr "日付の修復、アルバムの再構築、アップロードまで一括で実行。進行状況をライブで確認でき、各ステップでメールも届きます。"
 
 msgid "DB Delete Error"
 msgstr "DB 削除エラー"
@@ -1215,6 +1347,9 @@ msgstr "デモロールは制限されています"
 msgid "Demo role cannot perform this configuration action directly. Enter an active admin username and password."
 msgstr "デモロールではこの設定操作を直接実行できません。有効な管理者のユーザー名とパスワードを入力してください。"
 
+msgid "Desktop"
+msgstr "デスクトップ"
+
 msgid "Destination"
 msgstr "送信先"
 
@@ -1230,14 +1365,29 @@ msgstr "宛先フォルダー"
 msgid "Destination service"
 msgstr "送信先サービス"
 
+msgid "Destroyed when it ends"
+msgstr "終了時に破棄"
+
+msgid "Destructive actions are marked in red and ask for confirmation. Copy is the default; move is your choice."
+msgstr "破壊的なアクションは赤で表示され、確認が求められます。既定はコピーで、移動はあなたの選択です。"
+
 msgid "Details"
 msgstr "詳細"
 
 msgid "Disabled"
 msgstr "無効"
 
+msgid "Discord"
+msgstr "Discord"
+
 msgid "Do not save the GPTH log"
 msgstr "GPTH ログを保存しない"
+
+msgid "Docker"
+msgstr "Docker"
+
+msgid "Docker launcher"
+msgstr "Docker ランチャー"
 
 msgid "Document"
 msgstr "ドキュメント"
@@ -1245,7 +1395,13 @@ msgstr "ドキュメント"
 msgid "Documentation"
 msgstr "ドキュメント"
 
+msgid "Double-click the app on Windows, macOS or Linux to open the desktop interface, with native folder pickers and a light or dark theme."
+msgstr "Windows、macOS、Linux でアプリをダブルクリックするだけでデスクトップインターフェースが開きます。ネイティブのフォルダー選択やライト／ダークテーマにも対応。"
+
 msgid "Download"
+msgstr "ダウンロード"
+
+msgid "DOWNLOAD"
 msgstr "ダウンロード"
 
 msgid "Download Albums"
@@ -1262,6 +1418,12 @@ msgstr "すべてのアルバムと、アルバムに属さないすべてのア
 
 msgid "Download days"
 msgstr "ダウンロード日数"
+
+msgid "Download for free"
+msgstr "無料でダウンロード"
+
+msgid "Download PhotoMigrator, connect your services and move your whole library in a single run."
+msgstr "PhotoMigrator をダウンロードし、サービスを接続すれば、ライブラリ全体を 1 回の実行で移行できます。"
 
 msgid "Download ready."
 msgstr "ダウンロードの準備ができました。"
@@ -1337,6 +1499,9 @@ msgstr "各タスクは、当社サーバー上で最大 10.0 TB の作業領域
 
 msgid "Each task runs in its own isolated folder that no other user can reach."
 msgstr "各タスクは独自の分離されたフォルダーで実行され、他のユーザーはアクセスできません。"
+
+msgid "Each task runs in its own isolated folder. No other user, and no person on our side, opens your photos."
+msgstr "各タスクは専用の隔離フォルダーで実行されます。他のユーザーも、当社のスタッフも、あなたの写真を開くことはありません。"
 
 msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
 msgstr "値を編集し、✓ を押してその行を保存します。キーは保護されています。1 ページあたり {0} 行。"
@@ -1443,6 +1608,9 @@ msgstr "有効 · 無料"
 msgid "Enabled · paid"
 msgstr "有効 · 有料"
 
+msgid "Encrypted, per task"
+msgstr "タスクごとに暗号化"
+
 msgid "Encryption"
 msgstr "暗号化"
 
@@ -1473,6 +1641,9 @@ msgstr "開始予定"
 msgid "Estimated start: {0}. Estimated duration: {1}."
 msgstr "開始予定：{0}。所要時間の見積もり：{1}。"
 
+msgid "EU servers, open source"
+msgstr "EU のサーバー、オープンソース"
+
 msgid "Event"
 msgstr "イベント"
 
@@ -1491,11 +1662,20 @@ msgstr "毎日 (午前 2:00)"
 msgid "Every day at {0}"
 msgstr "毎日 {0}"
 
+msgid "Every feature is a command-line flag, so you can automate migrations and repeat them with the same settings."
+msgstr "すべての機能がコマンドラインのフラグとして用意されているので、移行を自動化し、同じ設定で繰り返し実行できます。"
+
 msgid "Every hour"
 msgstr "毎時"
 
 msgid "Every hour at minute {0}"
 msgstr "毎時 {0} 分"
+
+msgid "Every screen shows the command it will run. Copy it to repeat the job or to put it in a script."
+msgstr "各画面に、実行されるコマンドが表示されます。コピーして、同じ処理の再実行やスクリプトへの組み込みに使えます。"
+
+msgid "Every task shows only the options it needs, explains each one in plain language and shows the exact command before anything runs."
+msgstr "各タスクには必要なオプションだけが表示され、それぞれが分かりやすい言葉で説明されます。実行前には実際のコマンドも確認できます。"
 
 msgid "Every week (Monday 2:00 AM)"
 msgstr "毎週 (月曜日 午前 2:00)"
@@ -1505,6 +1685,12 @@ msgstr "毎週{0} {1}"
 
 msgid "Every {0} hours"
 msgstr "{0} 時間ごと"
+
+msgid "Everything else your library needs"
+msgstr "ライブラリに必要なその他すべて"
+
+msgid "Everything is deleted"
+msgstr "すべて削除"
 
 msgid "Example"
 msgstr "例"
@@ -1659,6 +1845,9 @@ msgstr "期限切れ"
 msgid "Export Config"
 msgstr "設定をエクスポート"
 
+msgid "Exports that make sense again"
+msgstr "意味のある形に戻るエクスポート"
+
 msgid "Extract ZIPs on upload"
 msgstr "アップロード時に ZIP を展開"
 
@@ -1683,8 +1872,20 @@ msgstr "サインイン失敗"
 msgid "Failed: {0}"
 msgstr "失敗: {0}"
 
+msgid "Failed? You pay nothing"
+msgstr "失敗したら無料"
+
+msgid "FAQ"
+msgstr "よくある質問"
+
+msgid "Features"
+msgstr "機能"
+
 msgid "Files and credentials deleted when it ends"
 msgstr "ファイルと認証情報は終了時に削除されます"
+
+msgid "Files, credentials and their key are erased as soon as the task ends, and we email you the confirmation."
+msgstr "ファイル、認証情報、その鍵はタスク終了と同時に消去され、確認メールをお送りします。"
 
 msgid "Fill at least one value."
 msgstr "値を 1 つ以上入力してください。"
@@ -1700,6 +1901,9 @@ msgstr "都市で絞り込み"
 
 msgid "Filter by country"
 msgstr "国で絞り込み"
+
+msgid "Filter by date, type, country, city or person"
+msgstr "日付、種類、国、都市、人物で絞り込み"
 
 msgid "Filter by person"
 msgstr "人物で絞り込み"
@@ -1731,6 +1935,9 @@ msgstr "フィルター"
 msgid "Find Duplicates"
 msgstr "重複を検索"
 
+msgid "Find duplicates across folders, review them and apply your decisions"
+msgstr "フォルダー全体で重複を検出し、確認して、判断を適用"
+
 msgid "Find Duplicates Input"
 msgstr "重複検索の入力"
 
@@ -1745,6 +1952,9 @@ msgstr "終了"
 
 msgid "First page"
 msgstr "最初のページ"
+
+msgid "Fix"
+msgstr "修復"
 
 msgid "Fix Broken Symlinks"
 msgstr "壊れたシンボリックリンクを修復"
@@ -1791,6 +2001,9 @@ msgstr "修復するフォルダー"
 msgid "Folder(s)"
 msgstr "フォルダー"
 
+msgid "Folder-based albums on your own NextCloud, with parallel uploads and downloads."
+msgstr "自分の NextCloud 上のフォルダーベースのアルバム。アップロードとダウンロードは並列処理。"
+
 msgid "Foldername albums"
 msgstr "アルバムのフォルダー名"
 
@@ -1823,6 +2036,9 @@ msgstr "進行状況とログは「アクティビティ」でライブ表示さ
 
 msgid "Follow the live dashboard and the log in Activity. A task that has started is not refunded if you stop it."
 msgstr "ライブダッシュボードとログはアクティビティで確認できます。開始済みのタスクを停止しても返金されません。"
+
+msgid "Follow the run"
+msgstr "実行を見守る"
 
 msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: 3). Only used when '--try-small-albums-grouping' is enabled."
 msgstr "Consolidate Albums Names で、アルバムを小さいと見なすアセットの最大数を設定します (デフォルト: 3)。'--try-small-albums-grouping' が有効な場合にのみ使用されます。"
@@ -1878,14 +2094,23 @@ msgstr "アルバムの削除で、<DATE> 以前に作成されたアルバム�
 msgid "For Remove Albums, only match albums created on or before <DATE>. Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
 msgstr "アルバムの削除で、<DATE> 以前に作成されたアルバムのみを対象にします。'--remove-albums' と併用します。使用できる形式は YYYY、YYYY-MM、YYYY-MM-DD などです。"
 
+msgid "for what works"
+msgstr "うまくいった分だけ"
+
 msgid "Force Password Change"
 msgstr "パスワード変更を強制"
 
 msgid "Force password change on first login"
 msgstr "初回ログイン時にパスワード変更を強制"
 
+msgid "Four steps, and you only pay"
+msgstr "4 ステップ。支払うのは"
+
 msgid "Free"
 msgstr "無料"
+
+msgid "Free and open source"
+msgstr "無料のオープンソース"
 
 msgid "Free disk space"
 msgstr "空きディスク容量"
@@ -1899,8 +2124,41 @@ msgstr "金曜日"
 msgid "From"
 msgstr "送信元"
 
+msgid "From a messy export to"
+msgstr "ごちゃごちゃなエクスポートから"
+
+msgid "From Immich, Synology Photos or NextCloud to any other service, with albums and dates."
+msgstr "Immich、Synology Photos、NextCloud から他のあらゆるサービスへ、アルバムも日付もそのまま。"
+
 msgid "Full refund if a task fails"
 msgstr "タスクが失敗した場合は全額返金"
+
+msgid "Get PhotoMigrator"
+msgstr "PhotoMigrator を入手"
+
+msgid "Get started"
+msgstr "始める"
+
+msgid "GitHub"
+msgstr "GitHub"
+
+msgid "Google & iCloud Takeout"
+msgstr "Google と iCloud の Takeout"
+
+msgid "Google or iCloud Takeout, cleaned and uploaded to Immich, Synology Photos, NextCloud or Google Photos."
+msgstr "Google または iCloud の Takeout を整理して、Immich、Synology Photos、NextCloud、Google Photos にアップロード。"
+
+msgid "Google Takeout fixing screen with the input folder and the folder structure options"
+msgstr "入力フォルダーとフォルダー構造オプションが表示された Google Takeout 修復画面"
+
+msgid "GPL-3.0"
+msgstr "GPL-3.0"
+
+msgid "GPL-3.0 licensed, developed in the open on GitHub with a friendly community on Discord."
+msgstr "GPL-3.0 ライセンス。GitHub でオープンに開発され、Discord には親切なコミュニティがあります。"
+
+msgid "GPL-3.0 · © 2024-2026 Jaime Tur"
+msgstr "GPL-3.0 · © 2024-2026 Jaime Tur"
 
 msgid "GPTH messages"
 msgstr "GPTH メッセージ"
@@ -1983,6 +2241,9 @@ msgstr "ヘルプインデックスが空です"
 msgid "Help index unavailable"
 msgstr "ヘルプインデックスを利用できません"
 
+msgid "Helpers for the folders on your disk, and one place for the credentials of every account, encrypted in the Web Interface."
+msgstr "ディスク上のフォルダー向けヘルパーと、Web インターフェースで暗号化される全アカウントの認証情報の一元管理。"
+
 msgid "Hi {0},"
 msgstr "{0} 様、"
 
@@ -2004,17 +2265,35 @@ msgstr "ホーム (volumes)"
 msgid "Hourly"
 msgstr "毎時"
 
+msgid "How big is your Takeout?"
+msgstr "Takeout のサイズは？"
+
+msgid "How do I get a processed Takeout?"
+msgstr "処理済みの Takeout を受け取るには？"
+
+msgid "How it works"
+msgstr "使い方"
+
 msgid "How to migrate"
 msgstr "移行の手順"
 
 msgid "How we protect your data"
 msgstr "データの保護方法"
 
+msgid "http://localhost:{0}"
+msgstr "http://localhost:{0}"
+
 msgid "I accept the"
 msgstr "次に同意します："
 
+msgid "Immich Photos actions grouped into Transfer, Organize and Clean up"
+msgstr "転送、整理、クリーンアップにまとめられた Immich Photos のアクション"
+
 msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
 msgstr "Config.ini に IMMICH_USERNAME_2/IMMICH_PASSWORD_2 または IMMICH_API_KEY_USER_2 のエントリが存在する必要があります。"
+
+msgid "Import and export your configuration"
+msgstr "設定のインポートとエクスポート"
 
 msgid "import from Dropbox"
 msgstr "Dropbox からのインポート"
@@ -2040,8 +2319,20 @@ msgstr "重要: このモジュールはローカルの前処理パイプライ�
 msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations."
 msgstr "重要: remove_duplicate と replace_duplicate は元に戻せない操作です。"
 
+msgid "In the browser, from Docker"
+msgstr "ブラウザーから、Docker で"
+
 msgid "Input: {0}. The task is waiting for its files and the quote."
 msgstr "入力: {0}。タスクはファイルと見積もりを待っています。"
+
+msgid "Intel"
+msgstr "Intel"
+
+msgid "Interfaces"
+msgstr "インターフェース"
+
+msgid "Invisible to others"
+msgstr "他の誰にも見えない"
 
 msgid "IP Address"
 msgstr "IP アドレス"
@@ -2178,11 +2469,17 @@ msgstr "管理者の認証情報が無効か、権限が不足しています。
 msgid "Invalid credentials"
 msgstr "認証情報が無効です"
 
+msgid "Is PhotoMigrator really free?"
+msgstr "PhotoMigrator は本当に無料ですか？"
+
 msgid "It contains the Albums and No_Albums folders used by Local Photos Folder modules."
 msgstr "ローカル写真フォルダーのモジュールで使用される Albums フォルダーと No_Albums フォルダーが含まれます。"
 
 msgid "It opens Google's consent page and asks for the scopes needed to upload media and create albums."
 msgstr "Google の同意ページを開き、メディアのアップロードとアルバムの作成に必要なスコープを要求します。"
+
+msgid "It runs on your own machine or NAS. Your photos go straight from one service to the other."
+msgstr "お使いのマシンや NAS 上で動作し、写真はあるサービスから別のサービスへ直接転送されます。"
 
 msgid "Job linked to your session"
 msgstr "セッションに関連付けられたジョブ"
@@ -2195,6 +2492,9 @@ msgstr "元の Takeout の未変更コピーを保持します(2 倍の容量が
 
 msgid "Keep an untouched copy of original Takeout (requires double space). TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "元の Takeout の未変更コピーを保持します(2 倍の容量が必要です)。ヒント: <TAKEOUT_FOLDER> に元の zip ファイルが含まれている場合は、いずれにせよそれらが保持されます。"
+
+msgid "Keep every memory."
+msgstr "思い出は、ひとつも失わずに。"
 
 msgid "Keep last N backups"
 msgstr "最新 N 件のバックアップを保持"
@@ -2241,8 +2541,14 @@ msgstr "英字、数字、ドット、ハイフン、アンダースコア"
 msgid "Libraries & tools"
 msgstr "ライブラリとツール"
 
+msgid "Light"
+msgstr "ライト"
+
 msgid "Links are only fixed when a valid target can be inferred from current files."
 msgstr "リンクは、現在のファイルから有効な宛先を推測できる場合にのみ修復されます。"
+
+msgid "Linux"
+msgstr "Linux"
 
 msgid "List only, move the duplicates to a folder, or delete them."
 msgstr "一覧表示のみ、重複をフォルダーへ移動、または削除から選べます。"
@@ -2250,11 +2556,17 @@ msgstr "一覧表示のみ、重複をフォルダーへ移動、または削除
 msgid "List, move or remove duplicates"
 msgstr "重複を一覧表示、移動、削除"
 
+msgid "Live dashboard"
+msgstr "ライブダッシュボード"
+
 msgid "Live mode"
 msgstr "本番モード"
 
 msgid "Load Table"
 msgstr "テーブルを読み込む"
+
+msgid "Local folders"
+msgstr "ローカルフォルダー"
 
 msgid "Local Photos Folder"
 msgstr "ローカル写真フォルダー"
@@ -2271,6 +2583,9 @@ msgstr "ローカルヘルパー"
 msgid "Local helpers: repair symlinks, rename or organize folders, and find or process duplicates."
 msgstr "ローカルヘルパー: シンボリックリンクの修復、フォルダー名の変更や整理、重複の検索と処理。"
 
+msgid "Local tools & settings"
+msgstr "ローカルツールと設定"
+
 msgid "Log"
 msgstr "ログ"
 
@@ -2286,8 +2601,14 @@ msgstr "ログアウト"
 msgid "Logs"
 msgstr "ログ"
 
+msgid "macOS"
+msgstr "macOS"
+
 msgid "Main navigation"
 msgstr "メインナビゲーション"
+
+msgid "Manage"
+msgstr "管理"
 
 msgid "Manage a library"
 msgstr "ライブラリを管理"
@@ -2313,6 +2634,9 @@ msgstr "重複したアルバム(同じ名前)を統合します: アセット�
 msgid "Merge equivalent album families"
 msgstr "同等のアルバムグループを統合"
 
+msgid "Merge, consolidate and clean up albums"
+msgstr "アルバムの統合、集約、クリーンアップ"
+
 msgid "Message"
 msgstr "メッセージ"
 
@@ -2324,6 +2648,9 @@ msgstr "メッセージ: {0}"
 
 msgid "Migrate"
 msgstr "移行"
+
+msgid "Migrate photos, videos and albums between Google Photos, Synology Photos, Immich, NextCloud and local folders, and turn messy Google or iCloud Takeout exports into a clean library with the right dates."
+msgstr "Google Photos、Synology Photos、Immich、NextCloud、ローカルフォルダー間で写真・動画・アルバムを移行できます。ごちゃごちゃな Google や iCloud の Takeout エクスポートも、正しい日付のきれいなライブラリに生まれ変わります。"
 
 msgid "Migrations and Takeout processing that remote users run on this server, with Stripe payments. Administrators never see the files or credentials of a task."
 msgstr "リモートユーザーがこのサーバー上で実行する移行と Takeout 処理で、支払いは Stripe で行います。管理者がタスクのファイルや認証情報を見ることはありません。"
@@ -2346,6 +2673,9 @@ msgstr "月曜日"
 msgid "Monthly"
 msgstr "毎月"
 
+msgid "MOST POPULAR"
+msgstr "一番人気"
+
 msgid "Move Assets"
 msgstr "アセットを移動"
 
@@ -2366,6 +2696,9 @@ msgstr "最初にコピーする代わりに、元のフォルダーを処理済
 
 msgid "Move the original folder into the processed output instead of copying it first. Useful to avoid duplicating disk usage for large local libraries."
 msgstr "最初にコピーする代わりに、元のフォルダーを処理済みの出力先へ移動します。大規模なローカルライブラリでディスク使用量の重複を避けるのに便利です。"
+
+msgid "Move your photo library."
+msgstr "フォトライブラリを丸ごと引っ越し。"
 
 msgid "Move your photo library. Keep every memory."
 msgstr "写真ライブラリを移行して、思い出をすべて残しましょう。"
@@ -2391,8 +2724,14 @@ msgstr "名前とフォルダー"
 msgid "Never"
 msgstr "なし"
 
+msgid "Never deletes the source"
+msgstr "元データは絶対に削除しない"
+
 msgid "Never shown. Leave it empty to keep the saved password."
 msgstr "表示されません。空欄のままにすると保存済みのパスワードが維持されます。"
+
+msgid "NEW"
+msgstr "新機能"
 
 msgid "New account request"
 msgstr "新しいアカウント申請"
@@ -2438,6 +2777,18 @@ msgstr "NextCloud Photos · PhotoMigrator"
 
 msgid "No"
 msgstr "いいえ"
+
+msgid "No card details here"
+msgstr "カード情報は不要"
+
+msgid "No Docker or no free disk space? Let us migrate your Takeout for you, from {0} €."
+msgstr "Docker がない、または空きディスク容量が足りませんか？ Takeout の移行は私たちにお任せください。{0} €から。"
+
+msgid "No Docker. No free disk space."
+msgstr "Docker も、空きディスク容量も不要。"
+
+msgid "no surprises"
+msgstr "驚きなし"
 
 msgid "No Takeout files here"
 msgstr "ここに Takeout ファイルはありません"
@@ -2538,6 +2889,9 @@ msgstr "古いスケジュールバックアップは、最新の 1 件を除い
 msgid "On"
 msgstr "オン"
 
+msgid "On a NAS or server, the Web Interface with Docker. On your own computer, the desktop app. Over SSH, the terminal interface. For automation, the command line with"
+msgstr "NAS やサーバーなら Docker の Web インターフェース、パソコンならデスクトップアプリ、SSH 経由ならターミナルインターフェース、自動化にはコマンドライン："
+
 msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
 msgstr "対応しているクラウドターゲットでは、余分なバリアントは優先される保持アルバムに統合されます。API がアルバム削除に対応している場合(Immich、Synology、NextCloud)、その後で余分なアルバムが削除されます。Google Photos は公開 API でアルバムを削除できないため、余分なバリアントはそのまま残ります。"
 
@@ -2550,14 +2904,23 @@ msgstr "対応しているクラウドターゲットでは、優先されるク
 msgid "One album per subfolder"
 msgstr "サブフォルダーごとに 1 つのアルバム"
 
+msgid "One download for your system, nothing to install. Unzip it and open the app, or run the Web Interface with Docker."
+msgstr "お使いのシステム向けのダウンロードを 1 つ入手するだけで、インストールは不要。解凍してアプリを開くか、Docker で Web インターフェースを実行します。"
+
 msgid "One file pattern per line or comma-separated"
 msgstr "ファイルパターンを 1 行に 1 つ、またはカンマ区切りで入力"
 
 msgid "One folder pattern per line or comma-separated"
 msgstr "フォルダーパターンを 1 行に 1 つ、またはカンマ区切りで入力"
 
+msgid "One payment per task, VAT included. No subscription, no hidden fees. If the task fails, you get every cent back automatically."
+msgstr "料金はタスクごとに 1 回払い、VAT 込み。サブスクリプションも隠れた手数料もありません。タスクが失敗した場合は、1 セントも漏れなく自動で返金されます。"
+
 msgid "One time password"
 msgstr "ワンタイムパスワード"
+
+msgid "One tool, every library"
+msgstr "1 つのツールで、あらゆるライブラリを"
 
 msgid "One value per line or comma-separated"
 msgstr "値を 1 行に 1 つ、またはカンマ区切りで入力"
@@ -2583,8 +2946,14 @@ msgstr "この期間に撮影されたアイテムのみ。片側を空欄にす
 msgid "Only assets taken in this country or city, or where this person appears."
 msgstr "この国や都市で撮影された、またはこの人物が写っているアイテムのみ。"
 
+msgid "Only the ones of your destination: an Immich API key, a NextCloud app password, a Synology account or a Google Photos token. Create them just for the task and revoke them when it ends."
+msgstr "移行先のものだけです。Immich の API キー、NextCloud のアプリパスワード、Synology のアカウント、Google Photos のトークンのいずれか。タスク専用に作成し、終了したら無効にしてください。"
+
 msgid "Only to provide the service you request: to quote, run and deliver your tasks, to send you emails about them and to keep the accounting records the law requires. The legal basis is the contract you accept when you create a task, and our legal obligations for payment records."
 msgstr "ご依頼のサービスを提供するためだけに利用します：タスクの見積もり、実行、提供、タスクに関するメールの送信、および法律で義務付けられた会計記録の保管です。法的根拠は、タスク作成時にお客様が承諾する契約と、支払い記録に関する当社の法的義務です。"
+
+msgid "Only where you send them. PhotoMigrator runs on your own computer, NAS or server and talks directly to the services you configure. In the Web Interface, passwords and API keys are stored encrypted for each user."
+msgstr "あなたが指定した場所だけです。PhotoMigrator はお使いのパソコン、NAS、サーバー上で動作し、設定したサービスと直接通信します。Web インターフェースでは、パスワードと API キーはユーザーごとに暗号化して保存されます。"
 
 msgid "Open"
 msgstr "開く"
@@ -2630,6 +2999,9 @@ msgstr "運営者名"
 
 msgid "Optional"
 msgstr "任意"
+
+msgid "Optional album name clean-up and consolidation on the target"
+msgstr "移行先でのアルバム名の整理・統合（任意）"
 
 msgid "Optional arguments:"
 msgstr "オプション引数:"
@@ -2697,8 +3069,14 @@ msgstr "すべてアップロードのオプション"
 msgid "Options for {0}"
 msgstr "{0} のオプション"
 
+msgid "or command line"
+msgstr "またはコマンドライン"
+
 msgid "Organize"
 msgstr "整理"
+
+msgid "Organize a folder by date and rename album folders from their content"
+msgstr "日付でフォルダーを整理し、内容に基づいてアルバムフォルダー名を変更"
 
 msgid "Organize Local Folder By Date"
 msgstr "ローカルフォルダーを日付別に整理"
@@ -2742,8 +3120,20 @@ msgstr "{0} / {1} ページ"
 msgid "Paid"
 msgstr "支払い済み"
 
+msgid "Paid after a test with your accounts."
+msgstr "お支払いは、お客様のアカウントでのテスト後。"
+
+msgid "Paid after we check your destination works."
+msgstr "お支払いは、移行先の動作を確認してから。"
+
+msgid "Paid only when the result is ready. {0} days to download it."
+msgstr "結果の準備ができてからのお支払い。ダウンロード期間は {0} 日間。"
+
 msgid "Parallel Migration"
 msgstr "並列移行"
+
+msgid "Parallel transfers, delayed retries and size limits for libraries with tens of thousands of photos."
+msgstr "数万枚規模のライブラリに向けた、並列転送、遅延再試行、サイズ制限。"
 
 msgid "Password"
 msgstr "パスワード"
@@ -2790,6 +3180,9 @@ msgstr "支払いは返金されました。"
 msgid "Payments are made through Stripe. We never see or store your card details. Migrations are paid when you accept the quote. Takeout processing is paid when the result is ready, and the payment is required to download it."
 msgstr "支払いは Stripe を通じて行われます。カード情報を当社が見たり保存したりすることはありません。移行は見積もりを承諾したときに、Takeout 処理は結果の準備ができたときに支払います。ダウンロードには支払いが必要です。"
 
+msgid "Payments go through Stripe: your card never touches our server. A task fails? Full refund, automatically."
+msgstr "お支払いは Stripe 経由で、カード情報が当社のサーバーに届くことはありません。タスクが失敗した場合は、自動で全額返金されます。"
+
 msgid "Payments · Stripe"
 msgstr "支払い · Stripe"
 
@@ -2798,6 +3191,9 @@ msgstr "支払い："
 
 msgid "Pending access requests"
 msgstr "保留中のアクセスリクエスト"
+
+msgid "People labels kept for Immich, iCloud Memories rebuilt as albums"
+msgstr "Immich 向けに人物ラベルを保持し、iCloud のメモリーをアルバムとして再構築"
 
 msgid "Period"
 msgstr "期間"
@@ -2808,8 +3204,20 @@ msgstr "人物"
 msgid "Photo libraries"
 msgstr "フォトライブラリ"
 
+msgid "Photo library screens"
+msgstr "フォトライブラリの画面"
+
 msgid "PhotoMigrator"
 msgstr "PhotoMigrator"
+
+msgid "PhotoMigrator --google-takeout=./Takeout"
+msgstr "PhotoMigrator --google-takeout=./Takeout"
+
+msgid "PhotoMigrator --gui"
+msgstr "PhotoMigrator --gui"
+
+msgid "PhotoMigrator --source=./Takeout --target=immich-photos-1"
+msgstr "PhotoMigrator --source=./Takeout --target=immich-photos-1"
 
 msgid "PhotoMigrator Admin"
 msgstr "PhotoMigrator 管理"
@@ -2817,8 +3225,14 @@ msgstr "PhotoMigrator 管理"
 msgid "PhotoMigrator Cloud is provided by"
 msgstr "PhotoMigrator Cloud の提供者は"
 
+msgid "PhotoMigrator Cloud · runs on our servers"
+msgstr "PhotoMigrator Cloud · 当社のサーバーで実行"
+
 msgid "PhotoMigrator Cloud · version 2026-11-25"
 msgstr "PhotoMigrator Cloud · バージョン 2026-11-25"
+
+msgid "PhotoMigrator is open source: anyone can read exactly what the service does with your files and credentials."
+msgstr "PhotoMigrator はオープンソース。ファイルや認証情報をサービスがどう扱うか、誰でも正確に確認できます。"
 
 msgid "PhotoMigrator Login"
 msgstr "PhotoMigrator ログイン"
@@ -2835,8 +3249,17 @@ msgstr "PhotoMigrator はオープンソースであり、誰でも動作を確�
 msgid "PhotoMigrator is working on your task."
 msgstr "PhotoMigrator がタスクを処理しています。"
 
+msgid "PhotoMigrator Web Interface home screen with the tasks grouped by Migrate, Process Takeout, Photo libraries and Tools"
+msgstr "Migrate、Process Takeout、Photo libraries、Tools にタスクがまとめられた PhotoMigrator Web インターフェースのホーム画面"
+
+msgid "PhotoMigrator Web Interface on a phone"
+msgstr "スマートフォンで表示した PhotoMigrator Web インターフェース"
+
 msgid "PhotoMigrator website"
 msgstr "PhotoMigrator の Web サイト"
+
+msgid "PhotoMigrator · Move your photo library, keep every memory"
+msgstr "PhotoMigrator · フォトライブラリを丸ごと引っ越し、思い出はそのまま"
 
 msgid "Photos"
 msgstr "写真"
@@ -2852,6 +3275,12 @@ msgstr "写真、動画、アルバムを移行元から移行先へ。ライブ
 
 msgid "Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs."
 msgstr "タスクを選んでください。PhotoMigrator は、そのタスクに必要なオプションと、実行前の正確なコマンドだけを表示します。"
+
+msgid "Pick an action from a visual menu: upload or download albums, rename them by pattern, merge duplicates or clean up empty albums. Destructive actions are clearly marked and ask before they run."
+msgstr "ビジュアルメニューからアクションを選択：アルバムのアップロード／ダウンロード、パターンによる名前変更、重複アルバムの統合、空のアルバムの削除など。破壊的なアクションははっきり表示され、実行前に確認されます。"
+
+msgid "Pick what you want to do. Only the fields that task needs are shown, with the defaults already set."
+msgstr "やりたいことを選ぶだけ。そのタスクに必要な項目だけが、既定値設定済みで表示されます。"
 
 msgid "Place and people"
 msgstr "場所と人物"
@@ -2895,6 +3324,9 @@ msgstr "対応している iCloud 写真ファイルでは、ExifTool に切り�
 msgid "Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool. Disabled by default in CLI."
 msgstr "対応している iCloud 写真ファイルでは、ExifTool に切り替える前にネイティブ EXIF ライターを優先します。CLI ではデフォルトで無効です。"
 
+msgid "Prefer to do it yourself? PhotoMigrator stays free and open source on your own computer or NAS."
+msgstr "自分で実行したい場合も大丈夫。PhotoMigrator は、ご自身のパソコンや NAS で引き続き無料のオープンソースとして使えます。"
+
 msgid "Preferences for how the Web Interface looks and behaves for your user. Theme and time zone changes are applied immediately."
 msgstr "お客様のユーザーに対する Web インターフェースの外観と動作の設定です。テーマとタイムゾーンの変更は即座に適用されます。"
 
@@ -2909,6 +3341,9 @@ msgstr "ダウンロードを準備しています"
 
 msgid "Preparing your download"
 msgstr "ダウンロードを準備しています"
+
+msgid "preserved"
+msgstr "そのまま保持"
 
 msgid "Preview Album Actions"
 msgstr "アルバム操作をプレビュー"
@@ -2960,6 +3395,9 @@ msgstr "プライバシーポリシー"
 
 msgid "Privacy policy · PhotoMigrator Cloud"
 msgstr "プライバシーポリシー · PhotoMigrator Cloud"
+
+msgid "Private by design"
+msgstr "設計段階からプライベート"
 
 msgid "Process Duplicates"
 msgstr "重複を処理"
@@ -3015,8 +3453,14 @@ msgstr "処理中"
 msgid "Provide JSON values to insert."
 msgstr "挿入する JSON の値を指定してください。"
 
+msgid "Pull and push progress, queues, retries and estimated end time while a migration runs."
+msgstr "移行中のダウンロード／アップロードの進捗、キュー、再試行、終了予定時刻を表示します。"
+
 msgid "Push Asset Max Size (MB)"
 msgstr "プッシュするアセットの最大サイズ (MB)"
+
+msgid "Questions,"
+msgstr "よくある質問に"
 
 msgid "Queue"
 msgstr "キュー"
@@ -3050,6 +3494,9 @@ msgstr "JSON サイドカーから Google Takeout の人物ラベルを読み取
 
 msgid "Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. (default: True)."
 msgstr "JSON サイドカーから Google Takeout の人物ラベルを読み取り、人物マップを処理済みの出力に保存します。(デフォルト: True)"
+
+msgid "Read the documentation"
+msgstr "ドキュメントを読む"
 
 msgid "Read-only access. In Google Takeout choose “Add to Dropbox” or “Add to OneDrive”, then connect it in the next step."
 msgstr "読み取り専用アクセスです。Google Takeout で「Dropbox に追加」または「OneDrive に追加」を選び、次のステップで接続します。"
@@ -3123,6 +3570,9 @@ msgstr "拒否：サイズが大きすぎます。"
 msgid "Release Notes"
 msgstr "リリースノート"
 
+msgid "Release notes"
+msgstr "リリースノート"
+
 msgid "Remaining Time"
 msgstr "残り時間"
 
@@ -3140,6 +3590,9 @@ msgstr "すべてのアルバムを削除"
 
 msgid "Remove All Assets"
 msgstr "すべてのアセットを削除"
+
+msgid "Remove duplicate assets, keeping the best copy and its people"
+msgstr "重複アセットを削除し、最良のコピーと人物情報を保持"
 
 msgid "Remove Duplicates Albums"
 msgstr "重複アルバムを削除"
@@ -3195,6 +3648,9 @@ msgstr "削除済み: {0} | 失敗: {1}"
 msgid "Rename Albums"
 msgstr "アルバム名を変更"
 
+msgid "Rename albums with text, wildcards or regular expressions"
+msgstr "テキスト、ワイルドカード、正規表現でアルバム名を変更"
+
 msgid "Rename Pattern"
 msgstr "名前変更パターン"
 
@@ -3218,6 +3674,9 @@ msgstr "名前変更パターン"
 
 msgid "Repair broken album links"
 msgstr "壊れたアルバムリンクを修復"
+
+msgid "Repair broken album links after moving folders"
+msgstr "フォルダー移動後に壊れたアルバムリンクを修復"
 
 msgid "Repair, rename, organize and deduplicate folders, or upload files to this server."
 msgstr "フォルダーの修復、名前変更、整理、重複排除を行うか、このサーバーにファイルをアップロードします。"
@@ -3303,6 +3762,9 @@ msgstr "結果"
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "結果は CSV にエクスポートされ、重複と各項目に選択したアクションを確認できます。"
 
+msgid "Retries, upload size limits and timeouts for big libraries"
+msgstr "大規模ライブラリ向けの再試行、アップロードサイズ制限、タイムアウト"
+
 msgid "Revenue"
 msgstr "売上"
 
@@ -3336,6 +3798,9 @@ msgstr "ロール…"
 msgid "Run"
 msgstr "実行"
 
+msgid "Run and follow it"
+msgstr "実行して見守る"
+
 msgid "Run Backup Now"
 msgstr "今すぐバックアップを実行"
 
@@ -3348,14 +3813,68 @@ msgstr "アルバムとアルバムに属さないアセットを含め、<SOURC
 msgid "Run and follow the progress"
 msgstr "実行して進行状況を確認"
 
+msgid "Run it on your NAS or server"
+msgstr "NAS やサーバーで実行"
+
+msgid "Run it on your NAS or server and use it from any computer or phone. Multiple users, an admin panel, encrypted credentials and live progress."
+msgstr "NAS やサーバーで実行し、どのパソコンやスマートフォンからでも利用できます。複数ユーザー、管理パネル、暗号化された認証情報、ライブ進捗表示に対応。"
+
 msgid "Run this feature"
 msgstr "この機能を実行"
 
 msgid "Running"
 msgstr "実行中"
 
+msgid "Runs on your own"
+msgstr "あなたの"
+
 msgid "Runtime override active from environment variable {0}"
 msgstr "環境変数 {0} による実行時の上書きが有効です"
+
+msgid "Safe by default"
+msgstr "デフォルトで安全"
+
+msgid "Scriptable, every option"
+msgstr "スクリプト対応、全オプション利用可"
+
+msgid "Sections"
+msgstr "セクション"
+
+msgid "See the cloud service →"
+msgstr "クラウドサービスを見る →"
+
+msgid "See what it does"
+msgstr "できることを見る"
+
+msgid "Select and copy"
+msgstr "選択してコピー"
+
+msgid "Self-hosted photos with people labels from your Takeout, burst stacks and visual duplicate detection."
+msgstr "セルフホスト型の写真管理。Takeout の人物ラベル、連写スタック、視覚的な重複検出に対応。"
+
+msgid "Send us your Google or iCloud Takeout and PhotoMigrator fixes the dates, rebuilds the albums and uploads everything to Immich, Synology Photos, NextCloud or Google Photos. You only pay for a task that works."
+msgstr "Google または iCloud の Takeout を送っていただくだけで、PhotoMigrator が日付を修復し、アルバムを再構築して、Immich、Synology Photos、NextCloud、Google Photos にすべてアップロードします。料金は、うまくいったタスクの分だけです。"
+
+msgid "Send your Takeout"
+msgstr "Takeout を送る"
+
+msgid "Servers in the EU"
+msgstr "サーバーは EU 内"
+
+msgid "Services"
+msgstr "サービス"
+
+msgid "Set up"
+msgstr "設定"
+
+msgid "Settings with the Immich account credentials"
+msgstr "Immich アカウントの認証情報を含む設定"
+
+msgid "Simple pricing"
+msgstr "シンプルな料金"
+
+msgid "Since April {0} Google no longer lets third-party apps read your whole Google Photos library. Request a Google Takeout of your photos and use it as the source: PhotoMigrator fixes it and migrates it. Google Photos still works as a target."
+msgstr "{0} 年 4 月以降、Google はサードパーティアプリによる Google Photos ライブラリ全体の読み取りを許可しなくなりました。写真の Google Takeout をリクエストして移行元として使えば、PhotoMigrator が修復して移行します。Google Photos は引き続き移行先として利用できます。"
 
 msgid "SMTP password"
 msgstr "SMTP パスワード"
@@ -4005,6 +4524,9 @@ msgstr "日曜日"
 msgid "Sunset"
 msgstr "サンセット"
 
+msgid "Supported services"
+msgstr "対応サービス"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -4017,8 +4539,41 @@ msgstr "Synology Photos · PhotoMigrator"
 msgid "Synology Photos → Immich Photos"
 msgstr "Synology Photos → Immich Photos"
 
+msgid "Synology to Immich, Takeout to NextCloud, Immich to a local folder… pick a source and a target and run."
+msgstr "Synology から Immich へ、Takeout から NextCloud へ、Immich からローカルフォルダーへ…。移行元と移行先を選んで実行するだけ。"
+
+msgid "Takeout exports scatter dates and albums into side files. PhotoMigrator reads them, writes the real date, GPS and camera data back into every photo and rebuilds your albums."
+msgstr "Takeout のエクスポートでは、日付やアルバム情報が別ファイルに分散されています。PhotoMigrator はそれらを読み取り、本来の日付、GPS、カメラ情報を各写真に書き戻して、アルバムを再構築します。"
+
 msgid "Takeout files checked."
 msgstr "Takeout ファイルを確認しました。"
+
+msgid "Takeout → your cloud"
+msgstr "Takeout → あなたのクラウド"
+
+msgid "Takeouts of up to about {0} TB ({1} TB of working space per task)."
+msgstr "最大約 {0} TB の Takeout に対応（1 タスクあたり作業領域 {1} TB）。"
+
+msgid "Terminal"
+msgstr "ターミナル"
+
+msgid "Terminal interface of PhotoMigrator"
+msgstr "PhotoMigrator のターミナルインターフェース"
+
+msgid "The exact command"
+msgstr "実際のコマンド"
+
+msgid "The export of your Google Photos account, fixed and organized before it goes anywhere else."
+msgstr "Google Photos アカウントのエクスポートを、他へ移す前に修復・整理します。"
+
+msgid "The same features in four interfaces. Use the one that fits where your photos live."
+msgstr "同じ機能を 4 つのインターフェースで。写真のある環境に合ったものをお選びください。"
+
+msgid "Three steps,"
+msgstr "3 ステップで、"
+
+msgid "Tidy up any library, safely"
+msgstr "どのライブラリも安全に整理"
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "ヒント: <TAKEOUT_FOLDER> に元の zip ファイルが含まれている場合でも、それらは保持されます。"
@@ -4488,6 +5043,9 @@ msgstr "同等の宛先アルバム名を 1 つのグループとして扱い、
 msgid "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album. Redundant albums are removed only when the target service supports album deletion."
 msgstr "同等の宛先アルバム名を 1 つのグループとして扱い、それらのアセットを正規の保持アルバムに統合します。余分なアルバムは、ターゲットサービスがアルバム削除に対応している場合にのみ削除されます。"
 
+msgid "trust us blindly"
+msgstr "信頼する必要がない設計"
+
 msgid "Try Date Prefix Albums Grouping"
 msgstr "日付プレフィックスによるアルバムのグループ化を試行"
 
@@ -4502,6 +5060,9 @@ msgstr "切り詰められたアルバムのグループ化を試行"
 
 msgid "Tuesday"
 msgstr "火曜日"
+
+msgid "Two files and one command. Then open"
+msgstr "ファイル 2 つとコマンド 1 つ。その後、次を開きます："
 
 msgid "Type"
 msgstr "種類"
@@ -4547,6 +5108,9 @@ msgstr "アルバムをアップロード"
 
 msgid "Upload All"
 msgstr "すべてアップロード"
+
+msgid "Upload and download albums or the whole library"
+msgstr "アルバムまたはライブラリ全体のアップロードとダウンロード"
 
 msgid "Upload Completed with Warnings"
 msgstr "警告付きでアップロードが完了しました"
@@ -4617,11 +5181,17 @@ msgstr "アップロードの状態: アイドル"
 msgid "Upload status: uploading..."
 msgstr "アップロードの状態: アップロード中..."
 
+msgid "Upload the ZIP files from your browser, or let Takeout save them to Dropbox or OneDrive and connect it."
+msgstr "ブラウザーから ZIP ファイルをアップロードするか、Takeout で Dropbox や OneDrive に保存して接続します。"
+
 msgid "Upload to Server"
 msgstr "サーバーへアップロード"
 
 msgid "Upload to Server · PhotoMigrator"
 msgstr "サーバーへアップロード · PhotoMigrator"
+
+msgid "Upload your library and albums to Google Photos. To bring photos out of Google, use your Google Takeout export."
+msgstr "ライブラリとアルバムを Google Photos にアップロードできます。Google から写真を取り出すには、Google Takeout のエクスポートを使用します。"
 
 msgid "Upload your Takeout files"
 msgstr "Takeout ファイルをアップロード"
@@ -4652,6 +5222,9 @@ msgstr "アップロード中"
 
 msgid "Uploads resume if the connection drops: add the same file again to continue."
 msgstr "接続が切れてもアップロードは再開できます：同じファイルをもう一度追加すると続行します。"
+
+msgid "Uploads that fail are retried, and assets that keep failing are kept aside and listed so you can review them. You can run the migration again with the same settings by copying its command."
+msgstr "失敗したアップロードは再試行され、失敗し続けるアセットは別に保管して一覧表示されるので、後で確認できます。コマンドをコピーすれば、同じ設定で移行を再実行できます。"
 
 msgid "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy."
 msgstr "レイアウトを変更するには '--organize-folder-structure'、出力フォルダーが明示されていない場合に生成されるサフィックスを変更するには '--organize-output-folder-suffix'、コピーではなく移動するには '--move-original-files' を使用します。"
@@ -4764,6 +5337,12 @@ msgstr "'--consolidate-similar-albums' と同じアルバムグループのロ�
 msgid "Using Settings defaults"
 msgstr "設定のデフォルトを使用中"
 
+msgid "v5.0.0"
+msgstr "v5.0.0"
+
+msgid "v5.0.0 · Free and open source"
+msgstr "v5.0.0 · 無料のオープンソース"
+
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "有効なアクション: restore_duplicate / remove_duplicate / replace_duplicate。"
 
@@ -4794,11 +5373,17 @@ msgstr "データを待機中"
 msgid "Warm palette"
 msgstr "ウォームパレット"
 
+msgid "We check and quote"
+msgstr "確認して見積もり"
+
 msgid "We checked your task <b>{0}</b>: {1} of photos and videos."
 msgstr "タスク <b>{0}</b> を確認しました：写真と動画は {1} です。"
 
 msgid "We do our best to keep your albums, dates and locations, but we cannot guarantee that every file is supported by the destination service. PhotoMigrator only reads your source and never deletes it, so keep your originals until you have checked the result. To the extent permitted by law, our liability is limited to the amount you paid for the task."
 msgstr "アルバム、日付、位置情報の保持に努めますが、すべてのファイルが送信先サービスで対応されることを保証するものではありません。PhotoMigrator は取得元を読み取るだけで削除は行いませんので、結果を確認するまで元のファイルを保管してください。法律で認められる範囲で、当社の責任はお客様がタスクに支払った金額を上限とします。"
+
+msgid "We do the work"
+msgstr "作業は私たちが実施"
 
 msgid "We email you when it starts and when it ends. You can cancel it until then with a full refund."
 msgstr "開始時と終了時にメールでお知らせします。それまでは全額返金でキャンセルできます。"
@@ -4809,14 +5394,29 @@ msgstr "本規約は更新されることがあります。お客様が同意し
 msgid "We measure your data and test the destination with a tiny upload that we delete right away. It takes a few minutes."
 msgstr "データを測定し、ごく小さなアップロードで送信先をテストします。このアップロードはすぐに削除されます。数分かかります。"
 
+msgid "We measure your data and test your destination with a tiny upload. You get the price and the start time by email."
+msgstr "データ量を測定し、ごく小さなアップロードで移行先をテストします。料金と開始時刻はメールでお知らせします。"
+
+msgid "We move it for you."
+msgstr "移行は私たちにお任せ。"
+
 msgid "We never delete anything in your source"
 msgstr "取得元のデータは一切削除しません"
+
+msgid "We only read your Takeout or your library. Nothing is ever removed from where your photos come from."
+msgstr "読み取るのは Takeout またはライブラリだけ。写真の元の場所から何かが削除されることは決してありません。"
+
+msgid "We process your Takeout and you download a tidy library with the right dates, in ZIP parts you can resume."
+msgstr "Takeout を処理し、正しい日付のきれいなライブラリを、再開可能な ZIP 分割ファイルでダウンロードできます。"
 
 msgid "We received your account request"
 msgstr "アカウント申請を受け付けました"
 
 msgid "We received your payment of <b>{0}</b>. Your task <b>{1}</b> is number {2} in the queue."
 msgstr "<b>{0}</b> のお支払いを受領しました。タスク <b>{1}</b> はキューの {2} 番目です。"
+
+msgid "We refund the full amount automatically and delete your data. You never pay for a task that did not finish."
+msgstr "全額を自動で返金し、データを削除します。完了しなかったタスクの料金をお支払いいただくことはありません。"
 
 msgid "We refunded the full amount of <b>{0}</b>. It reaches your card in 5 to 10 days."
 msgstr "<b>{0}</b> の全額を返金しました。カードには 5～10 日で反映されます。"
@@ -4835,6 +5435,12 @@ msgstr "Web インターフェース"
 
 msgid "Web database"
 msgstr "Web データベース"
+
+msgid "Web Interface in the dark theme"
+msgstr "ダークテーマの Web インターフェース"
+
+msgid "Web, desktop, terminal"
+msgstr "Web、デスクトップ、ターミナル"
 
 msgid "Webhook URL"
 msgstr "Webhook URL"
@@ -4863,8 +5469,17 @@ msgstr "何をしますか？"
 msgid "What do you want to move today?"
 msgstr "今日は何を移行しますか？"
 
+msgid "What happens if a migration is interrupted?"
+msgstr "移行が中断されたらどうなりますか？"
+
+msgid "What if the cloud service fails?"
+msgstr "クラウドサービスが失敗したら？"
+
 msgid "What is written to the log file and where."
 msgstr "ログファイルに書き込む内容と場所。"
+
+msgid "What it does"
+msgstr "できること"
 
 msgid "What to do with detected duplicates: list, move, or delete."
 msgstr "検出された重複に対する操作: 一覧表示、移動、削除。"
@@ -4905,6 +5520,9 @@ msgstr "宛先サービスがアルバムの削除をサポートしている場
 msgid "When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow."
 msgstr "入力が年別フォルダーのないアルバムのみの Takeout の場合、PhotoMigrator は自動的に検出し、GPTH を適切な復旧フローに切り替えます。"
 
+msgid "When the task ends, your files and credentials are erased from our server and we confirm it by email."
+msgstr "タスクが終了すると、ファイルと認証情報は当社のサーバーから消去され、メールで確認をお送りします。"
+
 msgid "When the task finishes, PhotoMigrator emails {0} with the result and the last lines of the log."
 msgstr "タスクが完了すると、PhotoMigrator が結果とログの最後の行を {0} にメールで送信します。"
 
@@ -4917,14 +5535,35 @@ msgstr "クラウドサービスへのアルバムのアップロードまたは
 msgid "When you run a feature, its progress and log appear here."
 msgstr "機能を実行すると、進行状況とログがここに表示されます。"
 
+msgid "Where do my photos go?"
+msgstr "写真はどこに送られますか？"
+
 msgid "Where from and where to"
 msgstr "移行元と移行先"
 
 msgid "Where to put the files on the server"
 msgstr "サーバー上でのファイルの保存先"
 
+msgid "wherever you want them"
+msgstr "好きな場所へ"
+
+msgid "Which credentials do I give the cloud service?"
+msgstr "クラウドサービスに渡す認証情報は？"
+
+msgid "Which interface should I use?"
+msgstr "どのインターフェースを使えばよいですか？"
+
 msgid "Which photos and videos every feature processes."
 msgstr "各機能が処理する写真と動画。"
+
+msgid "Will I keep my albums, dates and locations?"
+msgstr "アルバム、日付、位置情報は保持されますか？"
+
+msgid "Windows"
+msgstr "Windows"
+
+msgid "Windows, macOS, Linux"
+msgstr "Windows、macOS、Linux"
 
 msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
 msgstr "このフラグを有効にすると、アンダースコアとスペースの違いや、重複のような末尾の数字サフィックスなどの無害なバリアントが正規化されます"
@@ -4938,11 +5577,35 @@ msgstr "処理中"
 msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
 msgstr "Google Photos、Synology Photos、Immich Photos、NextCloud Photos、ローカルフォルダーで、どの方向でも利用できます。"
 
+msgid "Works with the services"
+msgstr "すでに使っている"
+
 msgid "Workspace"
 msgstr "ワークスペース"
 
+msgid "x64"
+msgstr "x64"
+
+msgid "x64 and arm64."
+msgstr "x64 と arm64。"
+
+msgid "Year or year/month folders, duplicate removal and dated album names"
+msgstr "年別または年/月別フォルダー、重複の削除、日付付きアルバム名"
+
 msgid "Yes"
 msgstr "はい"
+
+msgid "Yes. Albums are recreated on the target, and when you start from a Google or iCloud Takeout the original date, GPS location and camera data are written back into each photo before it is migrated."
+msgstr "はい。アルバムは移行先に再作成されます。Google または iCloud の Takeout から始める場合は、移行前に元の日付、GPS 位置情報、カメラ情報が各写真に書き戻されます。"
+
+msgid "Yes. Before your task starts you get a full refund. Once it is running it can be stopped, but it is not refunded."
+msgstr "はい。タスクの開始前なら全額返金されます。実行中でも停止できますが、返金はされません。"
+
+msgid "Yes. Each service supports up to three accounts, so you can also migrate between two accounts of the same service, for example from one Immich user to another."
+msgstr "はい。各サービスで最大 3 アカウントに対応しているので、たとえば Immich のあるユーザーから別のユーザーへなど、同じサービスの 2 つのアカウント間でも移行できます。"
+
+msgid "Yes. It is open source under the GPL-3.0 license, with no paid tiers, accounts or ads. You can read every line of code on GitHub."
+msgstr "はい。GPL-3.0 ライセンスのオープンソースで、有料プランもアカウント登録も広告もありません。すべてのコードを GitHub で確認できます。"
 
 msgid "Yesterday"
 msgstr "昨日"
@@ -4952,6 +5615,9 @@ msgstr "あなた"
 
 msgid "You add the files in the next step. Uploads resume if the connection drops, so you can close the page and continue later."
 msgstr "ファイルは次のステップで追加します。接続が切れてもアップロードは再開できるため、ページを閉じて後で続けられます。"
+
+msgid "you already use"
+msgstr "サービスで使える"
 
 msgid "You can ask for access to your data, its correction or deletion, limit or object to its processing, and ask for a copy of it, by writing to"
 msgstr "データへのアクセス、訂正、削除の請求、処理の制限や異議の申し立て、およびデータのコピーの請求は、次の宛先までご連絡ください："
@@ -4974,6 +5640,9 @@ msgstr "自分自身のユーザーは削除できません"
 msgid "You cannot delete your own user."
 msgstr "自分自身のユーザーは削除できません。"
 
+msgid "You download it in ZIP parts of up to {0} GB that you can resume. The link works for {1} days and you pay only when the result is ready."
+msgstr "最大 {0} GB の再開可能な ZIP 分割ファイルでダウンロードします。リンクの有効期間は {1} 日間で、お支払いは結果の準備ができてからです。"
+
 msgid "You have not been charged."
 msgstr "課金はされていません。"
 
@@ -4992,11 +5661,35 @@ msgstr "実行前に確認を求められます。"
 msgid "Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
 msgstr "Immich Photos の ADMIN_API_KEY（API_KEY は アカウント設定 --> API_KEY キー で作成できます）"
 
+msgid "Your credentials are encrypted for this task only and destroyed when it ends."
+msgstr "認証情報はこのタスク専用に暗号化され、タスクの終了時に破棄されます。"
+
+msgid "Your data stays in the European Union, and the whole tool is open source on GitHub for anyone to audit."
+msgstr "データは欧州連合内に保管され、ツール全体が GitHub で公開されているオープンソースなので、誰でも監査できます。"
+
+msgid "Your memories stay yours"
+msgstr "思い出は、あなただけのもの"
+
+msgid "Your memories,"
+msgstr "あなたの思い出を、"
+
+msgid "Your NAS library, with 2-step verification support and up to three accounts."
+msgstr "NAS 上のライブラリを管理。2 段階認証に対応し、最大 3 アカウントまで使えます。"
+
+msgid "Your passwords and keys are encrypted with a key made only for your task. No other task can read them."
+msgstr "パスワードとキーは、あなたのタスク専用に作られた鍵で暗号化されます。他のタスクから読み取られることはありません。"
+
 msgid "Your PhotoMigrator account"
 msgstr "お客様の PhotoMigrator アカウント"
 
 msgid "Your PhotoMigrator quote"
 msgstr "PhotoMigrator の見積もり"
+
+msgid "Your price"
+msgstr "あなたの料金"
+
+msgid "Your system"
+msgstr "お使いのシステム"
 
 msgid "Your Takeout"
 msgstr "お客様の Takeout"
@@ -5265,6 +5958,12 @@ msgstr "タスク <b>{0}</b> は正常に完了しました。"
 msgid "your task <b>{0}</b> was stopped before it finished."
 msgstr "タスク <b>{0}</b> は完了前に停止されました。"
 
+msgid "Your way"
+msgstr "あなたのスタイルで"
+
+msgid "Your whole library, moved in one run"
+msgstr "ライブラリ全体を 1 回の実行で移行"
+
 msgid "{0} / {1} rows"
 msgstr "{0} / {1} 行"
 
@@ -5280,8 +5979,14 @@ msgstr "{0} 件のアカウント"
 msgid "{0} accounts"
 msgstr "{0} アカウント"
 
+msgid "{0} accounts each"
+msgstr "各 {0} アカウント"
+
 msgid "{0} activated"
 msgstr "{0} を有効化しました"
+
+msgid "{0} cents per GB"
+msgstr "1 GB あたり {0} セント"
 
 msgid "{0} created"
 msgstr "{0} を作成しました"
@@ -5312,6 +6017,12 @@ msgstr "{0} 個の機能"
 
 msgid "{0} finished"
 msgstr "{0} が完了しました"
+
+msgid "{0} GB"
+msgstr "{0} GB"
+
+msgid "{0} GB · {1},{2} photos and videos"
+msgstr "{0} GB · 写真と動画 {1},{2} 点"
 
 msgid "{0} hour"
 msgstr "{0}時間"
@@ -5352,6 +6063,9 @@ msgstr "{0} 件選択中"
 msgid "{0} stopped"
 msgstr "{0} が停止しました"
 
+msgid "{0} TB"
+msgstr "{0} TB"
+
 msgid "{0} users"
 msgstr "{0} 人のユーザー"
 
@@ -5360,6 +6074,9 @@ msgstr "{0} 人のユーザーを変更しました"
 
 msgid "{0} will change the password at the next sign-in"
 msgstr "{0} は次回のサインイン時にパスワードを変更します"
+
+msgid "{0} € minimum, then"
+msgstr "最低 {0} €、その後は"
 
 msgid "{0}. Applicable law"
 msgstr "{0}. 準拠法"
