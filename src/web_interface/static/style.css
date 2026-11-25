@@ -4210,8 +4210,7 @@ body[data-theme="dark"] .info-card:not(.info-card--danger) { background: var(--s
 
 /* Run panel in the right-hand column */
 .action-bar--side {
-    position: sticky;
-    top: 84px;
+    position: static;
     order: -1;
     flex-direction: column;
     align-items: stretch;
@@ -4252,6 +4251,7 @@ body[data-theme="dark"] .info-card:not(.info-card--danger) { background: var(--s
 .action-bar--side .run-btn { flex: 1 1 0; justify-content: center; height: 46px; }
 .action-bar--side .run-btn--primary { flex-grow: 2; }
 .selector-side:has(> .action-bar--side) { position: static; }
+.selector-side.is-sticky { position: sticky; top: 84px; }
 .selector-side > .about-card { max-height: none; }
 
 /* Home */
@@ -4945,3 +4945,30 @@ body[data-theme="dark"] .adm-icon-btn--ok { background: rgba(52, 211, 153, 0.14)
     .adm-select--wide { min-width: 0; width: 100%; }
     .admin-tabs { border-radius: 16px; }
 }
+
+/* Help card of the side panel: summary, list, example, required and optional options */
+.about-card, .selector-side > .about-card { max-height: none; overflow: visible; }
+.info-card { overflow-wrap: anywhere; }
+.help-card { display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; line-height: 1.55; color: var(--text-2); overflow-wrap: anywhere; }
+.help-card p { margin: 0; }
+.help-card__summary { color: var(--text); font-size: 14px; }
+.help-card__list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.help-card__important {
+    display: flex; gap: 8px; align-items: flex-start;
+    padding: 8px 10px; border-radius: 10px;
+    background: var(--warning-soft); border: 1px solid var(--warning-border); color: var(--warning-text);
+}
+.help-card__important .ico { flex: 0 0 16px; margin-top: 2px; }
+.help-card__important .ico-svg { width: 16px; height: 16px; }
+.help-card__label { margin-top: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.help-card__example {
+    display: block; padding: 7px 10px; border-radius: 8px;
+    background: var(--surface-3); color: var(--text); font-family: var(--mono); font-size: 12px;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.help-card__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.help-card__chip { padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--t-ink) 12%, var(--surface)); color: var(--t-ink); font-size: 12.5px; font-weight: 700; }
+.help-card__options { margin: 0; display: grid; gap: 2px 0; }
+.help-card__options dt { font-weight: 700; color: var(--text); margin-top: 6px; }
+.help-card__options dt:first-child { margin-top: 0; }
+.help-card__options dd { margin: 0; }

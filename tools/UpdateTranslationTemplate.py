@@ -63,6 +63,11 @@ ADMIN_TEXTS = [
     "Test email", "Backup", "Backup restored", "Backup deleted", "Database edit",
     "You cannot deactivate your own account.", "You cannot delete your own user.", "Cannot deactivate the last active admin.",
     "Cannot change role of the last active admin.", "Cannot delete the last active admin.", "User not found.",
+    # Labels and texts of the help card of the side panel.
+    "Example", "Examples", "You need", "Optional",
+    "Upload a folder or a ZIP file from this computer to a folder on the server, so the other features can use it.",
+    "Extract ZIPs on upload on: ZIP files are extracted on the server and the ZIP file is removed.",
+    "Extract ZIPs on upload off: ZIP files are kept as uploaded.",
 ]
 
 
@@ -106,6 +111,57 @@ def script_literals() -> set:
     return found
 
 
+def _clean_help_line(line: str) -> str:
+    """Same cleaning as uiHelpText() in the Web Interface."""
+    text = re.sub(r"^CAUTION!!!\s*", "", line.strip(), flags=re.I)
+    text = re.sub(r"^ATTENTION!!!:?\s*", "", text, flags=re.I)
+    text = re.sub(r"Requires\s+'--client'\.?\s*", "", text, flags=re.I).strip()
+    return re.sub(r"You must provide the photo client using '--client'\.?\s*", "", text, flags=re.I).strip()
+
+
+def help_texts() -> set:
+    """Lines of the option help as the Web Interface help card translates them (see formatDescriptionHtml)."""
+    sys.path.insert(0, str(ROOT / "src"))
+    old_argv = sys.argv[:]
+    try:
+        sys.argv = ["web-interface"]
+        from Core.ArgsParser import parse_arguments
+        _, parser = parse_arguments()
+    finally:
+        sys.argv = old_argv
+    found = set()
+    for action in parser._actions:
+        if not action.option_strings or not action.help or action.help == "==SUPPRESS==":
+            continue
+        lines = [_clean_help_line(line) for line in str(action.help).split("\n")]
+        lines = [line for line in lines if line]
+        bullets, examples = [], []
+        seen_bullet = False
+        for line in lines:
+            if re.match(r"^Examples?:", line, re.I):
+                examples.append(line)
+                continue
+            important = re.match(r"^(IMPORTANT|NOTE)(?:!+)?\s*:\s*(.*)$", line, re.I)
+            if important:
+                found.add(important.group(2))
+                continue
+            if re.match(r"^[-•·]\s+", line) or re.match(r"^\d+\)\s+", line):
+                bullets.append(re.sub(r"^[-•·]\s+", "", line))
+                seen_bullet = True
+                continue
+            if seen_bullet or examples:
+                if bullets and not re.match(r"^[A-Z]", line):
+                    bullets[-1] += f" {line}"
+                elif re.match(r"^--?\w", line) or re.match(r"^\.?/", line):
+                    continue
+                else:
+                    bullets.append(line)
+                continue
+            found.add(line)
+        found.update(bullets)
+    return {text for text in found if re.search(r"[A-Za-z]{3}", text)}
+
+
 def po_quote(text: str) -> str:
     return '"' + text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
 
@@ -133,7 +189,9 @@ def main() -> int:
         if is_ui_text(text, timezones):
             texts.add(text)
     texts |= script_literals()
-    keys = sorted({numbered(text) for text in texts} | set(EMAIL_TEXTS) | set(ADMIN_TEXTS))
+    help_keys = help_texts()
+    # Help lines are translated verbatim (numbers included), so they are not turned into {0} patterns.
+    keys = sorted({numbered(text) for text in texts} | set(EMAIL_TEXTS) | set(ADMIN_TEXTS) | help_keys)
     write_po(LANG_DIR / "messages.pot", keys, {}, None)
     for code in i18n.LANGS:
         if code == i18n.DEFAULT:

@@ -46,7 +46,7 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - A header in the colour of the feature with its name, a short description and `Restore defaults`.
 - For photo libraries and Other Features, a visual action picker grouped by purpose (for example Transfer, Organize and Clean up).
 - Numbered option cards with plain-language labels, a short help text and the CLI flag of each field. Advanced options are collapsed.
-- An `About` card with the full description of the selected feature or action, and a warning card for actions that delete or change data.
+- An `About` card for the selected feature or action: a short summary, the details as a list, an example, the options you need and a one-line description of each optional one. A warning card is added for actions that delete or change data.
 - A run panel with the live `Command` preview, a copy button, `Email me when it finishes`, `Run` and `Stop`, at the top of the right-hand column on wide screens and as a bar at the bottom on smaller screens. With `Email me when it finishes` on, you get an email with the result, the duration and the last lines of the log when the task ends (it needs an email in your account and email configured on the server).
 
 ### 4. Activity

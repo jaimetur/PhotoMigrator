@@ -7,7 +7,7 @@
     <title>PhotoMigrator</title>
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
     <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
-    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-admin2">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-help2">
 </head>
 {% set is_home_view = active_page == 'features' and request.query_params.get('view') == 'home' %}
 <body data-theme="{{ initial_theme }}" data-page="{{ active_page }}" class="app-body{% if is_home_view %} is-home-view{% endif %}">
@@ -683,9 +683,13 @@
         heading.textContent = title;
         head.appendChild(heading);
         card.appendChild(head);
-        const body = document.createElement("p");
-        body.innerHTML = html;
-        card.appendChild(body);
+        if (html instanceof Node) {
+            card.appendChild(html);
+        } else {
+            const body = document.createElement("p");
+            body.innerHTML = html;
+            card.appendChild(body);
+        }
         return card;
     }
 
@@ -730,7 +734,12 @@
                 text.appendChild(name);
                 const desc = document.createElement("span");
                 desc.className = "action-tile__desc";
-                desc.textContent = meta.desc || shortHelpText(uiHelpText(action), 60);
+                if (meta.desc) {
+                    desc.textContent = meta.desc;
+                } else {
+                    desc.textContent = helpSummary(action, {maxLength: 60});
+                    desc.setAttribute("data-no-i18n", "");
+                }
                 text.appendChild(desc);
                 const bar = document.createElement("span");
                 bar.className = "card-underline";
@@ -1418,86 +1427,133 @@
         return compact.join("\n").trim();
     }
 
-    function optionalArgsItems(optionalFields, options = {}) {
-        const dedup = new Map();
-        (optionalFields || []).forEach((field) => {
-            if (field?.dest && !dedup.has(field.dest)) dedup.set(field.dest, field);
-        });
-        const items = [];
-        dedup.forEach((field) => {
-            const label = field.label || ARG_LABELS[field.dest] || uiOptionName(field);
-            const help = uiHelpText(field, {forOptional: true, clientName: options.clientName}).replace(/\s+/g, " ").trim();
-            if (help) items.push({label, help});
-        });
-        return items;
+    // Help texts come from the CLI help of each option. They are translated line by line (each line is one
+    // catalog entry) before the client name is put in, so a help line never mixes two languages.
+    function translateHelpLine(line, clientName = "") {
+        let text = typeof window.pmT === "function" ? window.pmT(String(line || "")) : String(line || "");
+        if (clientName) text = text.replace(/Synology Photos/g, /(Photos|Folder)$/.test(clientName) ? clientName : `${clientName} Photos`);
+        return text;
     }
 
-    function requiredArgsItems(requiredFields, options = {}) {
-        const dedup = new Map();
-        (requiredFields || []).forEach((field) => {
-            if (field?.dest && !dedup.has(field.dest)) dedup.set(field.dest, field);
-        });
-        const items = [];
-        dedup.forEach((field) => {
-            const label = field.label || ARG_LABELS[field.dest] || uiOptionName(field);
-            const help = uiHelpText(field, {clientName: options.clientName}).replace(/\s+/g, " ").trim();
-            if (help) items.push({label, help});
-        });
-        return items;
+    function firstSentence(text, maxLength = 200) {
+        const flat = String(text || "").replace(/\s+/g, " ").trim();
+        const match = flat.match(/^(.+?[.!?。！？])(\s|$)/);
+        let sentence = match ? match[1] : flat;
+        if (sentence.length > maxLength) sentence = `${sentence.slice(0, maxLength - 1).trimEnd()}…`;
+        return sentence;
+    }
+
+    function helpSummary(field, options = {}) {
+        const lines = String(uiHelpText(field, {forOptional: true}) || "").split("\n").map((line) => line.trim()).filter(Boolean);
+        const first = lines.find((line) => !/^[-•·]\s|^\d+\)\s|^Examples?:/i.test(line)) || lines[0] || "";
+        return firstSentence(translateHelpLine(first, options.clientName), options.maxLength || 200);
+    }
+
+    function helpNode(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        node.textContent = text;
+        node.setAttribute("data-no-i18n", "");
+        return node;
     }
 
     function formatDescriptionHtml(mainField, optionalFields = [], options = {}) {
-        const mainHelp = uiHelpText(mainField, {clientName: options.clientName});
-        const mainLines = String(mainHelp || "").replace(/\r\n/g, "\n").split("\n");
-        const mainHtml = [];
-        let hasPreviousContent = false;
-
-        mainLines.forEach((line) => {
-            const text = String(line || "").trim();
-            if (!text) {
-                if (hasPreviousContent) mainHtml.push("<br>");
+        const clientName = String(options.clientName || "").trim();
+        const lines = String(uiHelpText(mainField) || "").replace(/\r\n/g, "\n").split("\n").map((line) => line.trim()).filter(Boolean);
+        const root = document.createElement("div");
+        root.className = "help-card";
+        const summary = [];
+        const bullets = [];
+        const examples = [];
+        const important = [];
+        lines.forEach((line) => {
+            const example = line.match(/^Examples?:\s*(.*)$/i);
+            if (example) {
+                if (example[1]) examples.push(example[1]);
                 return;
             }
-            const escaped = escapeHtml(text);
-            if (/^Examples?:/i.test(text)) {
-                mainHtml.push(`<span class="desc-example"><em>${escaped}</em></span>`);
-            } else if (/^IMPORTANT(?:!+)?\s*:?/i.test(text)) {
-                mainHtml.push(`<span class="desc-important">${escaped}</span>`);
-            } else {
-                mainHtml.push(`<span class="desc-line">${escaped}</span>`);
+            if (/^(IMPORTANT|NOTE)(?:!+)?\s*:/i.test(line)) {
+                important.push(line.replace(/^(IMPORTANT|NOTE)(?:!+)?\s*:\s*/i, ""));
+                return;
             }
-            hasPreviousContent = true;
+            if (/^[-•·]\s+/.test(line) || /^\d+\)\s+/.test(line)) {
+                bullets.push(line.replace(/^[-•·]\s+/, ""));
+                return;
+            }
+            if (bullets.length || examples.length) {
+                if (bullets.length && !/^[A-Z]/.test(line)) bullets[bullets.length - 1] += ` ${line}`;
+                else if (/^--?\w/.test(line) || /^\.?\//.test(line)) examples.push(line);
+                else bullets.push(line);
+                return;
+            }
+            summary.push(line);
         });
 
-        const requiredItems = requiredArgsItems(options.requiredFields || [], {clientName: options.clientName});
-        const optionalItems = optionalArgsItems(optionalFields, {clientName: options.clientName});
-        if (!requiredItems.length && !optionalItems.length) return mainHtml.join("");
-
-        const sections = [];
-        if (requiredItems.length) {
-            sections.push(
-                [
-                    '<span class="desc-required-title">Required arguments:</span>',
-                    ...requiredItems.map((item) =>
-                        `<span class="desc-required-item">· <span class="desc-required-name">${escapeHtml(item.label)}</span>: ${escapeHtml(item.help)}</span>`
-                    )
-                ].join("")
-            );
+        if (summary.length) {
+            const p = document.createElement("p");
+            p.className = "help-card__summary";
+            summary.forEach((line, index) => {
+                if (index) p.appendChild(document.createTextNode(" "));
+                p.appendChild(helpNode("span", "", translateHelpLine(line, clientName)));
+            });
+            root.appendChild(p);
+        }
+        if (bullets.length) {
+            const ul = document.createElement("ul");
+            ul.className = "help-card__list";
+            bullets.forEach((line) => ul.appendChild(helpNode("li", "", translateHelpLine(line, clientName))));
+            root.appendChild(ul);
+        }
+        important.forEach((line) => {
+            const box = document.createElement("p");
+            box.className = "help-card__important";
+            box.appendChild(iconElement("alert"));
+            box.appendChild(helpNode("span", "", translateHelpLine(line, clientName)));
+            root.appendChild(box);
+        });
+        if (examples.length) {
+            root.appendChild(Object.assign(document.createElement("span"), {className: "help-card__label", textContent: examples.length > 1 ? "Examples" : "Example"}));
+            examples.forEach((line) => {
+                const cleaned = line.replace(/--client\s*=\s*(?:synology|immich|nextcloud|google-photos|google-takeout)\s*/gi, "").replace(/\s{2,}/g, " ").trim();
+                root.appendChild(helpNode("code", "help-card__example", cleaned));
+            });
         }
 
-        if (optionalItems.length) {
-            sections.push(
-                [
-                    '<span class="desc-optional-title">Optional arguments:</span>',
-                    ...optionalItems.map((item) =>
-                        `<span class="desc-optional-item">· <span class="desc-optional-name">${escapeHtml(item.label)}</span>: ${escapeHtml(item.help)}</span>`
-                    )
-                ].join("")
-            );
+        const requiredLabels = [];
+        const seen = new Set();
+        (options.requiredFields || []).forEach((field) => {
+            if (!field?.dest || seen.has(field.dest)) return;
+            seen.add(field.dest);
+            requiredLabels.push(field.label || humanizeLabel(ARG_LABELS[field.dest] || uiOptionName(field)));
+        });
+        if (requiredLabels.length) {
+            root.appendChild(Object.assign(document.createElement("span"), {className: "help-card__label", textContent: "You need"}));
+            const chips = document.createElement("div");
+            chips.className = "help-card__chips";
+            requiredLabels.forEach((label) => chips.appendChild(Object.assign(document.createElement("span"), {className: "help-card__chip", textContent: label})));
+            root.appendChild(chips);
         }
 
-        if (mainHtml.length) mainHtml.push("<br>");
-        return `${mainHtml.join("")}${sections.join("<br>")}`;
+        const optionalSeen = new Set();
+        const optionalRows = [];
+        (optionalFields || []).forEach((field) => {
+            if (!field?.dest || optionalSeen.has(field.dest) || seen.has(field.dest)) return;
+            optionalSeen.add(field.dest);
+            const help = helpSummary(field, {clientName, maxLength: 160});
+            if (!help) return;
+            optionalRows.push({label: field.label || humanizeLabel(ARG_LABELS[field.dest] || uiOptionName(field)), help});
+        });
+        if (optionalRows.length) {
+            root.appendChild(Object.assign(document.createElement("span"), {className: "help-card__label", textContent: "Optional"}));
+            const list = document.createElement("dl");
+            list.className = "help-card__options";
+            optionalRows.forEach((row) => {
+                list.appendChild(Object.assign(document.createElement("dt"), {textContent: row.label}));
+                list.appendChild(helpNode("dd", "", row.help));
+            });
+            root.appendChild(list);
+        }
+        return root;
     }
 
     function parseFindDuplicatesValue(rawValue) {
@@ -2709,10 +2765,11 @@
     function createArgumentMeta(field, inputId = "") {
         const meta = document.createElement("div");
         meta.className = "arg-meta";
-        const help = shortHelpText(uiHelpText(field));
+        const help = helpSummary(field);
         if (help) {
             const helpEl = document.createElement("p");
             helpEl.className = "arg-help";
+            helpEl.setAttribute("data-no-i18n", "");
             helpEl.textContent = help;
             if (inputId) helpEl.id = `${inputId}-help`;
             meta.appendChild(helpEl);
@@ -2728,8 +2785,9 @@
         const row = document.createElement("div");
         row.className = "arg-row";
         const inputId = nextUiElementId("arg");
-        const fullHelp = uiHelpText(field);
-        if (fullHelp) row.title = String(fullHelp).replace(/\s+/g, " ").trim();
+        const fullHelp = String(uiHelpText(field) || "").split("\n").map((line) => line.trim()).filter(Boolean)
+            .map((line) => translateHelpLine(line)).join(" ");
+        if (fullHelp) row.title = fullHelp;
 
         const label = document.createElement("label");
         label.className = "arg-label";
@@ -3911,12 +3969,15 @@
 
         const right = document.createElement("div");
         right.className = "selector-side";
-        const aboutCard = createInfoCard(
-            "About Upload to Server",
-            "Upload local content (a folder or a ZIP file) into the selected destination folder on the server, so the other features can use it.<br><br>"
-            + "If <strong>Extract ZIPs on upload</strong> is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. "
-            + "If set to No, .zip files are kept as uploaded."
-        );
+        const uploadHelp = document.createElement("div");
+        uploadHelp.className = "help-card";
+        uploadHelp.innerHTML = `
+            <p class="help-card__summary">Upload a folder or a ZIP file from this computer to a folder on the server, so the other features can use it.</p>
+            <ul class="help-card__list">
+                <li>Extract ZIPs on upload on: ZIP files are extracted on the server and the ZIP file is removed.</li>
+                <li>Extract ZIPs on upload off: ZIP files are kept as uploaded.</li>
+            </ul>`;
+        const aboutCard = createInfoCard("About Upload to Server", uploadHelp);
         aboutCard.classList.add("about-card");
         right.appendChild(aboutCard);
 
@@ -4474,10 +4535,18 @@
         if (target) {
             if (target.firstElementChild !== bar) target.insertBefore(bar, target.firstElementChild);
             if (!bar.classList.contains("action-bar--side")) bar.classList.add("action-bar--side");
+            syncSideColumnSticky(target);
         } else {
             if (bar.classList.contains("action-bar--side")) bar.classList.remove("action-bar--side");
             if (bar.parentElement !== featureView || featureView.lastElementChild !== bar) featureView.appendChild(bar);
         }
+    }
+
+    // The right-hand column (run panel + help) stays in view while scrolling only when it fits in the window;
+    // otherwise it scrolls with the page, so the run panel never covers the help.
+    function syncSideColumnSticky(column) {
+        const fits = column.scrollHeight + 100 <= window.innerHeight;
+        if (column.classList.contains("is-sticky") !== fits) column.classList.toggle("is-sticky", fits);
     }
 
     function setupRunPanelPlacement() {
@@ -4487,6 +4556,10 @@
         if (!RUN_PANEL.bar) return;
         new MutationObserver(() => placeRunPanel()).observe(featureView, {childList: true, subtree: true, attributes: true, attributeFilter: ["class"]});
         if (RUN_PANEL_SIDE_QUERY.addEventListener) RUN_PANEL_SIDE_QUERY.addEventListener("change", placeRunPanel);
+        window.addEventListener("resize", () => {
+            const column = RUN_PANEL.bar?.parentElement;
+            if (column?.classList.contains("selector-side")) syncSideColumnSticky(column);
+        });
         placeRunPanel();
     }
 

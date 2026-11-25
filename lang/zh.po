@@ -6,17 +6,32 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language: zh\n"
 
+msgid "'move' and 'remove' modify files; start with 'list' if you want to review first."
+msgstr "'move' 和 'remove' 会修改文件；如需先检查，请先使用 'list'。"
+
+msgid "(Makes your output portable but requires more HDD space)."
+msgstr "（使输出可移植，但需要更多硬盘空间）。"
+
 msgid "(Use General Arguments value)"
 msgstr "（使用通用参数值）"
 
 msgid "(default)"
 msgstr "（默认）"
 
+msgid "(default: False)."
+msgstr "（默认：False）。"
+
+msgid "(default: True)."
+msgstr "（默认：True）。"
+
 msgid "(default: all)"
 msgstr "（默认：全部）"
 
 msgid "(no output)"
 msgstr "（无输出）"
+
+msgid "(username)"
+msgstr "（用户名）"
 
 msgid "+ Add row"
 msgstr "+ 添加行"
@@ -26,6 +41,45 @@ msgstr "/app/data 子路径"
 
 msgid "/app/volumes subpath"
 msgstr "/app/volumes 子路径"
+
+msgid "1) Clean Takeout folder"
+msgstr "1) 清理 Takeout 文件夹"
+
+msgid "1) Sync MP4 files associated to Live pictures with associated HEIC/JPG"
+msgstr "1) 将与实况照片关联的 MP4 文件与对应的 HEIC/JPG 同步"
+
+msgid "10) Show files without dates"
+msgstr "10) 显示没有日期的文件"
+
+msgid "2) Fix MP4/Live Picture associations"
+msgstr "2) 修复 MP4/实况照片关联"
+
+msgid "2) Repair conflicting Video XMP dates"
+msgstr "2) 修复冲突的视频 XMP 日期"
+
+msgid "3) Fix truncated filenames/extensions"
+msgstr "3) 修复被截断的文件名/扩展名"
+
+msgid "3) Separate Albums folders vs original assets"
+msgstr "3) 将相册文件夹与原始资源分开"
+
+msgid "4) Organize assets by year/month"
+msgstr "4) 按年/月整理资源"
+
+msgid "5) Auto rename album folders based on content dates"
+msgstr "5) 根据内容日期自动重命名相册文件夹"
+
+msgid "6) Detect and remove duplicates"
+msgstr "6) 检测并删除重复项"
+
+msgid "7) Count albums"
+msgstr "7) 统计相册数量"
+
+msgid "8) Remove empty folders"
+msgstr "8) 删除空文件夹"
+
+msgid "9) Clean final media library"
+msgstr "9) 清理最终媒体库"
 
 msgid "<ACTION> can be 'list', 'move' or 'remove'. Default: 'list'."
 msgstr "<ACTION> 可以是 'list'、'move' 或 'remove'。默认值：'list'。"
@@ -486,6 +540,12 @@ msgstr "默认情况下，迁移以并行方式运行，并启用实时仪表板
 msgid "By default the output uses 'year/month' structure and is saved to '<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided."
 msgstr "默认情况下，输出使用 'year/month' 结构并保存到 '<INPUT_FOLDER>_processed_<TIMESTAMP>'，除非指定了 '-o/--output-folder'。"
 
+msgid "By default, a new destination album keeps the original source name."
+msgstr "默认情况下，新的目标相册保留原始来源名称。"
+
+msgid "CAUTION: NOT RECOMMENDED (core of the Google Takeout process). Use only for testing."
+msgstr "注意：不推荐（Google Takeout 流程的核心）。仅用于测试。"
+
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "后端不提供 CSV 接口。请重启或更新网页后端。"
 
@@ -746,6 +806,9 @@ msgstr "创建失败：{0}"
 
 msgid "Create stacks"
 msgstr "创建堆叠"
+
+msgid "Create the Google Photos refresh token of '--account-id' (default 1) and save it in Config.ini."
+msgstr "为 '--account-id'（默认 1）创建 Google Photos 刷新令牌，并保存到 Config.ini 中。"
 
 msgid "Create user"
 msgstr "创建用户"
@@ -1080,6 +1143,9 @@ msgstr "启用或禁用 GPTH 处理期间的信息消息。（默认：True）�
 msgid "Enable or disable Live Dashboard feature during Automated Migration job."
 msgstr "启用或禁用自动迁移任务期间的实时仪表板功能。"
 
+msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given."
+msgstr "在自动迁移任务期间启用或禁用实时仪表板功能。仅当同时提供 '--source' 和 '--target' 参数时，此参数才适用。"
+
 msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
 msgstr "启用或禁用自动迁移任务期间的实时仪表板功能。此参数仅在同时提供 '--source' 和 '--target' 参数时有效。（默认：True）。"
 
@@ -1089,6 +1155,9 @@ msgstr "启用定期备份"
 msgid "Enabled"
 msgstr "已启用"
 
+msgid "Enabled by default; use '--no-preview-album-actions' to disable it."
+msgstr "默认启用；使用 '--no-preview-album-actions' 可将其禁用。"
+
 msgid "Encryption"
 msgstr "加密"
 
@@ -1097,6 +1166,9 @@ msgstr "请输入文件夹名称，或以下位置内的绝对路径："
 
 msgid "Env override"
 msgstr "环境变量覆盖"
+
+msgid "Equivalent names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', and 'New_Album 1' are treated as the same album family."
+msgstr "'Album'、'Album_1'、'Album (2)'、'New_Album'、'New Album' 和 'New_Album 1' 等等效名称会被视为同一相册系列。"
 
 msgid "Error: {0}"
 msgstr "错误：{0}"
@@ -1136,6 +1208,12 @@ msgstr "每{0} {1}"
 
 msgid "Every {0} hours"
 msgstr "每 {0} 小时"
+
+msgid "Example"
+msgstr "示例"
+
+msgid "Example for Immich ID=2:"
+msgstr "Immich ID=2 的示例："
 
 msgid "Example: --consolidate-albums-names --preview-album-actions"
 msgstr "示例：--consolidate-albums-names --preview-album-actions"
@@ -1227,6 +1305,9 @@ msgstr "示例：SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, 
 msgid "Example: Spain"
 msgstr "示例：Spain"
 
+msgid "Examples"
+msgstr "示例"
+
 msgid "Exclude Files"
 msgstr "排除文件"
 
@@ -1280,6 +1361,12 @@ msgstr "导出配置"
 
 msgid "Extract ZIPs on upload"
 msgstr "上传时解压 ZIP"
+
+msgid "Extract ZIPs on upload off: ZIP files are kept as uploaded."
+msgstr "上传时解压 ZIP 关闭：ZIP 文件将按上传时的原样保留。"
+
+msgid "Extract ZIPs on upload on: ZIP files are extracted on the server and the ZIP file is removed."
+msgstr "上传时解压 ZIP 开启：ZIP 文件将在服务器上解压，并删除该 ZIP 文件。"
 
 msgid "Extracted ZIPs: {0} ({1} files) |"
 msgstr "已解压的 ZIP：{0}（{1} 个文件）|"
@@ -1415,6 +1502,9 @@ msgstr "要扫描的文件夹"
 
 msgid "Follow its live progress and log in Activity."
 msgstr "在“活动”中实时查看进度和日志。"
+
+msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: 3). Only used when '--try-small-albums-grouping' is enabled."
+msgstr "对于 Consolidate Albums Names，设置相册被视为小相册的最大资源数量（默认：3）。仅在启用 '--try-small-albums-grouping' 时使用。"
 
 msgid "For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: {0})."
 msgstr "对于“合并相册名称”，设置相册被视为小相册的最大资源数量（默认：{0}）。"
@@ -1575,6 +1665,9 @@ msgstr "每小时"
 msgid "How to migrate"
 msgstr "如何迁移"
 
+msgid "IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
+msgstr "Config.ini 中必须存在 IMMICH_USERNAME_2/IMMICH_PASSWORD_2 或 IMMICH_API_KEY_USER_2 条目。"
+
 msgid "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first."
 msgstr "重要：'move' 和 'remove' 会修改文件；如需先查看，请从 'list' 开始。"
 
@@ -1607,6 +1700,12 @@ msgstr "如果"
 
 msgid "If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too."
 msgstr "如果同时传入 '-AlbFolder, --albums-folders <ALBUMS_FOLDER>'，也会为这些文件夹创建相册。"
+
+msgid "If any ZIP file is found inside it, the ZIPs will be extracted first into '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input."
+msgstr "如果其中发现任何 ZIP 文件，将先把这些 ZIP 解压到 '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>'，并使用该文件夹作为输入。"
+
+msgid "If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input."
+msgstr "如果其中发现任何 Zip 文件，该 Zip 将被解压到文件夹 '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>'，并使用该文件夹作为输入。"
 
 msgid "If empty, the value from Settings › General arguments is used."
 msgstr "如果为空，则使用“设置 › 通用参数”中的值。"
@@ -1649,6 +1748,9 @@ msgstr "Immich Photos · PhotoMigrator"
 
 msgid "Immich Upload Timeout (seconds)"
 msgstr "Immich 上传超时（秒）"
+
+msgid "Immich upload read timeout in seconds for Upload All, Upload Albums, and Automatic Migration when Immich is the target (default: 900)."
+msgstr "当 Immich 为目标时，Upload All、Upload Albums 和 Automatic Migration 的 Immich 上传读取超时时间，单位为秒（默认：900）。"
 
 msgid "Immich upload read timeout in seconds for Upload All, Upload Albums, and Automatic Migration when Immich is the target (default: {0})."
 msgstr "当 Immich 为目标时，“上传全部”、“上传相册”和自动迁移的 Immich 上传读取超时（秒）（默认：{0}）。"
@@ -1697,6 +1799,12 @@ msgstr "管理员凭据无效或权限不足。"
 
 msgid "Invalid credentials"
 msgstr "凭据无效"
+
+msgid "It contains the Albums and No_Albums folders used by Local Photos Folder modules."
+msgstr "其中包含本地照片文件夹模块使用的 Albums 和 No_Albums 文件夹。"
+
+msgid "It opens Google's consent page and asks for the scopes needed to upload media and create albums."
+msgstr "它会打开 Google 的授权页面，并请求上传媒体和创建相册所需的权限范围。"
 
 msgid "Job linked to your session"
 msgstr "与你的会话关联的任务"
@@ -1749,6 +1857,9 @@ msgstr "字母、数字、点、连字符或下划线"
 msgid "Libraries & tools"
 msgstr "图库和工具"
 
+msgid "Links are only fixed when a valid target can be inferred from current files."
+msgstr "仅当能根据当前文件推断出有效目标时，才会修复链接。"
+
 msgid "List only, move the duplicates to a folder, or delete them."
 msgstr "仅列出、将重复项移动到文件夹，或删除它们。"
 
@@ -1796,6 +1907,9 @@ msgstr "管理图库"
 
 msgid "Maximum asset size eligible for Automatic Migration push retries, in MB."
 msgstr "可进行自动迁移推送重试的资源大小上限，单位 MB。"
+
+msgid "Maximum asset size eligible for Automatic Migration push retries, in MB. Use 0 for no size limit (default: 0). Retry count and delay settings still apply."
+msgstr "符合 Automatic Migration 推送重试条件的最大资源大小，单位为 MB。使用 0 表示无大小限制（默认：0）。重试次数和延迟设置仍然适用。"
 
 msgid "Maximum asset size eligible for Automatic Migration push retries, in MB. Use {0} for no size limit (default: {1}). Retry count and delay settings still apply."
 msgstr "可进行自动迁移推送重试的资源大小上限，单位 MB。使用 {0} 表示不限制大小（默认：{1}）。重试次数和延迟设置仍然适用。"
@@ -1959,6 +2073,9 @@ msgstr "未找到"
 msgid "Not configured"
 msgstr "未配置"
 
+msgid "Not recommended to skip."
+msgstr "不建议跳过。"
+
 msgid "Not set"
 msgstr "未设置"
 
@@ -1982,6 +2099,9 @@ msgstr "开启"
 
 msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
 msgstr "在受支持的云端目标上，多余的变体会合并到首选的保留相册中。当 API 支持删除相册（Immich、Synology、NextCloud）时，随后会删除多余的相册。Google Photos 会保留多余的变体，因为公共 API 无法删除相册。"
+
+msgid "On supported cloud targets, similar album families are consolidated into the preferred clean keeper name and their assets are merged into it."
+msgstr "在受支持的云端目标上，相似的相册系列会被合并为首选的规范名称，其资源也会合并到该相册中。"
 
 msgid "On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it."
 msgstr "在受支持的云端目标上，将使用首选的规范保留名称，并把多余变体中的资源合并到其中。"
@@ -2178,6 +2298,12 @@ msgstr "PhotoMigrator 管理"
 msgid "PhotoMigrator Login"
 msgstr "PhotoMigrator 登录"
 
+msgid "PhotoMigrator contains an embedded version of EXIF Tool, but if you want to use a different version, you can use this argument."
+msgstr "PhotoMigrator 内置了 ExifTool 的嵌入版本，但如果您想使用其他版本，可以使用此参数。"
+
+msgid "PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument."
+msgstr "PhotoMigrator 内置了 GPTH 的嵌入版本，但如果您想使用其他版本，可以使用此参数。"
+
 msgid "PhotoMigrator website"
 msgstr "PhotoMigrator 网站"
 
@@ -2207,6 +2333,9 @@ msgstr "端口"
 
 msgid "Port ({0}, {1} or {2})"
 msgstr "端口（{0}、{1} 或 {2}）"
+
+msgid "Possible values:"
+msgstr "可能的值："
 
 msgid "Prefer Canonical Album Names"
 msgstr "优先使用规范相册名称"
@@ -2487,6 +2616,9 @@ msgstr "必填"
 msgid "Required arguments:"
 msgstr "必需参数："
 
+msgid "Requires GOOGLE_PHOTOS_CLIENT_ID_<N> and GOOGLE_PHOTOS_CLIENT_SECRET_<N> of an OAuth client of type 'Desktop app'."
+msgstr "需要 'Desktop app' 类型 OAuth 客户端的 GOOGLE_PHOTOS_CLIENT_ID_<N> 和 GOOGLE_PHOTOS_CLIENT_SECRET_<N>。"
+
 msgid "Reset Password"
 msgstr "重置密码"
 
@@ -2700,6 +2832,12 @@ msgstr "选择目标文件夹"
 msgid "Select folder"
 msgstr "选择文件夹"
 
+msgid "Select the <SOURCE> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums)."
+msgstr "为 AUTOMATIC-MIGRATION 流程选择 <SOURCE>，以从 <SOURCE> 云服务拉取您的所有资源（包括相册），并将其推送到 <TARGET> 云服务（包括所有相册）。"
+
+msgid "Select the <TARGET> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums)."
+msgstr "为 AUTOMATIC-MIGRATION 流程选择 <TARGET>，以从 <SOURCE> 云服务拉取您的所有资源（包括相册），并将其推送到 <TARGET> 云服务（包括所有相册）。"
+
 msgid "Select the time zone used by PhotoMigrator to display timestamps and process date/time-based operations."
 msgstr "选择 PhotoMigrator 用于显示时间戳和处理基于日期/时间的操作的时区。"
 
@@ -2781,6 +2919,12 @@ msgstr "设置新密码并确认。"
 msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
 msgstr "为 {0} 设置临时密码？该用户将在所有浏览器上退出登录，并且必须在下次登录时选择新密码。"
 
+msgid "Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1)."
+msgstr "设置 Synology Photos、Immich Photos、NextCloud Photos 或 Google Photos 的账户 ID（默认：1）。"
+
+msgid "Set the client to use for the selected feature."
+msgstr "设置所选功能使用的客户端。"
+
 msgid "Set with"
 msgstr "设置方式："
 
@@ -2823,6 +2967,9 @@ msgstr "显示刷新令牌"
 msgid "Show password"
 msgstr "显示密码"
 
+msgid "Show the Tool name, version, and date, then exit."
+msgstr "显示工具名称、版本和日期，然后退出。"
+
 msgid "Show {0}"
 msgstr "显示 {0}"
 
@@ -2853,6 +3000,9 @@ msgstr "跳过移动相册"
 msgid "Skip moving albums to '<ALBUMS_FOLDER>'."
 msgstr "跳过将相册移动到 '<ALBUMS_FOLDER>'。"
 
+msgid "Skip post-process Google Takeout which includes:"
+msgstr "跳过 Google Takeout 的后处理，包括："
+
 msgid "Skip post-process Google Takeout which includes: {0}) Sync MP4 files associated to Live pictures with associated HEIC/JPG {1}) Repair conflicting Video XMP dates {2}) Separate Albums folders vs original assets {3}) Organize assets by year/month {4}) Auto rename album folders based on content dates {5}) Detect and remove duplicates {6}) Count albums {7}) Remove empty folders {8}) Clean final media library {9}) Show files without dates Not recommended to skip."
 msgstr "跳过 Google Takeout 后处理，其中包括：{0}) 将与实况照片关联的 MP4 文件与对应的 HEIC/JPG 同步 {1}) 修复冲突的视频 XMP 日期 {2}) 将相册文件夹与原始资源分离 {3}) 按年/月整理资源 {4}) 根据内容日期自动重命名相册文件夹 {5}) 检测并删除重复项 {6}) 统计相册数量 {7}) 删除空文件夹 {8}) 清理最终媒体库 {9}) 显示没有日期的文件。不建议跳过。"
 
@@ -2861,6 +3011,9 @@ msgstr "跳过 Google Takeout 后处理，其中包括：{0}) 将与实况照片
 
 msgid "Skip post-processing"
 msgstr "跳过后处理"
+
+msgid "Skip pre-process Google Takeout which includes:"
+msgstr "跳过 Google Takeout 的预处理，包括："
 
 msgid "Skip pre-process Google Takeout which includes: {0}) Clean Takeout folder {1}) Fix MP4/Live Picture associations {2}) Fix truncated filenames/extensions This is important for high accuracy. If you already pre-processed the same Takeout using '-gKeepTakeout,--google-keep-takeout-folder', you can skip it."
 msgstr "跳过 Google Takeout 预处理，其中包括：{0}) 清理 Takeout 文件夹 {1}) 修复 MP4/实况照片关联 {2}) 修复被截断的文件名/扩展名。这对于高准确度很重要。如果您已使用 '-gKeepTakeout,--google-keep-takeout-folder' 预处理过同一份 Takeout，则可以跳过。"
@@ -2946,6 +3099,9 @@ msgstr "指定包含所有资源的 Takeout 主图库文件夹名称。"
 msgid "Specify the Takeout master-library folder name containing all assets. Default: 'ALL_PHOTOS'."
 msgstr "指定包含所有资源的 Takeout 主图库文件夹名称。默认值：'ALL_PHOTOS'。"
 
+msgid "Specify the file that contains the Configuration to connect to the different Photo Cloud Services."
+msgstr "指定包含连接各个照片云服务所需配置的文件。"
+
 msgid "Specify the final date to filter assets in the different Photo Clients."
 msgstr "指定用于在不同照片客户端中筛选资源的结束日期。"
 
@@ -2982,6 +3138,9 @@ msgstr "指定整理后的本地文件夹输出的文件夹结构类型（默认
 msgid "Specify the initial date to filter assets in the different Photo Clients."
 msgstr "指定用于在不同照片客户端中筛选资源的起始日期。"
 
+msgid "Specify the input folder that you want to process."
+msgstr "指定要处理的输入文件夹。"
+
 msgid "Specify the log file format."
 msgstr "指定日志文件格式。"
 
@@ -3011,6 +3170,9 @@ msgstr "未提供 '-o/--output-folder' 时，指定整理后的本地文件夹�
 
 msgid "Specify the suffix for the output folder."
 msgstr "指定输出文件夹的后缀。"
+
+msgid "Specify the suffix for the output folder. Default: 'processed'"
+msgstr "指定输出文件夹的后缀。默认：'processed'"
 
 msgid "Specify the suffix for the output folder. Default: 'processed' The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
 msgstr "指定输出文件夹的后缀。默认值：'processed'。输出文件夹的名称为输入文件夹名称，后接此后缀和执行时间戳。"
@@ -3120,6 +3282,9 @@ msgstr "Synology Photos"
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
 
+msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
+msgstr "提示：如果 <TAKEOUT_FOLDER> 包含原始 zip 文件，它们无论如何都会被保留。"
+
 msgid "Table"
 msgstr "表"
 
@@ -3192,8 +3357,17 @@ msgstr "演示角色除 TimeZone 和 Theme 外，无法保存配置更改。"
 msgid "The demo role cannot {0} configuration directly."
 msgstr "演示角色无法直接{0}配置。"
 
+msgid "The output folder will have the same name as input folder followed by this suffix and the execution timestamp."
+msgstr "输出文件夹的名称与输入文件夹相同，后面跟此后缀和执行时间戳。"
+
 msgid "The password needs at least {0} characters."
 msgstr "密码至少需要 {0} 个字符。"
+
+msgid "The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'."
+msgstr "处理后的 Takeout 将保存到文件夹 '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'。"
+
+msgid "The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'."
+msgstr "处理后的导出内容将保存到文件夹 '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'。"
 
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "所选路径包含 '{0}'，这是 Google 保留的特殊文件夹名称。\\n\\n"
@@ -3216,8 +3390,17 @@ msgstr "PhotoMigrator 网页界面使用的主题。"
 msgid "There are no changed values in this row."
 msgstr "此行没有更改的值。"
 
+msgid "This argument is mandatory to run the Google Takeout Processor feature."
+msgstr "运行 Google Takeout Processor 功能必须提供此参数。"
+
 msgid "This argument only accepts one folder. Select exactly one."
 msgstr "此参数只接受一个文件夹。请恰好选择一个。"
+
+msgid "This argument only applies if both '--source' and '--target' arguments are given."
+msgstr "仅当同时提供 '--source' 和 '--target' 参数时，此参数才适用。"
+
+msgid "This can considerably increase output size, especially if you have many albums."
+msgstr "这可能会大幅增加输出大小，尤其是在您有很多相册时。"
 
 msgid "This converts dates from YYYY.MM.DD format to YYYY-MM-DD."
 msgstr "这会将日期从 YYYY.MM.DD 格式转换为 YYYY-MM-DD。"
@@ -3227,6 +3410,15 @@ msgstr "此功能会读取 Photo Details.csv 元数据，将日期还原到照�
 
 msgid "This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files,"
 msgstr "此功能会修复日期和元数据，根据附带的 JSON 文件重建相册归属，"
+
+msgid "This flag does not consolidate or remove existing similar albums by itself."
+msgstr "此标志本身不会合并或删除现有的相似相册。"
+
+msgid "This is important for high accuracy. If you already pre-processed the same Takeout using '-gKeepTakeout,--google-keep-takeout-folder', you can skip it."
+msgstr "这对高精度非常重要。如果您已使用 '-gKeepTakeout,--google-keep-takeout-folder' 预处理过同一个 Takeout，则可以跳过。"
+
+msgid "This modifies original folder names in place; create a backup if needed."
+msgstr "这会就地修改原始文件夹名称；如有需要，请先备份。"
 
 msgid "This module will consolidate equivalent album-name families already existing in Google Photos without uploading new assets."
 msgstr "此模块将合并 Google Photos 中已有的等效相册名称族，不会上传新资源。"
@@ -3375,6 +3567,9 @@ msgstr "此模块将根据内容日期就地重命名本地相册文件夹。磁
 msgid "This permanently deletes the selected row of {0}."
 msgstr "这将永久删除 {0} 中所选的行。"
 
+msgid "This value must exist in the Config.ini as suffix of USERNAME/PASSWORD or API_KEY_USER."
+msgstr "此值必须作为 USERNAME/PASSWORD 或 API_KEY_USER 的后缀存在于 Config.ini 中。"
+
 msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
 msgstr "这将删除 '{0}' 的账户申请，并通过电子邮件告知对方申请未获批准。是否继续？"
 
@@ -3501,6 +3696,9 @@ msgstr "上传本地 ZIP"
 msgid "Upload a folder"
 msgstr "上传文件夹"
 
+msgid "Upload a folder or a ZIP file from this computer to a folder on the server, so the other features can use it."
+msgstr "将文件夹或 ZIP 文件从此计算机上传到服务器上的文件夹，以便其他功能使用。"
+
 msgid "Upload a local folder or ZIP file to the server so the features can use it."
 msgstr "将本地文件夹或 ZIP 文件上传到服务器，以便各功能使用。"
 
@@ -3603,11 +3801,17 @@ msgstr "请使用管理员提供给您的密码。"
 msgid "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV."
 msgstr "在 '--find-duplicates' 之后使用，以应用您在已审核 CSV 中做出的手动决定。"
 
+msgid "Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD."
+msgstr "与 '--remove-albums' 一起使用；可接受的格式包括 YYYY、YYYY-MM 和 YYYY-MM-DD。"
+
 msgid "Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the"
 msgstr "用于账户通知（申请、启用、密码更改）以及任务完成邮件。留空的字段将使用"
 
 msgid "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty."
 msgstr "当在 OUTPUT_TAKEOUT_FOLDER 中移动/重命名文件夹后某些相册显示为空时，此功能很有用。"
+
+msgid "Useful to avoid duplicating disk usage for large local libraries."
+msgstr "有助于避免大型本地媒体库重复占用磁盘空间。"
 
 msgid "User"
 msgstr "用户"
@@ -3650,6 +3854,9 @@ msgstr "使用已配置的云端账户 ID。"
 
 msgid "Uses the configured cloud account ID. If omitted, account ID {0} is used."
 msgstr "使用已配置的云端账户 ID。如果省略，则使用账户 ID {0}。"
+
+msgid "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album')."
+msgstr "使用与 '--consolidate-similar-albums' 相同的相册系列逻辑（例如 'Album'、'Album_1'、'Album (2)'、'New_Album'、'New Album'）。"
 
 msgid "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album ({0})', 'New_Album', 'New Album')."
 msgstr "使用与 '--consolidate-similar-albums' 相同的相册族逻辑（例如 'Album'、'Album_1'、'Album ({0})'、'New_Album'、'New Album'）。"
@@ -3729,11 +3936,23 @@ msgstr "启用后，上传的 .zip 文件会在服务器上解压，并删除该
 msgid "When multiple folders are provided, order matters: files in the first folder have priority to be kept."
 msgstr "提供多个文件夹时，顺序很重要：第一个文件夹中的文件优先保留。"
 
+msgid "When the browser runs on another machine (Docker, NAS, SSH), paste the address of the last page in the terminal."
+msgstr "当浏览器运行在另一台机器上（Docker、NAS、SSH）时，请将最后一个页面的地址粘贴到终端中。"
+
+msgid "When the destination service supports album deletion (Immich, Synology, NextCloud), redundant variants are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
+msgstr "当目标服务支持删除相册（Immich、Synology、NextCloud）时，多余的变体随后会被删除。Google Photos 会保留多余的变体，因为公开 API 无法删除相册。"
+
 msgid "When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow."
 msgstr "当输入是没有年份文件夹的仅相册 Takeout 时，PhotoMigrator 会自动检测并将 GPTH 切换到相应的恢复流程。"
 
 msgid "When the task finishes, PhotoMigrator emails {0} with the result and the last lines of the log."
 msgstr "任务完成后，PhotoMigrator 会向 {0} 发送电子邮件，内含结果和日志的最后几行。"
+
+msgid "When uploading albums to a cloud service or running Automatic Migration, normalize new destination album names to the preferred clean keeper form."
+msgstr "向云服务上传相册或运行 Automatic Migration 时，将新的目标相册名称规范化为首选的规范形式。"
+
+msgid "When uploading albums to a cloud service or running Automatic Migration, reuse and consolidate similar existing destination albums instead of only exact matches."
+msgstr "向云服务上传相册或运行 Automatic Migration 时，复用并合并相似的现有目标相册，而不仅限于完全匹配。"
 
 msgid "When you run a feature, its progress and log appear here."
 msgstr "运行功能后，其进度和日志会显示在这里。"
@@ -3743,6 +3962,9 @@ msgstr "从哪里到哪里"
 
 msgid "Where to put the files on the server"
 msgstr "文件存放在服务器上的位置"
+
+msgid "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized"
+msgstr "启用此标志后，无害的变体（例如下划线与空格，以及末尾类似重复的数字后缀）会被规范化"
 
 msgid "Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction."
 msgstr "支持 Google Photos、Synology Photos、Immich Photos、NextCloud Photos 和本地文件夹，可任意方向迁移。"
@@ -3773,6 +3995,9 @@ msgstr "您不能删除自己的用户"
 
 msgid "You cannot delete your own user."
 msgstr "您不能删除自己的用户。"
+
+msgid "You need"
+msgstr "您需要"
 
 msgid "You will be asked to confirm before it runs."
 msgstr "运行前会要求您确认。"
@@ -3806,6 +4031,15 @@ msgstr "您的密码已被重置"
 
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "您的临时密码是 <b>{0}</b>。首次登录时，您需要设置自己的密码。"
+
+msgid "['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <INPUT_FOLDER>"
+msgstr "['synology', 'immich', 'nextcloud', 'google-photos']-[id] 或 <INPUT_FOLDER>"
+
+msgid "['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <OUTPUT_FOLDER>"
+msgstr "['synology', 'immich', 'nextcloud', 'google-photos']-[id] 或 <OUTPUT_FOLDER>"
+
+msgid "[id] = [1, 2, 3] select which account to use from the Config.ini file."
+msgstr "[id] = [1, 2, 3] 选择使用 Config.ini 文件中的哪个账户。"
 
 msgid "access_logs ({0})"
 msgstr "access_logs ({0})"
@@ -3870,8 +4104,14 @@ msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 msgid "on the backup volume"
 msgstr "在备份卷上"
 
+msgid "remove_duplicate and replace_duplicate are irreversible operations."
+msgstr "remove_duplicate 和 replace_duplicate 是不可逆的操作。"
+
 msgid "sessions ({0})"
 msgstr "sessions ({0})"
+
+msgid "show this help message and exit"
+msgstr "显示此帮助信息并退出"
 
 msgid "success"
 msgstr "成功"
@@ -3908,6 +4148,9 @@ msgstr "volumes 子路径（默认为用户名）"
 
 msgid "web_settings ({0})"
 msgstr "web_settings ({0})"
+
+msgid "when a new destination album has to be created (for example 'Huelva_1' -> 'Huelva', 'New_Album 1' -> 'New Album')."
+msgstr "当需要创建新的目标相册时（例如 'Huelva_1' -> 'Huelva'，'New_Album 1' -> 'New Album'）。"
 
 msgid "your PhotoMigrator account is now active. Sign in with the username <b>{0}</b> or your email address and {1}."
 msgstr "您的 PhotoMigrator 账户现已启用。请使用用户名 <b>{0}</b> 或您的电子邮件地址以及{1}登录。"

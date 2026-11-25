@@ -19,6 +19,11 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 
 <p align="center"> 
   <br/>
+  <a href="https://photomigrator.jtgcloud.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Visit_the_PhotoMigrator_website-photomigrator.jtgcloud.com-7c3aed?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=db2777" alt="Visit the PhotoMigrator website" height="40"/>
+  </a>
+  <br/>
+  <br/>
   <a href="https://discord.gg/wTJ62qh5UC" target="_blank">
     <img src="https://img.shields.io/discord/1391921771770286110.svg?label=Discord&logo=Discord&style=for-the-badge&logoColor=ffffff&labelColor=5865F2" alt="Discord"/>
   </a>
