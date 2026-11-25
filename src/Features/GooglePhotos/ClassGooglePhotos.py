@@ -20,6 +20,7 @@ from Core.GlobalVariables import (
     VIDEO_EXT,
 )
 from Features.BaseMediaClient import BaseMediaClient
+from Features.GooglePhotos.GooglePhotosAuthorize import SCOPE_APPEND_ONLY, missing_scopes, scope_help_text
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
 from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 
@@ -41,6 +42,7 @@ class ClassGooglePhotos(BaseMediaClient):
         self.client_secret = ""
         self.refresh_token = ""
         self.access_token = ""
+        self.granted_scopes = ""
         self._session_lock = threading.Lock()
 
         self.albums_root_name = FOLDERNAME_ALBUMS
@@ -120,6 +122,25 @@ class ClassGooglePhotos(BaseMediaClient):
         if not token:
             raise RuntimeError("Google OAuth token response does not include access_token.")
         self.access_token = token
+        # Google returns the scopes granted to the refresh token; keep them to explain permission errors early.
+        self.granted_scopes = str(data.get("scope", "") or "").strip()
+
+    def can_upload(self) -> bool:
+        """False when Google reported the token scopes and they do not allow adding media or creating albums."""
+        return not self.granted_scopes or SCOPE_APPEND_ONLY not in missing_scopes(self.granted_scopes)
+
+    def _scope_error_message(self, action: str = "Uploading to Google Photos") -> str:
+        return (
+            f"{action} needs the scope '{SCOPE_APPEND_ONLY}', but the refresh token of Google Photos account "
+            f"{self.account_id} was created without it, so Google answers 403 'Request had insufficient authentication scopes'. "
+            + scope_help_text(self.account_id)
+        )
+
+    def _raise_api_error(self, description: str, response) -> None:
+        body = response.text[:350]
+        if response.status_code == 403 and "insufficient authentication scopes" in response.text.lower():
+            raise RuntimeError(f"{description} failed (status=403). {self._scope_error_message()}")
+        raise RuntimeError(f"{description} failed (status={response.status_code}, body={body})")
 
     def login(self, config_file=CONFIGURATION_FILE, log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -138,6 +159,8 @@ class ClassGooglePhotos(BaseMediaClient):
             # full-library read calls fail with 403.
             LOGGER.info("Authentication Successfully with refresh token found in Config file. Access token properly set.")
             LOGGER.info(f"User ID: 'google-account-{self.account_id}' found.")
+            if not self.can_upload():
+                LOGGER.warning(f"{MSG_TAGS['WARNING']}{self._scope_error_message('Uploading media or creating albums')}")
             LOGGER.info("")
             LOGGER.info(f"{MSG_TAGS['INFO']}Logged in to Google Photos account {self.account_id}.")
             return True
@@ -178,10 +201,7 @@ class ClassGooglePhotos(BaseMediaClient):
         self._require_session()
         response = self.session.request(method=method, url=url, timeout=self.timeout_seconds, **kwargs)
         if response.status_code not in expected:
-            raise RuntimeError(
-                f"Google Photos API {method} failed for '{url}' "
-                f"(status={response.status_code}, body={response.text[:350]})"
-            )
+            self._raise_api_error(f"Google Photos API {method} for '{url}'", response)
         return response
 
     def _is_photo(self, filename: str, mime_type: str = "") -> bool:
@@ -315,7 +335,7 @@ class ClassGooglePhotos(BaseMediaClient):
         }
         response = requests.post(self.UPLOADS_URL, headers=headers, data=file_bytes, timeout=self.timeout_seconds)
         if response.status_code != 200:
-            raise RuntimeError(f"Google Photos upload token creation failed (status={response.status_code}, body={response.text[:350]})")
+            self._raise_api_error("Google Photos upload token creation", response)
         token = response.text.strip()
         if not token:
             raise RuntimeError("Google Photos uploads endpoint returned empty upload token.")

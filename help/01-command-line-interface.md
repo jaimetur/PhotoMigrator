@@ -509,6 +509,12 @@ If more than one optional arguments are detected, only the first one will be exe
                Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.
                Requires '--client'.
                Example: --client=immich --merge-duplicates-albums
+-gpAuth      ; --google-photos-authorize
+               Create the Google Photos refresh token of '--account-id' (default 1) and save it in Config.ini.
+               Requires GOOGLE_PHOTOS_CLIENT_ID_<N> and GOOGLE_PHOTOS_CLIENT_SECRET_<N> of an OAuth client of type 'Desktop app'.
+               It opens Google's consent page and asks for the scopes needed to upload media and create albums.
+               When the browser runs on another machine (Docker, NAS, SSH), paste the address of the last page in the terminal.
+               Example: --google-photos-authorize --account-id 2
 -OTP         ; --one-time-password
                Allow login into Synology Photos using 2FA with an OTP token.
                Example: --client=synology --download-all ./MyLibrary --one-time-password

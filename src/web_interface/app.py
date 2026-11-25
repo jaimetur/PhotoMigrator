@@ -327,6 +327,8 @@ GENERAL_OPTIONAL_DESTS = {
 
 WEB_HIDDEN_GENERAL_DESTS = {
     "configuration-file",
+    # Terminal-only: the OAuth flow needs a browser on the machine that runs PhotoMigrator, or a paste in its terminal.
+    "google-photos-authorize",
 }
 
 FEATURE_SCOPED_DESTS = {

@@ -65,6 +65,19 @@ def _build_cloud_client_obj(client_name: str):
 # -------------------------------------------------------------
 # Determine the Execution mode based on the provided arguments:
 # -------------------------------------------------------------
+def mode_google_photos_authorize():
+    """Run the Google Photos OAuth flow for '--account-id' and save the refresh token in the configuration file."""
+    import Core.GlobalVariables as GV
+    from Features.GooglePhotos.GooglePhotosAuthorize import authorize
+
+    config_file = str(ARGS.get('configuration-file') or GV.CONFIGURATION_FILE)
+    try:
+        authorize(config_file=config_file, account_id=int(ARGS.get('account-id') or 1), log=LOGGER.info)
+    except Exception as exc:
+        LOGGER.error(f"Google Photos authorization failed: {exc}")
+        sys.exit(1)
+
+
 def detect_and_run_execution_mode():
     """
     Detect the execution mode based on the parsed CLI arguments (ARGS) and dispatch to the corresponding handler.
@@ -79,8 +92,13 @@ def detect_and_run_execution_mode():
     Returns:
         None
     """
+    # GOOGLE PHOTOS AUTHORIZATION (creates GOOGLE_PHOTOS_REFRESH_TOKEN_<N> in Config.ini):
+    if ARGS.get('google-photos-authorize'):
+        EXECUTION_MODE = 'google-photos-authorize'
+        mode_google_photos_authorize()
+
     # AUTOMATIC-MIGRATION MODE:
-    if ARGS['source'] and ARGS['target']:
+    elif ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
 
         if LOG_LEVEL == VERBOSE_LEVEL_NUM:

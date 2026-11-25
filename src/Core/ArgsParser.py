@@ -614,6 +614,13 @@ def parse_arguments():
                              "Use '--preview-album-actions' to preview and confirm the detected album families before applying changes.\n"
                              "Example: --client=immich --consolidate-albums-names --preview-album-actions")
 
+    PARSER.add_argument("-gpAuth", "--google-photos-authorize", action="store_true", default=False,
+                        help="Create the Google Photos refresh token of '--account-id' (default 1) and save it in Config.ini.\n"
+                             "Requires GOOGLE_PHOTOS_CLIENT_ID_<N> and GOOGLE_PHOTOS_CLIENT_SECRET_<N> of an OAuth client of type 'Desktop app'.\n"
+                             "It opens Google's consent page and asks for the scopes needed to upload media and create albums.\n"
+                             "When the browser runs on another machine (Docker, NAS, SSH), paste the address of the last page in the terminal.\n"
+                             "Example: --google-photos-authorize --account-id 2")
+
     PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="",
                         help="Allow login into Synology Photos using 2FA with an OTP token.\n"
                              "Example: --client=synology --download-all ./MyLibrary --one-time-password")
