@@ -3666,6 +3666,12 @@ def _landing_page_html(request: Request | None = None) -> str | None:
         f'<script src="/lang/i18n.js?v={js_stamp}"></script>\n'
     )
     page = page.replace('<html lang="en">', f'<html lang="{lang}">', 1)
+    if lang != ui_i18n.DEFAULT:
+        # Screenshots of the Web Interface in the chosen language (tools/CaptureLandingMedia.py), when there are.
+        def localized(match: re.Match) -> str:
+            name = f"{match.group(1)}-{lang}.webp"
+            return f"/landing/media/{name}" if (LANDING_ROOT / "media" / name).is_file() else match.group(0)
+        page = re.sub(r"/landing/media/(web-[a-z0-9-]+?)\.webp", localized, page)
     return page.replace("</head>", head + "</head>", 1)
 
 

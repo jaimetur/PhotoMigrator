@@ -250,6 +250,8 @@ class TestCloudService(unittest.TestCase):
         page = self.client.get("/").text
         self.assertIn('<html lang="es">', page)
         self.assertIn("/api/i18n/es.js", page)
+        self.assertIn("/landing/media/web-home-es.webp", page)  # screenshots in the chosen language
+        self.assertNotIn("/landing/media/web-home.webp", page)
         catalog = self.client.get("/api/i18n/es.js").text
         self.assertIn("Read the documentation", catalog)
 
