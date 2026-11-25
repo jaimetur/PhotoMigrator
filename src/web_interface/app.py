@@ -25,7 +25,7 @@ from typing import Any, Deque, Dict, List, TextIO
 from zoneinfo import available_timezones
 
 from fastapi import Cookie, Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from html import escape as _html_escape
@@ -107,6 +107,10 @@ WEB_BACKUP_DEFAULT_INTERVAL_MINUTES = int(os.environ.get("PHOTOMIGRATOR_WEB_BACK
 WEB_BACKUP_DEFAULT_KEEP_LAST = int(os.environ.get("PHOTOMIGRATOR_WEB_BACKUP_KEEP_LAST", "14"))
 WEB_BACKUP_DEFAULT_MODE = os.environ.get("PHOTOMIGRATOR_WEB_BACKUP_MODE", "daily_2am").strip().lower()
 WEB_BACKUP_MODES = {"hourly", "daily_2am", "weekly_monday_2am"}
+# Recurrences of scheduled backups; the legacy schedule modes above map to them.
+WEB_BACKUP_RECURRENCES = ("hourly", "every_4_hours", "daily", "weekly", "monthly")
+WEB_BACKUP_DEFAULT_KEEP_DAYS = int(os.environ.get("PHOTOMIGRATOR_WEB_BACKUP_KEEP_DAYS", "30") or 30)
+WEB_BACKUP_FILE_PATTERN = re.compile(r"^web_interface_(?:(manual|prerestore)_)?\d{8}_\d{6}\.db$")
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
@@ -565,6 +569,15 @@ class BackupConfigRequest(BaseModel):
     schedule_mode: str = WEB_BACKUP_DEFAULT_MODE
     backup_dir: str = str(WEB_BACKUP_DEFAULT_DIR)
     keep_last: int = WEB_BACKUP_DEFAULT_KEEP_LAST
+    recurrence: str = ""
+    run_time: str = ""
+    weekday: int | None = None
+    monthday: int | None = None
+    keep_days: int | None = None
+
+
+class BackupFileRequest(BaseModel):
+    name: str = ""
 
 
 class JobData:
@@ -658,20 +671,65 @@ def _extract_client_ip(request: Request) -> str:
     return "unknown"
 
 
-def _record_access_log(user_id: int, username: str, ip_address: str) -> None:
+WEB_ACCESS_LOG_EVENTS = {
+    "sign_in": "Sign in",
+    "sign_in_failed": "Failed sign in",
+    "user_created": "User created",
+    "user_updated": "User updated",
+    "user_deleted": "User deleted",
+    "password_reset": "Password reset",
+    "email_settings": "Email settings",
+    "email_test": "Test email",
+    "backup": "Backup",
+    "backup_restored": "Backup restored",
+    "backup_deleted": "Backup deleted",
+    "database_edit": "Database edit",
+}
+
+
+def _record_access_log(user_id: int | None, username: str, ip_address: str, event: str = "sign_in", details: str = "") -> None:
+    """Store one entry of the access log: sign-ins and the changes made from the Administration Panel."""
     _ensure_access_logs_table()
     conn = _db_connect()
     try:
         conn.execute(
             """
-            INSERT INTO access_logs (user_id, username, ip_address, created_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO access_logs (user_id, username, ip_address, created_at, event, details)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (int(user_id), str(username or ""), str(ip_address or "unknown"), _utc_now_iso()),
+            (
+                int(user_id) if user_id is not None else None,
+                str(username or ""),
+                str(ip_address or "unknown"),
+                _utc_now_iso(),
+                str(event or "sign_in"),
+                str(details or "")[:500],
+            ),
         )
         conn.commit()
     finally:
         conn.close()
+
+
+def _record_admin_event(request: Request | None, current_user: Dict[str, Any] | None, event: str, details: str = "") -> None:
+    try:
+        _record_access_log(
+            int(current_user["id"]) if current_user and current_user.get("id") is not None else None,
+            str((current_user or {}).get("username") or "system"),
+            _extract_client_ip(request) if request is not None else "-",
+            event,
+            details,
+        )
+    except Exception as exc:  # Logging must never break the admin action itself.
+        WEB_LOGGER.warning("Unable to record the admin event %s: %s", event, exc)
+
+
+def _ensure_access_log_columns(cur: sqlite3.Cursor) -> None:
+    columns = {str(row["name"]) for row in cur.execute("PRAGMA table_info(access_logs)").fetchall()}
+    if "event" not in columns:
+        cur.execute("ALTER TABLE access_logs ADD COLUMN event TEXT NOT NULL DEFAULT 'sign_in'")
+    if "details" not in columns:
+        cur.execute("ALTER TABLE access_logs ADD COLUMN details TEXT NOT NULL DEFAULT ''")
 
 
 def _ensure_access_logs_table() -> None:
@@ -692,6 +750,7 @@ def _ensure_access_logs_table() -> None:
         )
         cur.execute("CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON access_logs(created_at DESC)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_access_logs_username ON access_logs(username)")
+        _ensure_access_log_columns(cur)
         conn.commit()
     finally:
         conn.close()
@@ -1257,6 +1316,21 @@ def _init_web_db(template_schema: List[Dict[str, Any]]) -> None:
         if "schedule_mode" not in backup_cols:
             cur.execute("ALTER TABLE backup_schedules ADD COLUMN schedule_mode TEXT NOT NULL DEFAULT 'daily_2am'")
             conn.commit()
+        for column_name, column_sql in (
+            ("recurrence", "TEXT NOT NULL DEFAULT ''"),
+            ("run_time", "TEXT NOT NULL DEFAULT '02:00'"),
+            ("weekday", "INTEGER NOT NULL DEFAULT 0"),
+            ("monthday", "INTEGER NOT NULL DEFAULT 1"),
+            ("keep_days", "INTEGER NOT NULL DEFAULT 0"),
+        ):
+            if column_name not in backup_cols:
+                cur.execute(f"ALTER TABLE backup_schedules ADD COLUMN {column_name} {column_sql}")
+        conn.commit()
+        _ensure_access_log_columns(cur)
+        session_cols = {str(row["name"]) for row in cur.execute("PRAGMA table_info(sessions)").fetchall()}
+        if "last_seen_at" not in session_cols:
+            cur.execute("ALTER TABLE sessions ADD COLUMN last_seen_at TEXT NOT NULL DEFAULT ''")
+        conn.commit()
         # Account emails (login, notifications) and account requests from the login page.
         user_cols = {str(row["name"]) for row in cur.execute("PRAGMA table_info(users)").fetchall()}
         for column_name in ("email", "request_note", "requested_at", "lang"):
@@ -1669,6 +1743,23 @@ def _send_password_changed_email(user: Dict[str, Any], base_url: str, by_admin: 
     )
 
 
+def _send_password_reset_email(user: Dict[str, Any], base_url: str, temporary_password: str) -> None:
+    username = _html_escape(str(user.get("username") or ""))
+    mailer.send_later(
+        [str(user.get("email") or "")],
+        "Your password was reset",
+        mailer.page(
+            "Your password was reset",
+            [
+                _email_greeting(user),
+                f"an administrator reset the password of your PhotoMigrator account <b>{username}</b>.",
+                f"Your temporary password is <b>{_html_escape(temporary_password)}</b>. You will choose your own password the first time you sign in.",
+            ],
+            link=("Sign in to PhotoMigrator", f"{base_url}/login"),
+        ),
+    )
+
+
 def _is_login_hint_account_available(
     username: str,
     password: str,
@@ -1733,6 +1824,17 @@ def _user_from_session_token(token: str | None) -> Dict[str, Any] | None:
             """,
             (token_hash, now),
         ).fetchone()
+        if row:
+            # Remember when the session was last used (at most once a minute) to show who is online.
+            seen_before = datetime.fromtimestamp(time.time() - 60, timezone.utc).isoformat()
+            try:
+                conn.execute(
+                    "UPDATE sessions SET last_seen_at = ? WHERE token_hash = ? AND (last_seen_at = '' OR last_seen_at < ?)",
+                    (now, token_hash, seen_before),
+                )
+                conn.commit()
+            except sqlite3.Error:
+                pass
         return dict(row) if row else None
     finally:
         conn.close()
@@ -2456,28 +2558,132 @@ def _read_backup_schedule() -> Dict[str, Any]:
         payload["interval_minutes"] = max(1, int(payload.get("interval_minutes") or WEB_BACKUP_DEFAULT_INTERVAL_MINUTES))
         payload["keep_last"] = max(1, int(payload.get("keep_last") or WEB_BACKUP_DEFAULT_KEEP_LAST))
         payload["backup_dir"] = str(payload.get("backup_dir") or str(WEB_BACKUP_DEFAULT_DIR)).strip() or str(WEB_BACKUP_DEFAULT_DIR)
+        recurrence = str(payload.get("recurrence") or "").strip().lower()
+        if recurrence not in WEB_BACKUP_RECURRENCES:
+            recurrence = {"hourly": "hourly", "weekly_monday_2am": "weekly"}.get(payload["schedule_mode"], "daily")
+        payload["recurrence"] = recurrence
+        payload["run_time"] = _normalize_backup_time(payload.get("run_time"))
+        payload["weekday"] = min(6, max(0, int(payload.get("weekday") or 0)))
+        payload["monthday"] = min(28, max(1, int(payload.get("monthday") or 1)))
+        payload["keep_days"] = max(1, int(payload.get("keep_days") or WEB_BACKUP_DEFAULT_KEEP_DAYS))
         return payload
     finally:
         conn.close()
 
 
+def _normalize_backup_time(value: Any) -> str:
+    match = re.fullmatch(r"(\d{1,2}):(\d{2})", str(value or "").strip())
+    if not match or int(match.group(1)) > 23 or int(match.group(2)) > 59:
+        return "02:00"
+    return f"{int(match.group(1)):02d}:{int(match.group(2)):02d}"
+
+
+def _compute_next_scheduled_backup(cfg: Dict[str, Any], base_dt: datetime | None = None) -> datetime:
+    """Next run of a schedule with recurrence, run_time (HH:MM), weekday (0 = Monday) and monthday."""
+    now_local = base_dt if base_dt is not None else datetime.now().astimezone()
+    recurrence = str(cfg.get("recurrence") or "daily")
+    hour, minute = (int(part) for part in _normalize_backup_time(cfg.get("run_time")).split(":"))
+    if recurrence == "hourly":
+        candidate = now_local.replace(minute=minute, second=0, microsecond=0)
+        return candidate if candidate > now_local else candidate + timedelta(hours=1)
+    if recurrence == "every_4_hours":
+        candidate = now_local.replace(minute=minute, second=0, microsecond=0)
+        candidate = candidate.replace(hour=(candidate.hour // 4) * 4 + hour % 4)
+        while candidate <= now_local:
+            candidate += timedelta(hours=4)
+        return candidate
+    candidate = now_local.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if recurrence == "weekly":
+        candidate += timedelta(days=(int(cfg.get("weekday") or 0) - candidate.weekday()) % 7)
+        return candidate if candidate > now_local else candidate + timedelta(days=7)
+    if recurrence == "monthly":
+        day = min(28, max(1, int(cfg.get("monthday") or 1)))
+        candidate = candidate.replace(day=day)
+        if candidate <= now_local:
+            candidate = (candidate.replace(day=1) + timedelta(days=32)).replace(day=day)
+        return candidate
+    return candidate if candidate > now_local else candidate + timedelta(days=1)
+
+
+def _backup_file_origin(name: str) -> str:
+    match = WEB_BACKUP_FILE_PATTERN.match(name)
+    return (match.group(1) or "scheduled") if match else ""
+
+
+def _list_backup_files(backup_dir: Path) -> List[Dict[str, Any]]:
+    if not backup_dir.is_dir():
+        return []
+    files = []
+    for path in backup_dir.glob("web_interface_*.db"):
+        origin = _backup_file_origin(path.name)
+        if not origin or not path.is_file():
+            continue
+        stat_result = path.stat()
+        files.append({
+            "name": path.name,
+            "size": int(stat_result.st_size),
+            "modified": datetime.fromtimestamp(stat_result.st_mtime, timezone.utc).isoformat(),
+            "origin": origin,
+        })
+    return sorted(files, key=lambda item: item["modified"], reverse=True)
+
+
+def _prune_scheduled_backups(backup_dir: Path, keep_days: int) -> None:
+    """Delete scheduled backups older than keep_days, always keeping the newest one. Manual backups are kept."""
+    scheduled = [item for item in _list_backup_files(backup_dir) if item["origin"] == "scheduled"]
+    cutoff = datetime.fromtimestamp(time.time() - max(1, keep_days) * 86400, timezone.utc).isoformat()
+    for item in scheduled[1:]:
+        if item["modified"] < cutoff:
+            try:
+                (backup_dir / item["name"]).unlink()
+            except OSError:
+                pass
+
+
+def _resolve_backup_file(name: str) -> Path:
+    name = str(name or "").strip()
+    if not WEB_BACKUP_FILE_PATTERN.match(name):
+        raise HTTPException(status_code=400, detail="Unknown backup file.")
+    cfg = _read_backup_schedule()
+    path = Path(str(cfg.get("backup_dir") or str(WEB_BACKUP_DEFAULT_DIR))).expanduser() / name
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Backup file not found.")
+    return path
+
+
 def _save_backup_schedule(config: BackupConfigRequest) -> Dict[str, Any]:
     schedule_mode = _normalize_backup_mode(config.schedule_mode)
-    interval = (
-        60 if schedule_mode == "hourly"
-        else 24 * 60 if schedule_mode == "daily_2am"
-        else 7 * 24 * 60
-    )
+    recurrence = str(config.recurrence or "").strip().lower()
+    if not recurrence:
+        recurrence = {"hourly": "hourly", "weekly_monday_2am": "weekly"}.get(schedule_mode, "daily")
+    if recurrence not in WEB_BACKUP_RECURRENCES:
+        raise HTTPException(status_code=400, detail="Recurrence must be one of: " + ", ".join(WEB_BACKUP_RECURRENCES) + ".")
+    if config.run_time and _normalize_backup_time(config.run_time) != str(config.run_time).strip().zfill(5):
+        raise HTTPException(status_code=400, detail="The execution time must be HH:MM (00:00 to 23:59).")
+    weekday = 0 if config.weekday is None else int(config.weekday)
+    monthday = 1 if config.monthday is None else int(config.monthday)
+    if not 0 <= weekday <= 6:
+        raise HTTPException(status_code=400, detail="The day of the week must be between 0 (Monday) and 6 (Sunday).")
+    if not 1 <= monthday <= 28:
+        raise HTTPException(status_code=400, detail="The day of the month must be between 1 and 28.")
+    keep_days = WEB_BACKUP_DEFAULT_KEEP_DAYS if config.keep_days is None else int(config.keep_days)
+    if not 1 <= keep_days <= 3650:
+        raise HTTPException(status_code=400, detail="Days to keep must be between 1 and 3650.")
+    run_time = _normalize_backup_time(config.run_time or ("00:00" if recurrence == "hourly" else "02:00"))
+    interval = {"hourly": 60, "every_4_hours": 240, "daily": 1440, "weekly": 7 * 1440, "monthly": 30 * 1440}[recurrence]
+    legacy_mode = {"hourly": "hourly", "every_4_hours": "hourly", "weekly": "weekly_monday_2am"}.get(recurrence, "daily_2am")
     keep_last = max(1, int(config.keep_last or WEB_BACKUP_DEFAULT_KEEP_LAST))
     backup_dir = str(config.backup_dir or str(WEB_BACKUP_DEFAULT_DIR)).strip() or str(WEB_BACKUP_DEFAULT_DIR)
     now = _utc_now_iso()
-    next_run = _compute_next_backup_run(schedule_mode).isoformat() if config.enabled else None
+    schedule = {"recurrence": recurrence, "run_time": run_time, "weekday": weekday, "monthday": monthday}
+    next_run = _compute_next_scheduled_backup(schedule).isoformat() if config.enabled else None
     conn = _db_connect()
     try:
         conn.execute(
             """
-            INSERT INTO backup_schedules (id, enabled, schedule_mode, interval_minutes, backup_dir, keep_last, next_run_at, updated_at)
-            VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO backup_schedules (id, enabled, schedule_mode, interval_minutes, backup_dir, keep_last, next_run_at, updated_at,
+                                          recurrence, run_time, weekday, monthday, keep_days)
+            VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 enabled = excluded.enabled,
                 schedule_mode = excluded.schedule_mode,
@@ -2485,16 +2691,26 @@ def _save_backup_schedule(config: BackupConfigRequest) -> Dict[str, Any]:
                 backup_dir = excluded.backup_dir,
                 keep_last = excluded.keep_last,
                 next_run_at = excluded.next_run_at,
-                updated_at = excluded.updated_at
+                updated_at = excluded.updated_at,
+                recurrence = excluded.recurrence,
+                run_time = excluded.run_time,
+                weekday = excluded.weekday,
+                monthday = excluded.monthday,
+                keep_days = excluded.keep_days
             """,
             (
                 1 if config.enabled else 0,
-                schedule_mode,
+                legacy_mode,
                 interval,
                 backup_dir,
                 keep_last,
                 next_run,
                 now,
+                recurrence,
+                run_time,
+                weekday,
+                monthday,
+                keep_days,
             ),
         )
         conn.commit()
@@ -2509,18 +2725,14 @@ def _run_backup_now(manual: bool = False) -> Dict[str, Any]:
         backup_dir = Path(str(cfg.get("backup_dir") or str(WEB_BACKUP_DEFAULT_DIR))).expanduser()
         backup_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_file = backup_dir / f"web_interface_{timestamp}.db"
+        prefix = "web_interface_manual_" if manual else "web_interface_"
+        backup_file = backup_dir / f"{prefix}{timestamp}.db"
         status = "success"
         error = ""
         try:
-            shutil.copy2(str(WEB_DB_PATH), str(backup_file))
-            keep_last = max(1, int(cfg.get("keep_last") or WEB_BACKUP_DEFAULT_KEEP_LAST))
-            files = sorted(backup_dir.glob("web_interface_*.db"), key=lambda p: p.stat().st_mtime, reverse=True)
-            for stale in files[keep_last:]:
-                try:
-                    stale.unlink()
-                except Exception:
-                    pass
+            _copy_sqlite_database(WEB_DB_PATH, backup_file)
+            if not manual:
+                _prune_scheduled_backups(backup_dir, int(cfg.get("keep_days") or WEB_BACKUP_DEFAULT_KEEP_DAYS))
         except Exception as exc:
             status = "failed"
             error = str(exc)
@@ -2528,7 +2740,7 @@ def _run_backup_now(manual: bool = False) -> Dict[str, Any]:
         now_iso = _utc_now_iso()
         next_run_at = None
         if bool(cfg.get("enabled")):
-            next_run_at = _compute_next_backup_run(str(cfg.get("schedule_mode") or WEB_BACKUP_DEFAULT_MODE)).isoformat()
+            next_run_at = _compute_next_scheduled_backup(cfg).isoformat()
         conn = _db_connect()
         try:
             conn.execute(
@@ -2550,6 +2762,39 @@ def _run_backup_now(manual: bool = False) -> Dict[str, Any]:
         }
 
 
+def _copy_sqlite_database(source: Path, target: Path) -> None:
+    """Consistent copy of a SQLite database, even while it is being written."""
+    src = sqlite3.connect(str(source))
+    try:
+        dst = sqlite3.connect(str(target))
+        try:
+            src.backup(dst)
+        finally:
+            dst.close()
+    finally:
+        src.close()
+
+
+def _restore_backup_file(path: Path) -> Dict[str, Any]:
+    """Replace the web database with a backup, after saving the current one as a pre-restore backup."""
+    with BACKUP_LOCK:
+        try:
+            check = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+            try:
+                tables = {str(row[0]) for row in check.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()}
+            finally:
+                check.close()
+        except sqlite3.DatabaseError as exc:
+            raise HTTPException(status_code=400, detail=f"The backup file is not a valid database: {exc}")
+        if "users" not in tables:
+            raise HTTPException(status_code=400, detail="The backup file is not a PhotoMigrator Web Interface database.")
+        safety = path.parent / f"web_interface_prerestore_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+        _copy_sqlite_database(WEB_DB_PATH, safety)
+        _copy_sqlite_database(path, WEB_DB_PATH)
+    _init_web_db(CONFIG_FORM_SCHEMA)
+    return {"restored": path.name, "safety_backup": safety.name}
+
+
 def _backup_scheduler_loop() -> None:
     while not BACKUP_THREAD_STOP.is_set():
         try:
@@ -2565,7 +2810,8 @@ def _backup_scheduler_loop() -> None:
                     except Exception:
                         due = True
                 if due:
-                    _run_backup_now(manual=False)
+                    result = _run_backup_now(manual=False)
+                    _record_admin_event(None, None, "backup", f"Scheduled · {Path(result['backup_file']).name} · {result['status']}")
         except Exception:
             pass
         BACKUP_THREAD_STOP.wait(30)
@@ -4049,24 +4295,6 @@ def _normalize_backup_mode(mode: str | None) -> str:
     return WEB_BACKUP_DEFAULT_MODE if WEB_BACKUP_DEFAULT_MODE in WEB_BACKUP_MODES else "daily_2am"
 
 
-def _compute_next_backup_run(schedule_mode: str, base_dt: datetime | None = None) -> datetime:
-    now_local = base_dt if base_dt is not None else datetime.now().astimezone()
-    mode = _normalize_backup_mode(schedule_mode)
-    if mode == "hourly":
-        return (now_local.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
-    if mode == "weekly_monday_2am":
-        candidate = now_local.replace(hour=2, minute=0, second=0, microsecond=0)
-        days_ahead = (0 - candidate.weekday()) % 7
-        if days_ahead == 0 and candidate <= now_local:
-            days_ahead = 7
-        return candidate + timedelta(days=days_ahead)
-    # daily_2am
-    candidate = now_local.replace(hour=2, minute=0, second=0, microsecond=0)
-    if candidate <= now_local:
-        candidate += timedelta(days=1)
-    return candidate
-
-
 def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
     job = JOBS[job_id]
 
@@ -4248,6 +4476,14 @@ def api_login(payload: LoginRequest, response: Response, request: Request) -> Di
     password = str(payload.password or "")
     user = _fetch_user_by_login(username)
     if not user or not bool(user.get("is_active")) or not _pbkdf2_verify_password(password, str(user.get("password_hash") or "")):
+        if username:
+            reason = "Account waiting for approval" if user and _is_pending_account_request(user) else (
+                "Account disabled" if user and not bool(user.get("is_active")) else "Wrong username or password"
+            )
+            try:
+                _record_access_log(int(user["id"]) if user else None, username[:64], _extract_client_ip(request), "sign_in_failed", reason)
+            except Exception:
+                pass
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = _create_session_for_user(int(user["id"]))
     _record_access_log(int(user["id"]), str(user.get("username") or username), _extract_client_ip(request))
@@ -5361,14 +5597,71 @@ def admin_list_users(current_user: Dict[str, Any] = Depends(_require_admin)) -> 
         ).fetchall()
     finally:
         conn.close()
+    last_logins, online_ids = _user_sign_in_activity()
     users = []
     for row in rows:
         user = dict(row)
         user["pending_request"] = _is_pending_account_request(user)
         user["is_active"] = bool(user.get("is_active"))
         user["must_change_password"] = bool(user.get("must_change_password"))
+        user["last_login_at"] = last_logins.get(int(user["id"]), "")
+        user["online"] = int(user["id"]) in online_ids
+        user["is_current_user"] = int(user["id"]) == int(current_user["id"])
         users.append(user)
-    return {"users": users, "mail_configured": mailer.is_configured()}
+    return {"users": users, "mail_configured": mailer.is_configured(), "current_user_id": int(current_user["id"])}
+
+
+WEB_ONLINE_WINDOW_SECONDS = 5 * 60
+
+
+def _user_sign_in_activity() -> tuple[Dict[int, str], set[int]]:
+    """Last successful sign-in of every user and the users seen in the last minutes."""
+    _ensure_access_logs_table()
+    online_since = datetime.fromtimestamp(time.time() - WEB_ONLINE_WINDOW_SECONDS, timezone.utc).isoformat()
+    now = _utc_now_iso()
+    conn = _db_connect()
+    try:
+        last_rows = conn.execute(
+            "SELECT user_id, MAX(created_at) AS last_login FROM access_logs "
+            "WHERE user_id IS NOT NULL AND event = 'sign_in' GROUP BY user_id"
+        ).fetchall()
+        online_rows = conn.execute(
+            "SELECT DISTINCT user_id FROM sessions WHERE expires_at > ? AND last_seen_at >= ?",
+            (now, online_since),
+        ).fetchall()
+    finally:
+        conn.close()
+    last_logins = {int(row["user_id"]): str(row["last_login"] or "") for row in last_rows}
+    return last_logins, {int(row["user_id"]) for row in online_rows}
+
+
+def _end_user_sessions(user_id: int) -> None:
+    conn = _db_connect()
+    try:
+        conn.execute("DELETE FROM sessions WHERE user_id = ?", (int(user_id),))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _describe_user_changes(target: Dict[str, Any], payload: "AdminUserUpdateRequest") -> str:
+    changes: List[str] = []
+    labels = (
+        ("email", "email"), ("role", "role"), ("is_active", "active"), ("must_change_password", "must change password"),
+        ("data_subpath", "data folder"), ("volume1_subpath", "volumes folder"),
+    )
+    for field, label in labels:
+        value = getattr(payload, field)
+        if value is None:
+            continue
+        before = target.get(field)
+        if field in ("is_active", "must_change_password"):
+            before, value = ("yes" if before else "no"), ("yes" if value else "no")
+        if str(before or "") != str(value or ""):
+            changes.append(f"{label} {before or '-'} → {value or '-'}")
+    if payload.password is not None:
+        changes.append("password set")
+    return f"{target.get('username')} · " + (", ".join(changes) if changes else "no changes")
 
 
 @app.post("/api/admin/users")
@@ -5411,6 +5704,7 @@ def admin_create_user(payload: AdminUserCreateRequest, request: Request, current
         temporary_password = str(payload.password or "") if payload.must_change_password else ""
         emailed = mailer.is_configured()
         _send_account_created_email(created_user, current_user, _public_base_url(request), temporary_password)
+        _record_admin_event(request, current_user, "user_created", f"{created_user.get('username')} · role {created_user.get('role')}")
     return {"created": True, "user_id": user_id, "emailed": emailed}
 
 
@@ -5487,6 +5781,12 @@ def admin_update_user(
         conn.commit()
     finally:
         conn.close()
+    if (payload.password is not None or deactivated) and int(user_id) != int(current_user["id"]):
+        # A new password or a disabled account signs the user out on every browser.
+        _end_user_sessions(int(user_id))
+    change_summary = _describe_user_changes(target, payload)
+    if not change_summary.endswith("no changes"):
+        _record_admin_event(request, current_user, "user_updated", change_summary)
     updated = _fetch_user_by_id(user_id)
     if updated:
         _ensure_user_roots_exist(updated)
@@ -5501,7 +5801,7 @@ def admin_update_user(
 
 
 @app.delete("/api/admin/users/{user_id}")
-def admin_delete_user(user_id: int, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+def admin_delete_user(user_id: int, request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
     if int(current_user["id"]) == int(user_id):
         raise HTTPException(status_code=400, detail="You cannot delete your own user.")
     conn = _db_connect()
@@ -5526,7 +5826,72 @@ def admin_delete_user(user_id: int, current_user: Dict[str, Any] = Depends(_requ
     if _is_pending_account_request(deleted_user):
         # Deleting a requested account rejects the request.
         _send_account_request_rejected_email(deleted_user, current_user)
+        _record_admin_event(request, current_user, "user_deleted", f"{deleted_user.get('username')} · access request rejected")
+    else:
+        _record_admin_event(request, current_user, "user_deleted", str(deleted_user.get("username") or ""))
     return {"deleted": True}
+
+
+class AdminUsersBulkRequest(BaseModel):
+    user_ids: List[int] = Field(default_factory=list)
+    action: str = ""
+    value: str = ""
+
+
+@app.post("/api/admin/users/bulk")
+def admin_bulk_users(payload: AdminUsersBulkRequest, request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+    action = str(payload.action or "").strip().lower()
+    if action not in {"activate", "deactivate", "role", "delete"}:
+        raise HTTPException(status_code=400, detail="Action must be one of: activate, deactivate, role, delete.")
+    user_ids = list(dict.fromkeys(int(user_id) for user_id in payload.user_ids))
+    if not user_ids:
+        raise HTTPException(status_code=400, detail="Select at least one user.")
+    updated: List[int] = []
+    skipped: List[Dict[str, Any]] = []
+    for user_id in user_ids:
+        target = _fetch_user_by_id(user_id)
+        if not target:
+            skipped.append({"id": user_id, "username": "", "reason": "User not found."})
+            continue
+        try:
+            if action == "delete":
+                admin_delete_user(user_id, request, current_user)
+            elif action == "role":
+                admin_update_user(user_id, AdminUserUpdateRequest(role=payload.value), request, current_user)
+            else:
+                if action == "deactivate" and int(user_id) == int(current_user["id"]):
+                    raise HTTPException(status_code=400, detail="You cannot deactivate your own account.")
+                admin_update_user(user_id, AdminUserUpdateRequest(is_active=(action == "activate")), request, current_user)
+            updated.append(user_id)
+        except HTTPException as exc:
+            skipped.append({"id": user_id, "username": str(target.get("username") or ""), "reason": str(exc.detail)})
+    return {"updated": updated, "skipped": skipped}
+
+
+@app.post("/api/admin/users/{user_id}/reset-password")
+def admin_reset_user_password(user_id: int, request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+    """Set a random temporary password that must be changed at the next sign-in, and email it when possible."""
+    target = _fetch_user_by_id(user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found.")
+    temporary_password = secrets.token_urlsafe(9)
+    conn = _db_connect()
+    try:
+        conn.execute(
+            "UPDATE users SET password_hash = ?, must_change_password = 1, updated_at = ? WHERE id = ?",
+            (_pbkdf2_hash_password(temporary_password), _utc_now_iso(), int(user_id)),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    if int(user_id) != int(current_user["id"]):
+        _end_user_sessions(int(user_id))
+    email = str(target.get("email") or "").strip()
+    emailed = bool(email) and mailer.is_configured()
+    if emailed:
+        _send_password_reset_email(target, _public_base_url(request), temporary_password)
+    _record_admin_event(request, current_user, "password_reset", f"{target.get('username')} · " + ("emailed" if emailed else "shown to the admin"))
+    return {"reset": True, "emailed": emailed, "temporary_password": "" if emailed else temporary_password}
 
 
 @app.get("/api/admin/mail")
@@ -5538,7 +5903,7 @@ def admin_get_mail_settings(current_user: Dict[str, Any] = Depends(_require_admi
 
 
 @app.put("/api/admin/mail")
-def admin_save_mail_settings(payload: MailSettingsRequest, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+def admin_save_mail_settings(payload: MailSettingsRequest, request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
     security = str(payload.security or "ssl").strip().lower()
     if security not in mailer.SECURITY_CHOICES:
         raise HTTPException(status_code=400, detail="Security must be one of: ssl, starttls, none.")
@@ -5566,6 +5931,8 @@ def admin_save_mail_settings(payload: MailSettingsRequest, current_user: Dict[st
             "password_encrypted": password_encrypted,
         },
     )
+    password_note = "password changed" if payload.password else ("password removed" if payload.clear_password else "password kept")
+    _record_admin_event(request, current_user, "email_settings", f"server {str(payload.host or '').strip() or '-'} · {password_note}")
     return admin_get_mail_settings(current_user)
 
 
@@ -5589,7 +5956,9 @@ def admin_send_test_mail(payload: MailTestRequest, request: Request, current_use
             ),
         )
     except RuntimeError as exc:
+        _record_admin_event(request, current_user, "email_test", f"to {to} · failed: {exc}")
         raise HTTPException(status_code=502, detail=str(exc))
+    _record_admin_event(request, current_user, "email_test", f"to {to} · sent")
     return {"sent": True, "to": to}
 
 
@@ -5612,36 +5981,50 @@ def admin_db_tables(current_user: Dict[str, Any] = Depends(_require_admin)) -> D
 def admin_access_logs(
     limit: int = Query(200, ge=1, le=2000),
     username: str = Query("", max_length=256),
+    event: str = Query("", max_length=64),
+    days: int = Query(0, ge=0, le=3650),
     current_user: Dict[str, Any] = Depends(_require_admin),
 ) -> Dict[str, Any]:
+    """Sign-ins and Administration Panel changes, newest first, filtered by user, event and age in days (0 = all)."""
     _ensure_access_logs_table()
     username_filter = str(username or "").strip()
+    event_filter = str(event or "").strip()
+    clauses: List[str] = []
+    params: List[Any] = []
+    if username_filter:
+        clauses.append("LOWER(TRIM(username)) = LOWER(TRIM(?))")
+        params.append(username_filter)
+    if event_filter:
+        clauses.append("event = ?")
+        params.append(event_filter)
+    if days:
+        clauses.append("created_at >= ?")
+        params.append(datetime.fromtimestamp(time.time() - days * 86400, timezone.utc).isoformat())
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
     conn = _db_connect()
     try:
-        if username_filter:
-            rows = conn.execute(
-                """
-                SELECT id, user_id, username, ip_address, created_at
-                FROM access_logs
-                WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))
-                ORDER BY created_at DESC
-                LIMIT ?
-                """,
-                (username_filter, int(limit)),
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                """
-                SELECT id, user_id, username, ip_address, created_at
-                FROM access_logs
-                ORDER BY created_at DESC
-                LIMIT ?
-                """,
-                (int(limit),),
-            ).fetchall()
+        rows = conn.execute(
+            f"SELECT id, user_id, username, ip_address, created_at, event, details FROM access_logs{where} ORDER BY created_at DESC, id DESC LIMIT ?",
+            (*params, int(limit)),
+        ).fetchall()
+        total = int(conn.execute(f"SELECT COUNT(*) AS count FROM access_logs{where}", params).fetchone()["count"])
+        usernames = [str(row["username"]) for row in conn.execute("SELECT DISTINCT username FROM access_logs ORDER BY username COLLATE NOCASE").fetchall()]
     finally:
         conn.close()
-    return {"logs": [dict(row) for row in rows], "limit": int(limit), "username": username_filter}
+    logs = []
+    for row in rows:
+        item = dict(row)
+        item["event"] = str(item.get("event") or "sign_in")
+        item["event_label"] = WEB_ACCESS_LOG_EVENTS.get(item["event"], humanize_event(item["event"]))
+        logs.append(item)
+    return {
+        "logs": logs, "total": total, "limit": int(limit), "username": username_filter, "event": event_filter, "days": int(days),
+        "usernames": usernames, "events": [{"key": key, "label": label} for key, label in WEB_ACCESS_LOG_EVENTS.items()],
+    }
+
+
+def humanize_event(event: str) -> str:
+    return str(event or "").replace("_", " ").strip().capitalize()
 
 
 @app.get("/api/admin/access_logs")
@@ -5650,7 +6033,41 @@ def admin_access_logs_legacy(
     username: str = Query("", max_length=256),
     current_user: Dict[str, Any] = Depends(_require_admin),
 ) -> Dict[str, Any]:
-    return admin_access_logs(limit=limit, username=username, current_user=current_user)
+    return admin_access_logs(limit=limit, username=username, event="", days=0, current_user=current_user)
+
+
+DB_FILTER_BLANK = "(blank)"
+
+
+def _admin_db_filter_clause(table: str, filters_json: str, skip_column: str = "") -> tuple[str, List[Any]]:
+    """WHERE clause for the column filters of the database viewer ({column: [values]}, "(blank)" = empty)."""
+    if not str(filters_json or "").strip():
+        return "", []
+    try:
+        filters = json.loads(filters_json)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid filters.")
+    if not isinstance(filters, dict):
+        raise HTTPException(status_code=400, detail="Invalid filters.")
+    valid_columns = {col["name"] for col in _table_columns(table)}
+    clauses: List[str] = []
+    params: List[Any] = []
+    for column, values in filters.items():
+        column = str(column)
+        if column == skip_column or column not in valid_columns or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", column):
+            continue
+        values = [str(value) for value in (values or [])]
+        if not values:
+            continue
+        parts: List[str] = []
+        concrete = [value for value in values if value != DB_FILTER_BLANK]
+        if concrete:
+            parts.append(f"CAST({column} AS TEXT) IN ({', '.join(['?'] * len(concrete))})")
+            params.extend(concrete)
+        if DB_FILTER_BLANK in values:
+            parts.append(f"({column} IS NULL OR CAST({column} AS TEXT) = '')")
+        clauses.append("(" + " OR ".join(parts) + ")")
+    return (" WHERE " + " AND ".join(clauses)) if clauses else "", params
 
 
 @app.get("/api/admin/db/table/{table_name}")
@@ -5658,23 +6075,59 @@ def admin_db_table_rows(
     table_name: str,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
+    filters: str = Query("", max_length=20000),
     current_user: Dict[str, Any] = Depends(_require_admin),
 ) -> Dict[str, Any]:
     table = _validate_admin_table_name(table_name)
     columns = _table_columns(table)
+    where, params = _admin_db_filter_clause(table, filters)
     conn = _db_connect()
     try:
         has_rowid = True
         try:
-            rows = conn.execute(f"SELECT rowid AS _rowid, * FROM {table} LIMIT ? OFFSET ?", (limit, offset)).fetchall()
-        except Exception:
+            rows = conn.execute(f"SELECT rowid AS _rowid, * FROM {table}{where} LIMIT ? OFFSET ?", (*params, limit, offset)).fetchall()
+        except sqlite3.OperationalError:
             has_rowid = False
-            rows = conn.execute(f"SELECT * FROM {table} LIMIT ? OFFSET ?", (limit, offset)).fetchall()
-        total = int(conn.execute(f"SELECT COUNT(*) AS count FROM {table}").fetchone()["count"])
+            rows = conn.execute(f"SELECT * FROM {table}{where} LIMIT ? OFFSET ?", (*params, limit, offset)).fetchall()
+        total = int(conn.execute(f"SELECT COUNT(*) AS count FROM {table}{where}", params).fetchone()["count"])
+        total_rows = int(conn.execute(f"SELECT COUNT(*) AS count FROM {table}").fetchone()["count"])
         serialized = [dict(row) for row in rows]
     finally:
         conn.close()
-    return {"table": table, "columns": columns, "rows": serialized, "total": total, "limit": limit, "offset": offset, "has_rowid": has_rowid}
+    return {
+        "table": table, "columns": columns, "rows": serialized, "total": total, "total_rows": total_rows,
+        "limit": limit, "offset": offset, "has_rowid": has_rowid,
+    }
+
+
+@app.get("/api/admin/db/table/{table_name}/values")
+def admin_db_column_values(
+    table_name: str,
+    column: str = Query(..., max_length=128),
+    search: str = Query("", max_length=256),
+    filters: str = Query("", max_length=20000),
+    current_user: Dict[str, Any] = Depends(_require_admin),
+) -> Dict[str, Any]:
+    """Distinct values of one column (with their counts) across the whole table, for the column filter."""
+    table = _validate_admin_table_name(table_name)
+    if column not in {col["name"] for col in _table_columns(table)} or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", column):
+        raise HTTPException(status_code=400, detail="Unknown column.")
+    where, params = _admin_db_filter_clause(table, filters, skip_column=column)
+    value_sql = f"COALESCE(CAST({column} AS TEXT), '')"
+    if search.strip():
+        where = (where + " AND " if where else " WHERE ") + f"{value_sql} LIKE ?"
+        params = [*params, f"%{search.strip()}%"]
+    limit = 200
+    conn = _db_connect()
+    try:
+        rows = conn.execute(
+            f"SELECT {value_sql} AS value, COUNT(*) AS count FROM {table}{where} GROUP BY value ORDER BY count DESC, value LIMIT ?",
+            (*params, limit + 1),
+        ).fetchall()
+    finally:
+        conn.close()
+    values = [{"value": str(row["value"]) if str(row["value"]) != "" else DB_FILTER_BLANK, "count": int(row["count"])} for row in rows[:limit]]
+    return {"values": values, "has_more": len(rows) > limit}
 
 
 @app.post("/api/admin/db/table/{table_name}/insert")
@@ -5699,6 +6152,7 @@ def admin_db_insert_row(
     try:
         cursor = conn.execute(f"INSERT INTO {table} ({cols_sql}) VALUES ({placeholders})", params)
         conn.commit()
+        _record_admin_event(None, current_user, "database_edit", f"{table} · row {int(cursor.lastrowid)} inserted")
         return {"inserted": True, "rowid": int(cursor.lastrowid)}
     except sqlite3.Error as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -5729,6 +6183,7 @@ def admin_db_update_row(
         conn.commit()
         if cursor.rowcount <= 0:
             raise HTTPException(status_code=404, detail="Row not found.")
+        _record_admin_event(None, current_user, "database_edit", f"{table} · row {int(payload.rowid)} updated ({', '.join(col for col, _ in safe_items)})")
         return {"updated": True, "rowcount": int(cursor.rowcount)}
     except sqlite3.Error as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -5749,6 +6204,7 @@ def admin_db_delete_row(
         conn.commit()
         if cursor.rowcount <= 0:
             raise HTTPException(status_code=404, detail="Row not found.")
+        _record_admin_event(None, current_user, "database_edit", f"{table} · row {int(payload.rowid)} deleted")
         return {"deleted": True, "rowcount": int(cursor.rowcount)}
     except sqlite3.Error as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -5772,6 +6228,7 @@ def admin_save_backup_config(
     current_user: Dict[str, Any] = Depends(_require_admin),
 ) -> Dict[str, Any]:
     saved = _save_backup_schedule(payload)
+    _record_admin_event(None, current_user, "backup", f"Schedule {'on' if saved.get('enabled') else 'off'} · {saved.get('recurrence')} {saved.get('run_time')} · keep {saved.get('keep_days')} days")
     return {"saved": True, "config": saved}
 
 
@@ -5785,8 +6242,9 @@ def admin_save_backup_config_legacy(
 
 
 @app.post("/api/admin/backups/run-now")
-def admin_run_backup_now(current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+def admin_run_backup_now(request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
     result = _run_backup_now(manual=True)
+    _record_admin_event(request, current_user, "backup", f"Back up now · {Path(result['backup_file']).name} · {result['status']}")
     return {"ok": True, "result": result}
 
 
@@ -5794,6 +6252,53 @@ def admin_run_backup_now(current_user: Dict[str, Any] = Depends(_require_admin))
 def admin_run_backup_now_legacy(current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
     result = _run_backup_now(manual=True)
     return {"ok": True, "result": result}
+
+
+@app.get("/api/admin/backups/status")
+def admin_backup_status(current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+    cfg = _read_backup_schedule()
+    backup_dir = Path(str(cfg.get("backup_dir") or str(WEB_BACKUP_DEFAULT_DIR))).expanduser()
+    files = _list_backup_files(backup_dir)
+    free_bytes = None
+    probe = backup_dir if backup_dir.exists() else backup_dir.parent
+    try:
+        free_bytes = int(shutil.disk_usage(str(probe)).free)
+    except OSError:
+        pass
+    return {
+        "config": cfg,
+        "files": files,
+        "count": len(files),
+        "manual_count": sum(1 for item in files if item["origin"] != "scheduled"),
+        "total_size": sum(int(item["size"]) for item in files),
+        "free_bytes": free_bytes,
+        "last_run_at": cfg.get("last_run_at") or (files[0]["modified"] if files else None),
+        "last_status": cfg.get("last_status"),
+        "last_error": cfg.get("last_error"),
+        "next_run_at": cfg.get("next_run_at") if cfg.get("enabled") else None,
+    }
+
+
+@app.get("/api/admin/backups/files/{name}")
+def admin_download_backup(name: str, current_user: Dict[str, Any] = Depends(_require_admin)) -> FileResponse:
+    path = _resolve_backup_file(name)
+    return FileResponse(str(path), media_type="application/octet-stream", filename=path.name)
+
+
+@app.delete("/api/admin/backups/files/{name}")
+def admin_delete_backup(name: str, request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+    path = _resolve_backup_file(name)
+    path.unlink()
+    _record_admin_event(request, current_user, "backup_deleted", path.name)
+    return {"deleted": path.name}
+
+
+@app.post("/api/admin/backups/restore")
+def admin_restore_backup(payload: BackupFileRequest, request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> Dict[str, Any]:
+    path = _resolve_backup_file(payload.name)
+    result = _restore_backup_file(path)
+    _record_admin_event(request, current_user, "backup_restored", f"{result['restored']} · previous data saved as {result['safety_backup']}")
+    return result
 
 
 @app.get("/healthz")

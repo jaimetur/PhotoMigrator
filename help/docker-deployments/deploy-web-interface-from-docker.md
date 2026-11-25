@@ -268,6 +268,18 @@ PHOTOMIGRATOR_WEB_ACCOUNT_REQUESTS=true
 - `PHOTOMIGRATOR_WEB_PUBLIC_URL`: address used in the links of the emails. If it is empty, links use the address the browser used to open the Web Interface.
 - `PHOTOMIGRATOR_WEB_ACCOUNT_REQUESTS`: shows **Request an account** on the login page (default `true`; set `false` to hide it). Requested accounts stay inactive until an admin activates them.
 
+### Backups of the Web Interface database
+
+The **Backups** section of the Administration Panel backs up the web database (users, settings, saved credentials and email settings), restores a backup, and schedules recurring backups. Optional defaults in `.env`:
+
+```env
+PHOTOMIGRATOR_WEB_BACKUP_DIR=/app/config/backups
+PHOTOMIGRATOR_WEB_BACKUP_KEEP_DAYS=30
+```
+
+- `PHOTOMIGRATOR_WEB_BACKUP_DIR`: default folder of the backups (it can be changed in the Administration Panel).
+- `PHOTOMIGRATOR_WEB_BACKUP_KEEP_DAYS`: scheduled backups older than this are deleted (the newest one is always kept). Backups made with **Back up now** and the copies made before a restore are never deleted automatically.
+
 ---
 ## 5. Cross-platform notes
 

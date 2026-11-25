@@ -55,6 +55,14 @@ EMAIL_TEXTS = [
     "Open PhotoMigrator", "{0} finished", "{0} stopped", "{0} failed", "your task <b>{0}</b> finished successfully.",
     "your task <b>{0}</b> was stopped before it finished.", "your task <b>{0}</b> ended with errors (exit code {1}).",
     "Duration: <b>{0}</b>. Last lines of the log:", "Open Activity", "(no output)",
+    "Your password was reset", "an administrator reset the password of your PhotoMigrator account <b>{0}</b>.",
+]
+# Server texts shown in the Administration Panel (event names of the access log and reasons of skipped bulk changes).
+ADMIN_TEXTS = [
+    "Sign in", "Failed sign in", "User created", "User updated", "User deleted", "Password reset", "Email settings",
+    "Test email", "Backup", "Backup restored", "Backup deleted", "Database edit",
+    "You cannot deactivate your own account.", "You cannot delete your own user.", "Cannot deactivate the last active admin.",
+    "Cannot change role of the last active admin.", "Cannot delete the last active admin.", "User not found.",
 ]
 
 
@@ -82,6 +90,11 @@ def script_literals() -> set:
         for match in re.finditer(r'"([A-Z][^"\\$<>{}]*?\s[^"\\$<>{}]*?)"', source):
             text = match.group(1).strip()
             if re.search(r"[a-z]{2}", text) and not re.search(r"[#=;]|\.(js|css|html)\b|/api/", text):
+                found.add(text)
+        # Texts passed to the page translators: T("...") and fmt("... {0} ...").
+        for match in re.finditer(r'\b(?:T|fmt|pmT)\("([^"\\]+)"', source):
+            text = match.group(1).strip()
+            if re.search(r"[A-Za-z]{2}", text):
                 found.add(text)
         for match in re.finditer(r"`([A-Z][^`]*?)`", source):
             text = match.group(1)
@@ -120,7 +133,7 @@ def main() -> int:
         if is_ui_text(text, timezones):
             texts.add(text)
     texts |= script_literals()
-    keys = sorted({numbered(text) for text in texts} | set(EMAIL_TEXTS))
+    keys = sorted({numbered(text) for text in texts} | set(EMAIL_TEXTS) | set(ADMIN_TEXTS))
     write_po(LANG_DIR / "messages.pot", keys, {}, None)
     for code in i18n.LANGS:
         if code == i18n.DEFAULT:

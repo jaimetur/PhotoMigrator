@@ -18,6 +18,9 @@ msgstr "(デフォルト: すべて)"
 msgid "(no output)"
 msgstr "(出力なし)"
 
+msgid "+ Add row"
+msgstr "+ 行を追加"
+
 msgid "/app/data subpath"
 msgstr "/app/data のサブパス"
 
@@ -44,6 +47,12 @@ msgstr "アルバムを含むフォルダー全体"
 
 msgid "ALL_PHOTOS Folder Name"
 msgstr "ALL_PHOTOS フォルダー名"
+
+msgid "API key admin"
+msgstr "管理者 API キー"
+
+msgid "API key user"
+msgstr "ユーザー API キー"
 
 msgid "About Auto Rename Folders Content Based"
 msgstr "コンテンツに基づくフォルダー自動名前変更について"
@@ -117,6 +126,9 @@ msgstr "{0} について"
 msgid "Access Logs"
 msgstr "アクセスログ"
 
+msgid "Access logs"
+msgstr "アクセスログ"
+
 msgid "Access logs: loaded {0} entries"
 msgstr "アクセスログ: {0} 件を読み込みました"
 
@@ -125,6 +137,12 @@ msgstr "アクセスログ: 読み込み中..."
 
 msgid "Access logs: {0}"
 msgstr "アクセスログ: {0}"
+
+msgid "Access request"
+msgstr "アクセスリクエスト"
+
+msgid "Access request of {0} approved"
+msgstr "{0} のアクセスリクエストを承認しました"
 
 msgid "Account"
 msgstr "アカウント"
@@ -141,8 +159,23 @@ msgstr "アカウント申請"
 msgid "Account request from {0}"
 msgstr "{0} からのアカウント申請"
 
+msgid "Account requests from the login page"
+msgstr "ログインページからのアカウントリクエスト"
+
 msgid "Account {0}"
 msgstr "アカウント {0}"
+
+msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "アカウント {0}: Immich Photos の USER_API_KEY（API_KEY は アカウント設定 --> API_KEY キー で作成できます）"
+
+msgid "Account {0}: Your password for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "アカウント {0}: Immich Photos のパスワード（API_KEY を指定しない場合は必須）"
+
+msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "アカウント {0}: Immich Photos のユーザー名（API_KEY を指定しない場合は必須）"
+
+msgid "Accounts"
+msgstr "アカウント"
 
 msgid "Action"
 msgstr "アクション"
@@ -150,14 +183,26 @@ msgstr "アクション"
 msgid "Actions"
 msgstr "アクション"
 
+msgid "Activate"
+msgstr "有効化"
+
+msgid "Activate the {0} selected users?"
+msgstr "選択した {0} 人のユーザーを有効化しますか？"
+
 msgid "Active"
 msgstr "有効"
+
+msgid "Active and inactive"
+msgstr "有効と無効"
 
 msgid "Activity"
 msgstr "アクティビティ"
 
 msgid "Activity · PhotoMigrator"
 msgstr "アクティビティ · PhotoMigrator"
+
+msgid "Add row"
+msgstr "行を追加"
 
 msgid "Add the URL and credentials of each account in"
 msgstr "各アカウントの URL と認証情報を次の場所に追加してください:"
@@ -246,11 +291,23 @@ msgstr "同じ名前のアルバム"
 msgid "All Users"
 msgstr "すべてのユーザー"
 
+msgid "All dates"
+msgstr "すべての日付"
+
+msgid "All events"
+msgstr "すべてのイベント"
+
 msgid "All photos folder name"
 msgstr "すべての写真フォルダー名"
 
 msgid "All photos folder structure"
 msgstr "すべての写真フォルダーの構造"
+
+msgid "All roles"
+msgstr "すべてのロール"
+
+msgid "All users"
+msgstr "すべてのユーザー"
 
 msgid "Allow login into Synology Photos using 2FA with an OTP token."
 msgstr "OTP トークンを使用した 2FA で Synology Photos にログインできるようにします。"
@@ -266,6 +323,9 @@ msgstr "モジュールセレクター '--dup-asset-keeper {more-people/tags-the
 
 msgid "An administrator reviews every request. You will get an email when your account is active."
 msgstr "すべての申請は管理者が確認します。アカウントが有効になるとメールが届きます。"
+
+msgid "An email with the username and the password is sent to the new user."
+msgstr "ユーザー名とパスワードを記載したメールが新しいユーザーに送信されます。"
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
 msgstr "ここで保存した値はデータベースに保持されますが、その上書きが設定されている間は無視されます。"
@@ -285,11 +345,23 @@ msgstr "Apple Photos"
 msgid "Apple iCloud Photos export"
 msgstr "Apple iCloud 写真のエクスポート"
 
+msgid "Application activity"
+msgstr "アプリケーションのアクティビティ"
+
 msgid "Apply a reviewed duplicates CSV"
 msgstr "確認済みの重複 CSV を適用"
 
+msgid "Apply filter"
+msgstr "フィルターを適用"
+
 msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
 msgstr "管理パネルでアカウントを有効化して承認するか、同じ一覧から却下してください。"
+
+msgid "Approve request"
+msgstr "リクエストを承認"
+
+msgid "Approve the request of {0}"
+msgstr "{0} のリクエストを承認"
 
 msgid "Are you sure?"
 msgstr "よろしいですか?"
@@ -297,8 +369,14 @@ msgstr "よろしいですか?"
 msgid "Arguments must be passed as two values separated by comma."
 msgstr "引数はカンマ区切りの 2 つの値として渡す必要があります。"
 
+msgid "Asked at the first sign-in"
+msgstr "初回サインイン時に確認"
+
 msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
 msgstr "アセットは移行後にソースから削除されます。コピーする場合は「アセットを移動」をオフにしてください。"
+
+msgid "At least {0} characters"
+msgstr "{0} 文字以上"
 
 msgid "Authorize"
 msgstr "認証"
@@ -308,6 +386,9 @@ msgstr "コンテンツに基づくフォルダー自動名前変更"
 
 msgid "Auto Scroll"
 msgstr "自動スクロール"
+
+msgid "Automatic"
+msgstr "自動"
 
 msgid "Automatic Migration"
 msgstr "自動移行"
@@ -330,8 +411,41 @@ msgstr "Web UI に戻る"
 msgid "Back to sign in"
 msgstr "サインインに戻る"
 
+msgid "Back up now"
+msgstr "今すぐバックアップ"
+
+msgid "Back up the web database now, restore a backup or schedule recurring backups."
+msgstr "Web データベースを今すぐバックアップしたり、バックアップを復元したり、定期バックアップをスケジュールしたりします。"
+
+msgid "Backup"
+msgstr "バックアップ"
+
 msgid "Backup Error"
 msgstr "バックアップエラー"
+
+msgid "Backup deleted"
+msgstr "バックアップを削除しました"
+
+msgid "Backup failed:"
+msgstr "バックアップに失敗しました:"
+
+msgid "Backup file"
+msgstr "バックアップファイル"
+
+msgid "Backup folder"
+msgstr "バックアップフォルダー"
+
+msgid "Backup protection"
+msgstr "バックアップ保護"
+
+msgid "Backup restored"
+msgstr "バックアップを復元しました"
+
+msgid "Backup restored. The previous data was saved as {0}."
+msgstr "バックアップを復元しました。以前のデータは {0} として保存されました。"
+
+msgid "Backup saved: {0}"
+msgstr "バックアップを保存しました: {0}"
 
 msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
 msgstr "バックアップの状態: アイドル | モード: daily_2am | 最終実行: - | 次回: -"
@@ -348,14 +462,23 @@ msgstr "バックアップの状態: {0} | ファイル: {1}"
 msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
 msgstr "バックアップの状態: {0} | モード: {1} | 最終実行: {2} | 次回: {3}"
 
+msgid "Backups"
+msgstr "バックアップ"
+
 msgid "Backups Scheduler"
 msgstr "バックアップスケジューラー"
+
+msgid "Before a restore"
+msgstr "復元前"
 
 msgid "Blue palette"
 msgstr "ブルーパレット"
 
 msgid "Browse"
 msgstr "参照"
+
+msgid "Browse, edit or remove individual records of any table of the Web Interface database."
+msgstr "Web インターフェースのデータベースにある任意のテーブルの個別のレコードを参照、編集、削除します。"
 
 msgid "By default migration runs in parallel with live dashboard enabled."
 msgstr "デフォルトでは、移行はライブダッシュボードを有効にして並列実行されます。"
@@ -366,14 +489,50 @@ msgstr "デフォルトでは、出力は 'year/month' 構造を使用し、'-o/
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "バックエンドで CSV エンドポイントが利用できません。Web バックエンドを再起動または更新してください。"
 
+msgid "Can sign in right away"
+msgstr "すぐにサインイン可能"
+
 msgid "Cancel"
 msgstr "キャンセル"
+
+msgid "Cannot change role of the last active admin."
+msgstr "最後の有効な管理者のロールは変更できません。"
+
+msgid "Cannot deactivate the last active admin."
+msgstr "最後の有効な管理者は無効化できません。"
+
+msgid "Cannot delete the last active admin."
+msgstr "最後の有効な管理者は削除できません。"
 
 msgid "Change Email"
 msgstr "メールアドレスを変更"
 
 msgid "Change Email: {0}"
 msgstr "メールアドレスの変更: {0}"
+
+msgid "Change any field in place: it saves on its own. Select several users to change them at once."
+msgstr "任意のフィールドをその場で変更できます。変更は自動的に保存されます。複数のユーザーを選択すると一度に変更できます。"
+
+msgid "Change selected users"
+msgstr "選択したユーザーを変更"
+
+msgid "Change the email"
+msgstr "メールアドレスを変更"
+
+msgid "Change the email of {0}"
+msgstr "{0} のメールアドレスを変更"
+
+msgid "Change the role of the selected users"
+msgstr "選択したユーザーのロールを変更"
+
+msgid "Change the role of the {0} selected users to {1}?"
+msgstr "選択した {0} 人のユーザーのロールを {1} に変更しますか？"
+
+msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
+msgstr "この IP を、Immich サーバーの IP または有効な Immich URL に置き換えてください"
+
+msgid "Changed {0} users. Not changed:"
+msgstr "{0} 人のユーザーを変更しました。未変更:"
 
 msgid "Changes your library"
 msgstr "ライブラリを変更します"
@@ -405,6 +564,12 @@ msgstr "'--remove-duplicates-assets' で残すアセットを選択します。m
 msgid "Clean up"
 msgstr "クリーンアップ"
 
+msgid "Clear column"
+msgstr "列をクリア"
+
+msgid "Clear selection"
+msgstr "選択を解除"
+
 msgid "Client ID"
 msgstr "クライアント ID"
 
@@ -416,6 +581,12 @@ msgstr "閉じる"
 
 msgid "Close menu"
 msgstr "メニューを閉じる"
+
+msgid "Close without adding"
+msgstr "追加せずに閉じる"
+
+msgid "Close without creating"
+msgstr "作成せずに閉じる"
 
 msgid "Collapse panel"
 msgstr "パネルを折りたたむ"
@@ -492,13 +663,22 @@ msgstr "設定ファイル"
 msgid "Configuration for Google Photos"
 msgstr "Google Photos の設定"
 
+msgid "Configuration for Immich Photos"
+msgstr "Immich Photos の設定"
+
 msgid "Configured"
 msgstr "設定済み"
+
+msgid "Configured · SMTP server"
+msgstr "設定済み · SMTP サーバー"
 
 msgid "Confirm"
 msgstr "確認"
 
 msgid "Confirm Action"
+msgstr "操作の確認"
+
+msgid "Confirm action"
 msgstr "操作の確認"
 
 msgid "Confirm new password"
@@ -567,6 +747,9 @@ msgstr "作成に失敗しました: {0}"
 msgid "Create stacks"
 msgstr "スタックを作成"
 
+msgid "Create user"
+msgstr "ユーザーを作成"
+
 msgid "Created From"
 msgstr "作成日(開始)"
 
@@ -575,6 +758,9 @@ msgstr "作成日(終了)"
 
 msgid "Created: {0}"
 msgstr "作成日時: {0}"
+
+msgid "Creating…"
+msgstr "作成中…"
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
 msgstr "認証情報とサービス設定は、ユーザーごとに Web データベースへ保存されます。機密値は保存時に暗号化され、すべての機能で再利用されます。"
@@ -606,6 +792,9 @@ msgstr "DB 挿入エラー"
 msgid "DB Update Error"
 msgstr "DB 更新エラー"
 
+msgid "Daily"
+msgstr "毎日"
+
 msgid "Dangerous Module"
 msgstr "危険なモジュール"
 
@@ -615,8 +804,26 @@ msgstr "ダーク UI パレット"
 msgid "Dashboard"
 msgstr "ダッシュボード"
 
+msgid "Data folder"
+msgstr "データフォルダー"
+
+msgid "Database"
+msgstr "データベース"
+
 msgid "Database Manager"
 msgstr "データベースマネージャー"
+
+msgid "Database edit"
+msgstr "データベース編集"
+
+msgid "Database error"
+msgstr "データベースエラー"
+
+msgid "Database viewer"
+msgstr "データベースビューア"
+
+msgid "Date"
+msgstr "日付"
 
 msgid "Date and range separators"
 msgstr "日付と範囲の区切り文字"
@@ -626,6 +833,27 @@ msgstr "日付と範囲の区切り文字は '--date-separator' と '--range-sep
 
 msgid "Date separator"
 msgstr "日付の区切り文字"
+
+msgid "Day of the month"
+msgstr "日（毎月）"
+
+msgid "Day of the week"
+msgstr "曜日"
+
+msgid "Day {0} of every month at {1}"
+msgstr "毎月 {0} 日 {1}"
+
+msgid "Days to keep"
+msgstr "保持日数"
+
+msgid "Days to keep: the scheduled backups of the last {0} days are kept (today: since {1})."
+msgstr "保持日数: 直近 {0} 日間のスケジュールバックアップを保持します（今日: {1} 以降）。"
+
+msgid "Deactivate"
+msgstr "無効化"
+
+msgid "Deactivate the {0} selected users?"
+msgstr "選択した {0} 人のユーザーを無効化しますか？"
 
 msgid "Default account available:"
 msgstr "利用可能なデフォルトアカウント:"
@@ -648,6 +876,12 @@ msgstr "選択したフォルダーを削除しますか?"
 msgid "Delete User"
 msgstr "ユーザーを削除"
 
+msgid "Delete backup"
+msgstr "バックアップを削除"
+
+msgid "Delete database row"
+msgstr "データベースの行を削除"
+
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr "削除エンドポイントが利用できません。Web インターフェースのバックエンドを再起動してからもう一度お試しください。"
 
@@ -657,8 +891,26 @@ msgstr "行を削除"
 msgid "Delete row {0} from '{1}'?"
 msgstr "'{1}' から行 {0} を削除しますか?"
 
+msgid "Delete the backup {0}? This action cannot be undone."
+msgstr "バックアップ {0} を削除しますか？この操作は元に戻せません。"
+
+msgid "Delete the {0} selected users? This action cannot be undone."
+msgstr "選択した {0} 人のユーザーを削除しますか？この操作は元に戻せません。"
+
+msgid "Delete user"
+msgstr "ユーザーを削除"
+
+msgid "Delete user {0}? This action cannot be undone."
+msgstr "ユーザー {0} を削除しますか？この操作は元に戻せません。"
+
+msgid "Delete {0}"
+msgstr "{0} を削除"
+
 msgid "Demo"
 msgstr "デモ"
+
+msgid "Demo (read only)"
+msgstr "デモ（読み取り専用）"
 
 msgid "Demo Role Restricted"
 msgstr "デモロールは制限されています"
@@ -672,6 +924,12 @@ msgstr "宛先が必要です"
 msgid "Destination folder"
 msgstr "宛先フォルダー"
 
+msgid "Details"
+msgstr "詳細"
+
+msgid "Disabled"
+msgstr "無効"
+
 msgid "Do not save the GPTH log"
 msgstr "GPTH ログを保存しない"
 
@@ -680,6 +938,9 @@ msgstr "ドキュメント"
 
 msgid "Documentation"
 msgstr "ドキュメント"
+
+msgid "Download"
+msgstr "ダウンロード"
 
 msgid "Download Albums"
 msgstr "アルバムをダウンロード"
@@ -741,6 +1002,9 @@ msgstr "アップロード中、同等の既存アルバム名を 1 つのグル
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
 msgstr "アップロード中、同等の既存アルバム名を 1 つのグループとして扱い、それらのアセットを正規のアルバムに統合します。余分なアルバムは、サービスがアルバム削除に対応している場合にのみ削除されます。"
 
+msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
+msgstr "値を編集し、✓ を押してその行を保存します。キーは保護されています。1 ページあたり {0} 行。"
+
 msgid "Elapsed Time"
 msgstr "経過時間"
 
@@ -759,11 +1023,29 @@ msgstr "メール (SMTP)"
 msgid "Email check"
 msgstr "メールの確認"
 
+msgid "Email delivery"
+msgstr "メール配信"
+
+msgid "Email delivery saved."
+msgstr "メール配信設定を保存しました。"
+
 msgid "Email is not configured on this server yet."
 msgstr "このサーバーではまだメールが設定されていません。"
 
+msgid "Email is not configured: give the username and the password to the new user yourself."
+msgstr "メールが設定されていません。ユーザー名とパスワードは新しいユーザーに直接伝えてください。"
+
 msgid "Email me when it finishes"
 msgstr "完了したらメールで通知"
+
+msgid "Email of {0}"
+msgstr "{0} のメールアドレス"
+
+msgid "Email of {0} changed"
+msgstr "{0} のメールアドレスを変更しました"
+
+msgid "Email settings"
+msgstr "メール設定"
 
 msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
 msgstr "メールの状態: 未設定のため、メールは送信されません。ログインページからのアカウント申請は有効です。"
@@ -779,6 +1061,9 @@ msgstr "メールの状態: {0} にテストメールを送信しました。"
 
 msgid "Email status: {0}"
 msgstr "メールの状態: {0}"
+
+msgid "Emails of the tool"
+msgstr "ツールからのメール"
 
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "GPTH 処理中のエラーメッセージを有効または無効にします。"
@@ -798,8 +1083,14 @@ msgstr "自動移行ジョブ中のライブダッシュボード機能を有効
 msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
 msgstr "自動移行ジョブ中のライブダッシュボード機能を有効または無効にします。この引数は '--source' と '--target' の両方が指定された場合にのみ適用されます。(デフォルト: True)"
 
+msgid "Enable recurring backups"
+msgstr "定期バックアップを有効にする"
+
 msgid "Enabled"
 msgstr "有効"
+
+msgid "Encryption"
+msgstr "暗号化"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "フォルダー名、または次の内部の絶対パスを入力してください:"
@@ -813,6 +1104,9 @@ msgstr "エラー: {0}"
 msgid "Estimated End"
 msgstr "終了予定"
 
+msgid "Event"
+msgstr "イベント"
+
 msgid "Every album and asset"
 msgstr "すべてのアルバムとアセット"
 
@@ -825,11 +1119,23 @@ msgstr "すべてのアセットとアルバム"
 msgid "Every day (2:00 AM)"
 msgstr "毎日 (午前 2:00)"
 
+msgid "Every day at {0}"
+msgstr "毎日 {0}"
+
 msgid "Every hour"
 msgstr "毎時"
 
+msgid "Every hour at minute {0}"
+msgstr "毎時 {0} 分"
+
 msgid "Every week (Monday 2:00 AM)"
 msgstr "毎週 (月曜日 午前 2:00)"
+
+msgid "Every {0} at {1}"
+msgstr "毎週{0} {1}"
+
+msgid "Every {0} hours"
+msgstr "{0} 時間ごと"
 
 msgid "Example: --consolidate-albums-names --preview-album-actions"
 msgstr "例: --consolidate-albums-names --preview-album-actions"
@@ -960,6 +1266,9 @@ msgstr "GPTH ツールを実行"
 msgid "Execution"
 msgstr "実行"
 
+msgid "Execution time"
+msgstr "実行時刻"
+
 msgid "Expand panel"
 msgstr "パネルを展開"
 
@@ -978,11 +1287,20 @@ msgstr "展開した ZIP: {0} ({1} ファイル) |"
 msgid "Extracted ZIPs: {0}\\n"
 msgstr "展開した ZIP: {0}\\n"
 
+msgid "Failed sign in"
+msgstr "サインイン失敗"
+
 msgid "Failed: {0}"
 msgstr "失敗: {0}"
 
+msgid "Fill at least one value."
+msgstr "値を 1 つ以上入力してください。"
+
 msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
 msgstr "必須項目を入力してください。詳細オプションは、開かない限りデフォルト値のままです。"
+
+msgid "Filter"
+msgstr "フィルター"
 
 msgid "Filter by city"
 msgstr "都市で絞り込み"
@@ -993,6 +1311,12 @@ msgstr "国で絞り込み"
 msgid "Filter by person"
 msgstr "人物で絞り込み"
 
+msgid "Filter by role"
+msgstr "ロールで絞り込み"
+
+msgid "Filter by status"
+msgstr "ステータスで絞り込み"
+
 msgid "Filter by type"
 msgstr "種類で絞り込み"
 
@@ -1001,6 +1325,12 @@ msgstr "開始日で絞り込み"
 
 msgid "Filter to date"
 msgstr "終了日で絞り込み"
+
+msgid "Filter {0}"
+msgstr "{0} をフィルター"
+
+msgid "Filter: {0}"
+msgstr "フィルター: {0}"
 
 msgid "Filters"
 msgstr "フィルター"
@@ -1016,6 +1346,9 @@ msgstr "重複を検索"
 
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr "ファイルサイズと内容の確認を使用して、1 つ以上のフォルダー内の重複を検索します。"
+
+msgid "First page"
+msgstr "最初のページ"
 
 msgid "Fix Broken Symlinks"
 msgstr "壊れたシンボリックリンクを修復"
@@ -1073,6 +1406,9 @@ msgstr "アルバムなしのフォルダー名"
 
 msgid "Folders"
 msgstr "フォルダー"
+
+msgid "Folders of {0} changed"
+msgstr "{0} のフォルダーを変更しました"
 
 msgid "Folders to scan"
 msgstr "スキャンするフォルダー"
@@ -1137,6 +1473,15 @@ msgstr "パスワード変更を強制"
 msgid "Force password change on first login"
 msgstr "初回ログイン時にパスワード変更を強制"
 
+msgid "Free disk space"
+msgstr "空きディスク容量"
+
+msgid "Friday"
+msgstr "金曜日"
+
+msgid "From"
+msgstr "送信元"
+
 msgid "GPTH messages"
 msgstr "GPTH メッセージ"
 
@@ -1145,6 +1490,9 @@ msgstr "一般引数"
 
 msgid "Get started in three steps"
 msgstr "3 ステップで始める"
+
+msgid "Give this temporary password to {0}. It is shown only once:"
+msgstr "この一時パスワードを {0} に伝えてください。表示されるのは一度だけです:"
 
 msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
 msgstr "すべての機能で共有されるグローバル引数: ログ、実行、フォルダー名、フィルター。"
@@ -1221,6 +1569,9 @@ msgstr "ホーム (data)"
 msgid "Home (volumes)"
 msgstr "ホーム (volumes)"
 
+msgid "Hourly"
+msgstr "毎時"
+
 msgid "How to migrate"
 msgstr "移行の手順"
 
@@ -1243,6 +1594,9 @@ msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operat
 msgstr "重要: remove_duplicate と replace_duplicate は元に戻せない操作です。"
 
 msgid "IP Address"
+msgstr "IP アドレス"
+
+msgid "IP address"
 msgstr "IP アドレス"
 
 msgid "Idle"
@@ -1287,6 +1641,9 @@ msgstr "Immich"
 msgid "Immich Photos"
 msgstr "Immich Photos"
 
+msgid "Immich Photos accounts"
+msgstr "Immich Photos アカウント"
+
 msgid "Immich Photos · PhotoMigrator"
 msgstr "Immich Photos · PhotoMigrator"
 
@@ -1307,6 +1664,9 @@ msgstr "Takeout の人物マップがある場合、Google Takeout の人物ラ�
 
 msgid "Import people"
 msgstr "人物をインポート"
+
+msgid "Inactive"
+msgstr "無効"
 
 msgid "Include Memories as albums"
 msgstr "思い出をアルバムとして含める"
@@ -1367,6 +1727,21 @@ msgstr "最終更新: -"
 
 msgid "Last Updated: {0}"
 msgstr "最終更新: {0}"
+
+msgid "Last backup"
+msgstr "最後のバックアップ"
+
+msgid "Last page"
+msgstr "最後のページ"
+
+msgid "Last sign-in"
+msgstr "最終サインイン"
+
+msgid "Last {0} days"
+msgstr "直近 {0} 日間"
+
+msgid "Last {0} hours"
+msgstr "直近 {0} 時間"
 
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr "英字、数字、ドット、ハイフン、アンダースコア"
@@ -1458,6 +1833,12 @@ msgstr "必須引数が不足しています: --{0}"
 msgid "Missing tab."
 msgstr "タブが見つかりません。"
 
+msgid "Monday"
+msgstr "月曜日"
+
+msgid "Monthly"
+msgstr "毎月"
+
 msgid "Move Assets"
 msgstr "アセットを移動"
 
@@ -1485,8 +1866,17 @@ msgstr "ライブラリ全体を別のサービスへ移行"
 msgid "Multiple albums can be separated by comma or space and quoted."
 msgstr "複数のアルバムはカンマまたはスペースで区切り、引用符で囲むことができます。"
 
+msgid "Must change password"
+msgstr "パスワード変更が必要"
+
 msgid "Naming & Folders"
 msgstr "名前とフォルダー"
+
+msgid "Never"
+msgstr "なし"
+
+msgid "Never shown. Leave it empty to keep the saved password."
+msgstr "表示されません。空欄のままにすると保存済みのパスワードが維持されます。"
 
 msgid "New account request"
 msgstr "新しいアカウント申請"
@@ -1499,6 +1889,18 @@ msgstr "一致する各アルバムの新しい名前。"
 
 msgid "New password"
 msgstr "新しいパスワード"
+
+msgid "New password for {0}"
+msgstr "{0} の新しいパスワード"
+
+msgid "New user"
+msgstr "新規ユーザー"
+
+msgid "Next backup"
+msgstr "次のバックアップ"
+
+msgid "Next page"
+msgstr "次のページ"
 
 msgid "NextCloud"
 msgstr "NextCloud"
@@ -1515,8 +1917,17 @@ msgstr "いいえ"
 msgid "No additional help for this field."
 msgstr "この項目に関する追加のヘルプはありません。"
 
+msgid "No backups yet"
+msgstr "バックアップはまだありません"
+
 msgid "No credentials for account {0} yet."
 msgstr "アカウント {0} の認証情報はまだありません。"
+
+msgid "No email · add one"
+msgstr "メールなし · 追加してください"
+
+msgid "No entries match the current filters."
+msgstr "現在のフィルターに一致するエントリはありません。"
 
 msgid "No extra arguments required"
 msgstr "追加の引数は不要です"
@@ -1532,6 +1943,9 @@ msgstr "実行中のジョブはありません"
 
 msgid "No log file"
 msgstr "ログファイルがありません"
+
+msgid "No users match the current filters."
+msgstr "現在のフィルターに一致するユーザーはいません。"
 
 msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
 msgstr "アルバムに属さないアセットは year/month 構造で <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ に保存されます。"
@@ -1560,6 +1974,12 @@ msgstr "Google Photos アカウント {0} の OAuth クライアントシーク�
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Google Photos アカウント {0} の OAuth リフレッシュトークン"
 
+msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
+msgstr "古いスケジュールバックアップは、最新の 1 件を除いて削除されます。「今すぐバックアップ」で作成したバックアップは削除されません。"
+
+msgid "On"
+msgstr "オン"
+
 msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
 msgstr "対応しているクラウドターゲットでは、余分なバリアントは優先される保持アルバムに統合されます。API がアルバム削除に対応している場合(Immich、Synology、NextCloud)、その後で余分なアルバムが削除されます。Google Photos は公開 API でアルバムを削除できないため、余分なバリアントはそのまま残ります。"
 
@@ -1580,6 +2000,9 @@ msgstr "ワンタイムパスワード"
 
 msgid "One value per line or comma-separated"
 msgstr "値を 1 行に 1 つ、またはカンマ区切りで入力"
+
+msgid "Online now"
+msgstr "現在オンライン"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "この操作を承認できるのは有効な管理者のみです。管理者のユーザー名とパスワードを入力してください。"
@@ -1716,6 +2139,9 @@ msgstr "実行時に環境変数 '{0}' によって上書きされます。"
 msgid "Overwrite Configuration?"
 msgstr "設定を上書きしますか?"
 
+msgid "Page {0} of {1}"
+msgstr "{0} / {1} ページ"
+
 msgid "Parallel Migration"
 msgstr "並列移行"
 
@@ -1725,8 +2151,20 @@ msgstr "パスワード"
 msgid "Password (at least {0} characters)"
 msgstr "パスワード({0} 文字以上)"
 
+msgid "Password of {0} changed"
+msgstr "{0} のパスワードを変更しました"
+
+msgid "Password reset"
+msgstr "パスワードのリセット"
+
 msgid "Pattern and replacement"
 msgstr "パターンと置換"
+
+msgid "Pending access requests"
+msgstr "保留中のアクセスリクエスト"
+
+msgid "Period"
+msgstr "期間"
 
 msgid "Photo libraries"
 msgstr "フォトライブラリ"
@@ -1763,6 +2201,9 @@ msgstr "実行する機能/モジュールを選択してください。"
 
 msgid "Please verify username/password and try again."
 msgstr "ユーザー名とパスワードを確認して、もう一度お試しください。"
+
+msgid "Port"
+msgstr "ポート"
 
 msgid "Port ({0}, {1} or {2})"
 msgstr "ポート ({0}、{1}、または {2})"
@@ -1802,6 +2243,12 @@ msgstr "プレビューを利用できません"
 
 msgid "Preview unavailable: {0}"
 msgstr "プレビューを利用できません: {0}"
+
+msgid "Previous page"
+msgstr "前のページ"
+
+msgid "Primary-key values are protected"
+msgstr "主キーの値は保護されています"
 
 msgid "Process Duplicates"
 msgstr "重複を処理"
@@ -1878,6 +2325,15 @@ msgstr "実行の準備完了"
 msgid "Reason: {0}"
 msgstr "理由: {0}"
 
+msgid "Recurrence"
+msgstr "繰り返し"
+
+msgid "Recurring backups are off. Back up now still works."
+msgstr "定期バックアップはオフです。「今すぐバックアップ」は引き続き使用できます。"
+
+msgid "Refresh"
+msgstr "更新"
+
 msgid "Refresh Logs"
 msgstr "ログを更新"
 
@@ -1892,6 +2348,12 @@ msgstr "アカウント申請を却下"
 
 msgid "Reject Request"
 msgstr "申請を却下"
+
+msgid "Reject request"
+msgstr "リクエストを却下"
+
+msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
+msgstr "{0} のアクセスリクエストを却下しますか？アカウントは削除され、ユーザーにメールが送信されます。"
 
 msgid "Release Notes"
 msgstr "リリースノート"
@@ -1956,6 +2418,9 @@ msgstr "重複したアルバム(同じ名前とサイズ)を削除します。"
 msgid "Remove empty albums."
 msgstr "空のアルバムを削除します。"
 
+msgid "Remove the saved password"
+msgstr "保存済みのパスワードを削除"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "削除済み: {0} | 失敗: {1}"
 
@@ -1998,6 +2463,9 @@ msgstr "置換パターン"
 msgid "Replacement text"
 msgstr "置換テキスト"
 
+msgid "Replaces the users, settings and credentials with the ones in the backup. The current data is saved first as a pre-restore backup."
+msgstr "ユーザー、設定、認証情報をバックアップの内容で置き換えます。現在のデータは、先に復元前バックアップとして保存されます。"
+
 msgid "Request User Confirmation"
 msgstr "ユーザーの確認を要求"
 
@@ -2025,6 +2493,21 @@ msgstr "パスワードをリセット"
 msgid "Reset Password: {0}"
 msgstr "パスワードのリセット: {0}"
 
+msgid "Reset password"
+msgstr "パスワードをリセット"
+
+msgid "Reset password: sets a temporary password"
+msgstr "パスワードをリセット: 一時パスワードを設定します"
+
+msgid "Reset the password of {0}"
+msgstr "{0} のパスワードをリセット"
+
+msgid "Restore"
+msgstr "復元"
+
+msgid "Restore backup"
+msgstr "バックアップを復元"
+
 msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
 msgstr "Apple iCloud Photos エクスポートの日付とアルバムを、持ち運び可能なライブラリとして復元します。"
 
@@ -2037,6 +2520,9 @@ msgstr "デフォルトに戻す"
 msgid "Restore the default values of the fields shown for this feature"
 msgstr "この機能に表示されている項目をデフォルト値に戻します"
 
+msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
+msgstr "{0} を復元しますか？ユーザー、設定、認証情報がバックアップの内容で置き換えられます。現在のデータは先に復元前バックアップとして保存され、再度サインインが必要になる場合があります。"
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "結果は CSV にエクスポートされ、重複と各項目に選択したアクションを確認できます。"
 
@@ -2048,6 +2534,15 @@ msgstr "ロードマップ"
 
 msgid "Role"
 msgstr "ロール"
+
+msgid "Role of {0}"
+msgstr "{0} のロール"
+
+msgid "Role of {0} changed to {1}"
+msgstr "{0} のロールを {1} に変更しました"
+
+msgid "Role…"
+msgstr "ロール…"
 
 msgid "Run"
 msgstr "実行"
@@ -2079,6 +2574,9 @@ msgstr "SMTP パスワード"
 msgid "SMTP password (saved, leave empty to keep it)"
 msgstr "SMTP パスワード(保存済み。変更しない場合は空のままにしてください)"
 
+msgid "SMTP server"
+msgstr "SMTP サーバー"
+
 msgid "SMTP server (for example mail.example.com)"
 msgstr "SMTP サーバー(例: mail.example.com)"
 
@@ -2088,8 +2586,14 @@ msgstr "SMTP ユーザー名"
 msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
 msgstr "SOURCE と TARGET には、クラウドエンドポイント(アカウント付きの synology/immich/nextcloud/google)またはローカルフォルダーを指定できます。"
 
+msgid "STARTTLS usually uses port {0} and SSL/TLS port {1}."
+msgstr "STARTTLS は通常ポート {0}、SSL/TLS はポート {1} を使用します。"
+
 msgid "Same name and size"
 msgstr "同じ名前とサイズ"
+
+msgid "Saturday"
+msgstr "土曜日"
 
 msgid "Save Email"
 msgstr "メールを保存"
@@ -2112,11 +2616,29 @@ msgstr "アプリ設定を保存"
 msgid "Save config"
 msgstr "設定を保存"
 
+msgid "Save email delivery"
+msgstr "メール配信を保存"
+
 msgid "Save people labels"
 msgstr "人物ラベルを保存"
 
 msgid "Save row"
 msgstr "行を保存"
+
+msgid "Save schedule"
+msgstr "スケジュールを保存"
+
+msgid "Save the SMTP server first"
+msgstr "先に SMTP サーバーを保存してください"
+
+msgid "Saved"
+msgstr "保存済み"
+
+msgid "Saved · leave empty to keep it"
+msgstr "保存済み · 空欄のままにすると維持されます"
+
+msgid "Saving…"
+msgstr "保存中…"
 
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
 msgstr "<FOLDER_TO_FIX> を再帰的にスキャンし、壊れたシンボリックリンクの修復を試みます。"
@@ -2124,11 +2646,29 @@ msgstr "<FOLDER_TO_FIX> を再帰的にスキャンし、壊れたシンボリ�
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
 msgstr "<FOLDER_TO_FIX> を再帰的にスキャンし、壊れたシンボリックリンクの修復を試みます。OUTPUT_TAKEOUT_FOLDER 内のフォルダーを移動または名前変更した後に、一部のアルバムが空に見える場合に便利です。ツールは同じフォルダーツリー内で有効なターゲットファイルを探し、可能な場合はリンクし直します。重要: リンクは、現在のファイルから有効なターゲットを推測できる場合にのみ修復されます。例: --fix-symlinks-broken ./OUTPUT_FOLDER"
 
+msgid "Scheduled"
+msgstr "スケジュール済み"
+
+msgid "Scheduled backups"
+msgstr "スケジュールバックアップ"
+
+msgid "Scheduler settings saved."
+msgstr "スケジューラー設定を保存しました。"
+
 msgid "Scroll log to the first line"
 msgstr "ログを最初の行までスクロール"
 
 msgid "Scroll log to the last line"
 msgstr "ログを最後の行までスクロール"
+
+msgid "Search all values"
+msgstr "すべての値を検索"
+
+msgid "Search users"
+msgstr "ユーザーを検索"
+
+msgid "Search users by username or email"
+msgstr "ユーザー名またはメールアドレスでユーザーを検索"
 
 msgid "Segoe UI"
 msgstr "Segoe UI"
@@ -2147,6 +2687,9 @@ msgstr "自動移行ジョブ中の並列/順次移行を選択します。こ�
 
 msgid "Select a table first."
 msgstr "先にテーブルを選択してください。"
+
+msgid "Select all users"
+msgstr "すべてのユーザーを選択"
 
 msgid "Select at least one folder first."
 msgstr "先に少なくとも 1 つのフォルダーを選択してください。"
@@ -2193,26 +2736,53 @@ msgstr "テストメールを送信"
 msgid "Send a local folder or ZIP file to the server"
 msgstr "ローカルフォルダーまたは ZIP ファイルをサーバーへ送信"
 
+msgid "Send a test email to"
+msgstr "テストメールの送信先"
+
 msgid "Send files here"
 msgstr "ここにファイルを送信"
 
 msgid "Send request"
 msgstr "申請を送信"
 
+msgid "Send test email"
+msgstr "テストメールを送信"
+
 msgid "Send the test email to (default: your email)"
 msgstr "テストメールの送信先(デフォルト: お客様のメールアドレス)"
+
+msgid "Sender"
+msgstr "送信者"
+
+msgid "Sender address"
+msgstr "送信元アドレス"
 
 msgid "Sender email"
 msgstr "送信元メールアドレス"
 
+msgid "Sender name"
+msgstr "送信者名"
+
 msgid "Sender name (PhotoMigrator)"
 msgstr "送信者名 (PhotoMigrator)"
+
+msgid "Sending…"
+msgstr "送信中…"
+
+msgid "Server"
+msgstr "サーバー"
 
 msgid "Service credentials"
 msgstr "サービスの認証情報"
 
 msgid "Set a new password and confirm it."
 msgstr "新しいパスワードを設定して、確認してください。"
+
+msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
+msgstr "{0} に一時パスワードを設定しますか？ユーザーはすべてのブラウザーからサインアウトされ、次回のサインイン時に新しいパスワードを選択する必要があります。"
+
+msgid "Set with"
+msgstr "設定方法:"
 
 msgid "Settings"
 msgstr "設定"
@@ -2229,6 +2799,12 @@ msgstr "すべての機能で使用される共通の引数、サービスの認
 msgid "Show"
 msgstr "表示"
 
+msgid "Show API key admin"
+msgstr "管理者 API キーを表示"
+
+msgid "Show API key user"
+msgstr "ユーザー API キーを表示"
+
 msgid "Show Client secret"
 msgstr "クライアントシークレットを表示"
 
@@ -2237,6 +2813,9 @@ msgstr "GPTH エラーメッセージを表示"
 
 msgid "Show GPTH info messages"
 msgstr "GPTH 情報メッセージを表示"
+
+msgid "Show Password"
+msgstr "パスワードを表示"
 
 msgid "Show Refresh token"
 msgstr "リフレッシュトークンを表示"
@@ -2247,11 +2826,20 @@ msgstr "パスワードを表示"
 msgid "Show {0}"
 msgstr "{0} を表示"
 
+msgid "Showing the first {0} matching values. Search to narrow them."
+msgstr "一致する最初の {0} 件の値を表示しています。検索して絞り込んでください。"
+
 msgid "Sign in"
 msgstr "サインイン"
 
 msgid "Sign in to PhotoMigrator"
 msgstr "PhotoMigrator にサインイン"
+
+msgid "Sign-in"
+msgstr "サインイン"
+
+msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
+msgstr "サインインと管理パネルの変更: 誰が、いつ、どこから何をしたか。"
 
 msgid "Skip GPTH tool (not recommended)"
 msgstr "GPTH ツールをスキップ(非推奨)"
@@ -2517,6 +3105,12 @@ msgstr "停止"
 msgid "Stop Running Module?"
 msgstr "実行中のモジュールを停止しますか?"
 
+msgid "Stored backups"
+msgstr "保存済みバックアップ"
+
+msgid "Sunday"
+msgstr "日曜日"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -2525,6 +3119,9 @@ msgstr "Synology Photos"
 
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table"
+msgstr "テーブル"
 
 msgid "Table status: 'access_logs' loaded (2/2 rows)"
 msgstr "テーブルの状態: 'access_logs' を読み込みました (2/2 行)"
@@ -2577,6 +3174,15 @@ msgstr "移行先のターゲットエンドポイントまたはローカルフ
 msgid "Target service"
 msgstr "ターゲットサービス"
 
+msgid "Test email"
+msgstr "テストメール"
+
+msgid "Test email failed:"
+msgstr "テストメールの送信に失敗しました:"
+
+msgid "Test email sent to {0}."
+msgstr "テストメールを {0} に送信しました。"
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr "アカウントはまだ有効ではありません。有効になりましたらメールでお知らせします。"
 
@@ -2586,8 +3192,14 @@ msgstr "デモロールでは、TimeZone と Theme 以外の設定変更を保�
 msgid "The demo role cannot {0} configuration directly."
 msgstr "デモロールは設定を直接 {0} できません。"
 
+msgid "The password needs at least {0} characters."
+msgstr "パスワードは {0} 文字以上にする必要があります。"
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "選択したパスには '{0}' が含まれていますが、これは Google の特殊なフォルダー名として予約されています。\\n\\n"
+
+msgid "The temporary password was emailed to {0}."
+msgstr "一時パスワードを {0} にメールで送信しました。"
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
 msgstr "ツールは同じフォルダーツリー内で有効なターゲットファイルを探し、可能な場合はリンクし直します。"
@@ -2600,6 +3212,9 @@ msgstr "テーマ"
 
 msgid "Theme used by the PhotoMigrator web interface."
 msgstr "PhotoMigrator の Web インターフェースで使用するテーマ。"
+
+msgid "There are no changed values in this row."
+msgstr "この行に変更された値はありません。"
 
 msgid "This argument only accepts one folder. Select exactly one."
 msgstr "この引数はフォルダーを 1 つだけ受け付けます。ちょうど 1 つ選択してください。"
@@ -2757,6 +3372,9 @@ msgstr "このモジュールは、コンテンツの日付を使用して、ロ
 msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
 msgstr "このモジュールは、コンテンツの日付を使用して、ローカルのアルバムフォルダーの名前をその場で変更します。元のフォルダー名はディスク上で変更されます。続行しますか?"
 
+msgid "This permanently deletes the selected row of {0}."
+msgstr "{0} の選択した行を完全に削除します。"
+
 msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
 msgstr "'{0}' のアカウント申請を削除し、承認されなかったことをメールで通知します。続行しますか?"
 
@@ -2771,6 +3389,9 @@ msgstr "ユーザー '{0}' を完全に削除します。続行しますか?"
 
 msgid "This will permanently delete {0} selected folder(s) and all their contents."
 msgstr "選択した {0} 個のフォルダーとその内容がすべて完全に削除されます。"
+
+msgid "Thursday"
+msgstr "木曜日"
 
 msgid "Time zone"
 msgstr "タイムゾーン"
@@ -2787,11 +3408,17 @@ msgstr "タイムスタンプ ▼"
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr "その他の設定項目を保存するには、有効な管理者の認証情報を入力してください。"
 
+msgid "Today"
+msgstr "今日"
+
 msgid "Toggle {0}"
 msgstr "{0} を切り替え"
 
 msgid "Tools"
 msgstr "ツール"
+
+msgid "Total size"
+msgstr "合計サイズ"
 
 msgid "Transfer"
 msgstr "転送"
@@ -2816,6 +3443,12 @@ msgstr "小規模アルバムのグループ化を試行"
 
 msgid "Try Truncated Albums Grouping"
 msgstr "切り詰められたアルバムのグループ化を試行"
+
+msgid "Tuesday"
+msgstr "火曜日"
+
+msgid "Type a new password and leave the field to save it (at least {0} characters)"
+msgstr "新しいパスワードを入力し、フィールドから移動すると保存されます（{0} 文字以上）"
 
 msgid "Type an answer when the running job asks for input"
 msgstr "実行中のジョブが入力を求めたら、回答を入力してください"
@@ -2979,6 +3612,21 @@ msgstr "OUTPUT_TAKEOUT_FOLDER 内のフォルダーを移動または名前変�
 msgid "User"
 msgstr "ユーザー"
 
+msgid "User created"
+msgstr "ユーザーを作成しました"
+
+msgid "User deleted"
+msgstr "ユーザーを削除しました"
+
+msgid "User not found."
+msgstr "ユーザーが見つかりません。"
+
+msgid "User update failed"
+msgstr "ユーザーの更新に失敗しました"
+
+msgid "User updated"
+msgstr "ユーザーを更新しました"
+
 msgid "Username"
 msgstr "ユーザー名"
 
@@ -2987,6 +3635,15 @@ msgstr "ユーザー名またはメールアドレス"
 
 msgid "Users"
 msgstr "ユーザー"
+
+msgid "Users active in the last {0} minutes · click to list them first"
+msgstr "直近 {0} 分間にアクティブなユーザー · クリックして先頭に表示"
+
+msgid "Users, settings and credentials"
+msgstr "ユーザー、設定、認証情報"
+
+msgid "Users, settings, saved credentials and email settings, in one file. Backups made here are never deleted automatically."
+msgstr "ユーザー、設定、保存済みの認証情報、メール設定を 1 つのファイルにまとめます。ここで作成したバックアップは自動的に削除されません。"
 
 msgid "Uses the configured cloud account ID."
 msgstr "設定済みのクラウドアカウント ID を使用します。"
@@ -3003,8 +3660,14 @@ msgstr "設定のデフォルトを使用中"
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "有効なアクション: restore_duplicate / remove_duplicate / replace_duplicate。"
 
+msgid "Values come from the whole table, not just this page."
+msgstr "値はこのページだけでなく、テーブル全体から取得されます。"
+
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "バージョン v5.0.0 · サインインして続行"
+
+msgid "Volumes folder"
+msgstr "ボリュームフォルダー"
 
 msgid "Warm palette"
 msgstr "ウォームパレット"
@@ -3015,8 +3678,17 @@ msgstr "アカウント申請を受け付けました"
 msgid "Web Interface"
 msgstr "Web インターフェース"
 
+msgid "Web database"
+msgstr "Web データベース"
+
 msgid "Website"
 msgstr "Web サイト"
+
+msgid "Wednesday"
+msgstr "水曜日"
+
+msgid "Weekly"
+msgstr "毎週"
 
 msgid "Welcome back, admin"
 msgstr "おかえりなさい、admin さん"
@@ -3081,11 +3753,32 @@ msgstr "ワークスペース"
 msgid "Yes"
 msgstr "はい"
 
+msgid "Yesterday"
+msgstr "昨日"
+
+msgid "You"
+msgstr "あなた"
+
 msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
 msgstr "セルを編集して「行を保存」をクリックするか、「行を削除」をクリックできます。挿入には JSON オブジェクトの構文を使用します。"
 
+msgid "You cannot deactivate your own account"
+msgstr "自分自身のアカウントは無効化できません"
+
+msgid "You cannot deactivate your own account."
+msgstr "自分自身のアカウントは無効化できません。"
+
+msgid "You cannot delete your own user"
+msgstr "自分自身のユーザーは削除できません"
+
+msgid "You cannot delete your own user."
+msgstr "自分自身のユーザーは削除できません。"
+
 msgid "You will be asked to confirm before it runs."
 msgstr "実行前に確認を求められます。"
+
+msgid "Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "Immich Photos の ADMIN_API_KEY（API_KEY は アカウント設定 --> API_KEY キー で作成できます）"
 
 msgid "Your PhotoMigrator account"
 msgstr "お客様の PhotoMigrator アカウント"
@@ -3108,6 +3801,9 @@ msgstr "自分のライブラリ"
 msgid "Your password was changed"
 msgstr "パスワードが変更されました"
 
+msgid "Your password was reset"
+msgstr "パスワードがリセットされました"
+
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "仮パスワードは <b>{0}</b> です。初回サインイン時に、ご自身のパスワードを設定していただきます。"
 
@@ -3120,8 +3816,14 @@ msgstr "管理者が PhotoMigrator アカウント <b>{0}</b> のパスワード
 msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
 msgstr "管理者が PhotoMigrator アカウント <b>{0}</b> を無効にしました。誤りだと思われる場合は、このメールに返信してください。"
 
+msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
+msgstr "管理者が PhotoMigrator アカウント <b>{0}</b> のパスワードをリセットしました。"
+
 msgid "backup_schedules ({0})"
 msgstr "backup_schedules ({0})"
+
+msgid "created"
+msgstr "作成日"
 
 msgid "data subpath (default username)"
 msgstr "data のサブパス(デフォルトはユーザー名)"
@@ -3132,6 +3834,9 @@ msgstr "例: photos-2026 または /app/data/photos-2026"
 msgid "environment variables."
 msgstr "環境変数。"
 
+msgid "failed"
+msgstr "失敗"
+
 msgid "iCloud Takeout"
 msgstr "iCloud Takeout"
 
@@ -3141,8 +3846,14 @@ msgstr "iCloud Takeout · PhotoMigrator"
 msgid "immich-photos-1 -> immich-photos-1"
 msgstr "immich-photos-1 -> immich-photos-1"
 
+msgid "in the backup folder"
+msgstr "バックアップフォルダー内"
+
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
 msgstr "が「はい」に設定されている場合、アップロードされた .zip ファイルはサーバー上で展開され、.zip ファイルは削除されます。「いいえ」に設定すると、.zip ファイルはアップロードされたまま保持されます。"
+
+msgid "key"
+msgstr "キー"
 
 msgid "max size {0} MB"
 msgstr "最大サイズ {0} MB"
@@ -3150,11 +3861,20 @@ msgstr "最大サイズ {0} MB"
 msgid "max size {0} MB · timeout {1} s"
 msgstr "最大サイズ {0} MB · タイムアウト {1} 秒"
 
+msgid "name@example.com · empty = your own email"
+msgstr "name@example.com · 空欄 = あなた自身のメールアドレス"
+
 msgid "nextcloud-photos-1 -> nextcloud-photos-1"
 msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 
+msgid "on the backup volume"
+msgstr "バックアップボリューム上"
+
 msgid "sessions ({0})"
 msgstr "sessions ({0})"
+
+msgid "success"
+msgstr "成功"
 
 msgid "synology-photos-1 -> immich-photos-1"
 msgstr "synology-photos-1 -> immich-photos-1"
@@ -3210,11 +3930,41 @@ msgstr "タスク <b>{0}</b> は正常に完了しました。"
 msgid "your task <b>{0}</b> was stopped before it finished."
 msgstr "タスク <b>{0}</b> は完了前に停止されました。"
 
+msgid "{0} / {1} rows"
+msgstr "{0} / {1} 行"
+
+msgid "{0} access request"
+msgstr "{0} 件のアクセスリクエスト"
+
+msgid "{0} access requests"
+msgstr "{0} 件のアクセスリクエスト"
+
+msgid "{0} account"
+msgstr "{0} 件のアカウント"
+
 msgid "{0} accounts"
 msgstr "{0} アカウント"
 
+msgid "{0} activated"
+msgstr "{0} を有効化しました"
+
+msgid "{0} created"
+msgstr "{0} を作成しました"
+
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr "{0} が PhotoMigrator アカウントを作成しました。ユーザー名 <b>{1}</b> またはこのメールアドレスでサインインしてください。"
+
+msgid "{0} days ago"
+msgstr "{0} 日前"
+
+msgid "{0} deactivated"
+msgstr "{0} を無効化しました"
+
+msgid "{0} deleted"
+msgstr "{0} を削除しました"
+
+msgid "{0} events"
+msgstr "{0} 件のイベント"
 
 msgid "{0} failed"
 msgstr "{0} が失敗しました"
@@ -3225,11 +3975,44 @@ msgstr "{0} 個の機能"
 msgid "{0} finished"
 msgstr "{0} が完了しました"
 
+msgid "{0} is active"
+msgstr "{0} は有効です"
+
+msgid "{0} must change the password"
+msgstr "{0} はパスワードを変更する必要があります"
+
+msgid "{0} no longer has to change the password"
+msgstr "{0} はパスワードを変更する必要がなくなりました"
+
+msgid "{0} of {1} users"
+msgstr "{0} / {1} 人のユーザー"
+
+msgid "{0} online"
+msgstr "{0} オンライン"
+
 msgid "{0} options"
 msgstr "{0} のオプション"
 
+msgid "{0} rows"
+msgstr "{0} 行"
+
+msgid "{0} scheduled · {1} manual"
+msgstr "スケジュール {0} · 手動 {1}"
+
+msgid "{0} selected"
+msgstr "{0} 件選択中"
+
 msgid "{0} stopped"
 msgstr "{0} が停止しました"
+
+msgid "{0} users"
+msgstr "{0} 人のユーザー"
+
+msgid "{0} users changed"
+msgstr "{0} 人のユーザーを変更しました"
+
+msgid "{0} will change the password at the next sign-in"
+msgstr "{0} は次回のサインイン時にパスワードを変更します"
 
 msgid "⏱️ Delayed Recovered"
 msgstr "⏱️ 遅延再試行で回復"

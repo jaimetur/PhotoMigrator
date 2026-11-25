@@ -18,6 +18,9 @@ msgstr "（默认：全部）"
 msgid "(no output)"
 msgstr "（无输出）"
 
+msgid "+ Add row"
+msgstr "+ 添加行"
+
 msgid "/app/data subpath"
 msgstr "/app/data 子路径"
 
@@ -44,6 +47,12 @@ msgstr "整个文件夹（包含相册）"
 
 msgid "ALL_PHOTOS Folder Name"
 msgstr "ALL_PHOTOS 文件夹名称"
+
+msgid "API key admin"
+msgstr "管理员 API 密钥"
+
+msgid "API key user"
+msgstr "用户 API 密钥"
 
 msgid "About Auto Rename Folders Content Based"
 msgstr "关于按内容自动重命名文件夹"
@@ -117,6 +126,9 @@ msgstr "关于 {0}"
 msgid "Access Logs"
 msgstr "访问日志"
 
+msgid "Access logs"
+msgstr "访问日志"
+
 msgid "Access logs: loaded {0} entries"
 msgstr "访问日志：已加载 {0} 条记录"
 
@@ -125,6 +137,12 @@ msgstr "访问日志：加载中..."
 
 msgid "Access logs: {0}"
 msgstr "访问日志：{0}"
+
+msgid "Access request"
+msgstr "访问申请"
+
+msgid "Access request of {0} approved"
+msgstr "已批准 {0} 的访问申请"
 
 msgid "Account"
 msgstr "账户"
@@ -141,8 +159,23 @@ msgstr "账户申请"
 msgid "Account request from {0}"
 msgstr "来自 {0} 的账户申请"
 
+msgid "Account requests from the login page"
+msgstr "来自登录页面的账户申请"
+
 msgid "Account {0}"
 msgstr "账户 {0}"
+
+msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "账户 {0}：您的 Immich Photos USER_API_KEY（可在 账户设置 --> API_KEY 密钥 中创建 API_KEY）"
+
+msgid "Account {0}: Your password for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "账户 {0}：您的 Immich Photos 密码（未提供 API_KEY 时必填）"
+
+msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "账户 {0}：您的 Immich Photos 用户名（未提供 API_KEY 时必填）"
+
+msgid "Accounts"
+msgstr "账户"
 
 msgid "Action"
 msgstr "操作"
@@ -150,14 +183,26 @@ msgstr "操作"
 msgid "Actions"
 msgstr "操作"
 
+msgid "Activate"
+msgstr "激活"
+
+msgid "Activate the {0} selected users?"
+msgstr "激活所选的 {0} 个用户？"
+
 msgid "Active"
 msgstr "已启用"
+
+msgid "Active and inactive"
+msgstr "活跃和未活跃"
 
 msgid "Activity"
 msgstr "活动"
 
 msgid "Activity · PhotoMigrator"
 msgstr "活动 · PhotoMigrator"
+
+msgid "Add row"
+msgstr "添加行"
 
 msgid "Add the URL and credentials of each account in"
 msgstr "在以下位置添加每个账户的 URL 和凭据："
@@ -246,11 +291,23 @@ msgstr "同名相册"
 msgid "All Users"
 msgstr "所有用户"
 
+msgid "All dates"
+msgstr "所有日期"
+
+msgid "All events"
+msgstr "所有事件"
+
 msgid "All photos folder name"
 msgstr "所有照片文件夹名称"
 
 msgid "All photos folder structure"
 msgstr "所有照片文件夹结构"
+
+msgid "All roles"
+msgstr "所有角色"
+
+msgid "All users"
+msgstr "所有用户"
 
 msgid "Allow login into Synology Photos using 2FA with an OTP token."
 msgstr "允许使用 OTP 令牌通过两步验证登录 Synology Photos。"
@@ -266,6 +323,9 @@ msgstr "还需要模块选择器 '--dup-asset-keeper {more-people/tags-then-bett
 
 msgid "An administrator reviews every request. You will get an email when your account is active."
 msgstr "管理员会审核每一项申请。账户启用后，您将收到电子邮件。"
+
+msgid "An email with the username and the password is sent to the new user."
+msgstr "将向新用户发送包含用户名和密码的电子邮件。"
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
 msgstr "此处保存的任何值都会保留在数据库中，但在该覆盖设置仍然生效期间将被忽略。"
@@ -285,11 +345,23 @@ msgstr "Apple 照片"
 msgid "Apple iCloud Photos export"
 msgstr "Apple iCloud 照片导出"
 
+msgid "Application activity"
+msgstr "应用程序活动"
+
 msgid "Apply a reviewed duplicates CSV"
 msgstr "应用已审核的重复项 CSV"
 
+msgid "Apply filter"
+msgstr "应用筛选"
+
 msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
 msgstr "在管理面板中启用该账户即可批准，也可在同一列表中拒绝。"
+
+msgid "Approve request"
+msgstr "批准申请"
+
+msgid "Approve the request of {0}"
+msgstr "批准 {0} 的申请"
 
 msgid "Are you sure?"
 msgstr "确定吗？"
@@ -297,8 +369,14 @@ msgstr "确定吗？"
 msgid "Arguments must be passed as two values separated by comma."
 msgstr "参数必须以逗号分隔的两个值传入。"
 
+msgid "Asked at the first sign-in"
+msgstr "首次登录时询问"
+
 msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
 msgstr "资源迁移后将从源中删除。关闭“移动资源”可改为复制。"
+
+msgid "At least {0} characters"
+msgstr "至少 {0} 个字符"
 
 msgid "Authorize"
 msgstr "授权"
@@ -308,6 +386,9 @@ msgstr "按内容自动重命名文件夹"
 
 msgid "Auto Scroll"
 msgstr "自动滚动"
+
+msgid "Automatic"
+msgstr "自动"
 
 msgid "Automatic Migration"
 msgstr "自动迁移"
@@ -330,8 +411,41 @@ msgstr "返回网页界面"
 msgid "Back to sign in"
 msgstr "返回登录"
 
+msgid "Back up now"
+msgstr "立即备份"
+
+msgid "Back up the web database now, restore a backup or schedule recurring backups."
+msgstr "立即备份 Web 数据库、恢复备份或安排定期备份。"
+
+msgid "Backup"
+msgstr "备份"
+
 msgid "Backup Error"
 msgstr "备份错误"
+
+msgid "Backup deleted"
+msgstr "备份已删除"
+
+msgid "Backup failed:"
+msgstr "备份失败："
+
+msgid "Backup file"
+msgstr "备份文件"
+
+msgid "Backup folder"
+msgstr "备份文件夹"
+
+msgid "Backup protection"
+msgstr "备份保护"
+
+msgid "Backup restored"
+msgstr "备份已恢复"
+
+msgid "Backup restored. The previous data was saved as {0}."
+msgstr "备份已恢复。之前的数据已另存为 {0}。"
+
+msgid "Backup saved: {0}"
+msgstr "备份已保存：{0}"
 
 msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
 msgstr "备份状态：空闲 | 模式：daily_2am | 上次运行：- | 下次：-"
@@ -348,14 +462,23 @@ msgstr "备份状态：{0} | 文件：{1}"
 msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
 msgstr "备份状态：{0} | 模式：{1} | 上次运行：{2} | 下次：{3}"
 
+msgid "Backups"
+msgstr "备份"
+
 msgid "Backups Scheduler"
 msgstr "备份计划"
+
+msgid "Before a restore"
+msgstr "恢复之前"
 
 msgid "Blue palette"
 msgstr "蓝色调色板"
 
 msgid "Browse"
 msgstr "浏览"
+
+msgid "Browse, edit or remove individual records of any table of the Web Interface database."
+msgstr "浏览、编辑或删除 Web 界面数据库中任意表的单条记录。"
 
 msgid "By default migration runs in parallel with live dashboard enabled."
 msgstr "默认情况下，迁移以并行方式运行，并启用实时仪表板。"
@@ -366,14 +489,50 @@ msgstr "默认情况下，输出使用 'year/month' 结构并保存到 '<INPUT_F
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "后端不提供 CSV 接口。请重启或更新网页后端。"
 
+msgid "Can sign in right away"
+msgstr "可立即登录"
+
 msgid "Cancel"
 msgstr "取消"
+
+msgid "Cannot change role of the last active admin."
+msgstr "无法更改最后一个活跃管理员的角色。"
+
+msgid "Cannot deactivate the last active admin."
+msgstr "无法停用最后一个活跃管理员。"
+
+msgid "Cannot delete the last active admin."
+msgstr "无法删除最后一个活跃管理员。"
 
 msgid "Change Email"
 msgstr "更改电子邮件"
 
 msgid "Change Email: {0}"
 msgstr "更改电子邮件：{0}"
+
+msgid "Change any field in place: it saves on its own. Select several users to change them at once."
+msgstr "可直接修改任意字段，系统会自动保存。选择多个用户可一次性修改。"
+
+msgid "Change selected users"
+msgstr "更改所选用户"
+
+msgid "Change the email"
+msgstr "更改电子邮件"
+
+msgid "Change the email of {0}"
+msgstr "更改 {0} 的电子邮件"
+
+msgid "Change the role of the selected users"
+msgstr "更改所选用户的角色"
+
+msgid "Change the role of the {0} selected users to {1}?"
+msgstr "将所选的 {0} 个用户的角色更改为 {1}？"
+
+msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
+msgstr "请将此 IP 替换为 Immich 服务器的 IP 或您有效的 Immich URL"
+
+msgid "Changed {0} users. Not changed:"
+msgstr "已更改 {0} 个用户。未更改："
 
 msgid "Changes your library"
 msgstr "会更改您的图库"
@@ -405,6 +564,12 @@ msgstr "选择 '--remove-duplicates-assets' 要保留的资源。more-people/tag
 msgid "Clean up"
 msgstr "清理"
 
+msgid "Clear column"
+msgstr "清除列"
+
+msgid "Clear selection"
+msgstr "清除选择"
+
 msgid "Client ID"
 msgstr "客户端 ID"
 
@@ -416,6 +581,12 @@ msgstr "关闭"
 
 msgid "Close menu"
 msgstr "关闭菜单"
+
+msgid "Close without adding"
+msgstr "关闭且不添加"
+
+msgid "Close without creating"
+msgstr "关闭且不创建"
 
 msgid "Collapse panel"
 msgstr "折叠面板"
@@ -492,13 +663,22 @@ msgstr "配置文件"
 msgid "Configuration for Google Photos"
 msgstr "Google Photos 配置"
 
+msgid "Configuration for Immich Photos"
+msgstr "Immich Photos 配置"
+
 msgid "Configured"
 msgstr "已配置"
+
+msgid "Configured · SMTP server"
+msgstr "已配置 · SMTP 服务器"
 
 msgid "Confirm"
 msgstr "确认"
 
 msgid "Confirm Action"
+msgstr "确认操作"
+
+msgid "Confirm action"
 msgstr "确认操作"
 
 msgid "Confirm new password"
@@ -567,6 +747,9 @@ msgstr "创建失败：{0}"
 msgid "Create stacks"
 msgstr "创建堆叠"
 
+msgid "Create user"
+msgstr "创建用户"
+
 msgid "Created From"
 msgstr "创建时间起"
 
@@ -575,6 +758,9 @@ msgstr "创建时间止"
 
 msgid "Created: {0}"
 msgstr "已创建：{0}"
+
+msgid "Creating…"
+msgstr "正在创建…"
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
 msgstr "凭据和服务设置按用户保存在网页数据库中。敏感数据以加密方式存储，并供所有功能共用。"
@@ -606,6 +792,9 @@ msgstr "数据库插入错误"
 msgid "DB Update Error"
 msgstr "数据库更新错误"
 
+msgid "Daily"
+msgstr "每天"
+
 msgid "Dangerous Module"
 msgstr "危险模块"
 
@@ -615,8 +804,26 @@ msgstr "深色界面调色板"
 msgid "Dashboard"
 msgstr "仪表板"
 
+msgid "Data folder"
+msgstr "数据文件夹"
+
+msgid "Database"
+msgstr "数据库"
+
 msgid "Database Manager"
 msgstr "数据库管理器"
+
+msgid "Database edit"
+msgstr "数据库编辑"
+
+msgid "Database error"
+msgstr "数据库错误"
+
+msgid "Database viewer"
+msgstr "数据库查看器"
+
+msgid "Date"
+msgstr "日期"
 
 msgid "Date and range separators"
 msgstr "日期和范围分隔符"
@@ -626,6 +833,27 @@ msgstr "日期和范围分隔符可通过 '--date-separator' 和 '--range-separa
 
 msgid "Date separator"
 msgstr "日期分隔符"
+
+msgid "Day of the month"
+msgstr "每月的日期"
+
+msgid "Day of the week"
+msgstr "每周的星期"
+
+msgid "Day {0} of every month at {1}"
+msgstr "每月 {0} 日 {1}"
+
+msgid "Days to keep"
+msgstr "保留天数"
+
+msgid "Days to keep: the scheduled backups of the last {0} days are kept (today: since {1})."
+msgstr "保留天数：保留最近 {0} 天的计划备份（今天：自 {1} 起）。"
+
+msgid "Deactivate"
+msgstr "停用"
+
+msgid "Deactivate the {0} selected users?"
+msgstr "停用所选的 {0} 个用户？"
 
 msgid "Default account available:"
 msgstr "可用的默认账户："
@@ -648,6 +876,12 @@ msgstr "删除所选文件夹？"
 msgid "Delete User"
 msgstr "删除用户"
 
+msgid "Delete backup"
+msgstr "删除备份"
+
+msgid "Delete database row"
+msgstr "删除数据库行"
+
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr "删除接口不可用。请重启网页界面后端后重试。"
 
@@ -657,8 +891,26 @@ msgstr "删除行"
 msgid "Delete row {0} from '{1}'?"
 msgstr "从 '{1}' 中删除第 {0} 行？"
 
+msgid "Delete the backup {0}? This action cannot be undone."
+msgstr "删除备份 {0}？此操作无法撤销。"
+
+msgid "Delete the {0} selected users? This action cannot be undone."
+msgstr "删除所选的 {0} 个用户？此操作无法撤销。"
+
+msgid "Delete user"
+msgstr "删除用户"
+
+msgid "Delete user {0}? This action cannot be undone."
+msgstr "删除用户 {0}？此操作无法撤销。"
+
+msgid "Delete {0}"
+msgstr "删除 {0}"
+
 msgid "Demo"
 msgstr "演示"
+
+msgid "Demo (read only)"
+msgstr "演示（只读）"
 
 msgid "Demo Role Restricted"
 msgstr "演示角色受限"
@@ -672,6 +924,12 @@ msgstr "需要目标位置"
 msgid "Destination folder"
 msgstr "目标文件夹"
 
+msgid "Details"
+msgstr "详情"
+
+msgid "Disabled"
+msgstr "已禁用"
+
 msgid "Do not save the GPTH log"
 msgstr "不保存 GPTH 日志"
 
@@ -680,6 +938,9 @@ msgstr "文档"
 
 msgid "Documentation"
 msgstr "文档"
+
+msgid "Download"
+msgstr "下载"
 
 msgid "Download Albums"
 msgstr "下载相册"
@@ -741,6 +1002,9 @@ msgstr "上传期间，将已有的等效相册名称视为一个族，并将其
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
 msgstr "上传期间，将已有的等效相册名称视为一个族，并将其资源合并到规范保留的相册中。仅当服务支持删除相册时，才会删除多余的相册。"
 
+msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
+msgstr "编辑值后点击 ✓ 保存该行。主键受保护。每页 {0} 行。"
+
 msgid "Elapsed Time"
 msgstr "已用时间"
 
@@ -759,11 +1023,29 @@ msgstr "电子邮件 (SMTP)"
 msgid "Email check"
 msgstr "电子邮件检查"
 
+msgid "Email delivery"
+msgstr "邮件发送"
+
+msgid "Email delivery saved."
+msgstr "邮件发送设置已保存。"
+
 msgid "Email is not configured on this server yet."
 msgstr "此服务器尚未配置电子邮件。"
 
+msgid "Email is not configured: give the username and the password to the new user yourself."
+msgstr "未配置电子邮件：请自行将用户名和密码告知新用户。"
+
 msgid "Email me when it finishes"
 msgstr "完成后通过电子邮件通知我"
+
+msgid "Email of {0}"
+msgstr "{0} 的电子邮件"
+
+msgid "Email of {0} changed"
+msgstr "已更改 {0} 的电子邮件"
+
+msgid "Email settings"
+msgstr "电子邮件设置"
 
 msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
 msgstr "电子邮件状态：未配置，不会发送电子邮件；已启用登录页面的账户申请。"
@@ -779,6 +1061,9 @@ msgstr "电子邮件状态：测试邮件已发送至 {0}。"
 
 msgid "Email status: {0}"
 msgstr "电子邮件状态：{0}"
+
+msgid "Emails of the tool"
+msgstr "工具邮件"
 
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "启用或禁用 GPTH 处理期间的错误消息。"
@@ -798,8 +1083,14 @@ msgstr "启用或禁用自动迁移任务期间的实时仪表板功能。"
 msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
 msgstr "启用或禁用自动迁移任务期间的实时仪表板功能。此参数仅在同时提供 '--source' 和 '--target' 参数时有效。（默认：True）。"
 
+msgid "Enable recurring backups"
+msgstr "启用定期备份"
+
 msgid "Enabled"
 msgstr "已启用"
+
+msgid "Encryption"
+msgstr "加密"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "请输入文件夹名称，或以下位置内的绝对路径："
@@ -813,6 +1104,9 @@ msgstr "错误：{0}"
 msgid "Estimated End"
 msgstr "预计结束"
 
+msgid "Event"
+msgstr "事件"
+
 msgid "Every album and asset"
 msgstr "所有相册和资源"
 
@@ -825,11 +1119,23 @@ msgstr "所有资源和相册"
 msgid "Every day (2:00 AM)"
 msgstr "每天（凌晨 2:00）"
 
+msgid "Every day at {0}"
+msgstr "每天 {0}"
+
 msgid "Every hour"
 msgstr "每小时"
 
+msgid "Every hour at minute {0}"
+msgstr "每小时第 {0} 分钟"
+
 msgid "Every week (Monday 2:00 AM)"
 msgstr "每周（周一凌晨 2:00）"
+
+msgid "Every {0} at {1}"
+msgstr "每{0} {1}"
+
+msgid "Every {0} hours"
+msgstr "每 {0} 小时"
 
 msgid "Example: --consolidate-albums-names --preview-album-actions"
 msgstr "示例：--consolidate-albums-names --preview-album-actions"
@@ -960,6 +1266,9 @@ msgstr "执行 GPTH 工具"
 msgid "Execution"
 msgstr "执行"
 
+msgid "Execution time"
+msgstr "执行时间"
+
 msgid "Expand panel"
 msgstr "展开面板"
 
@@ -978,11 +1287,20 @@ msgstr "已解压的 ZIP：{0}（{1} 个文件）|"
 msgid "Extracted ZIPs: {0}\\n"
 msgstr "已解压的 ZIP：{0}\\n"
 
+msgid "Failed sign in"
+msgstr "登录失败"
+
 msgid "Failed: {0}"
 msgstr "失败：{0}"
 
+msgid "Fill at least one value."
+msgstr "请至少填写一个值。"
+
 msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
 msgstr "请填写必填字段。除非展开高级选项，否则它们保持默认值。"
+
+msgid "Filter"
+msgstr "筛选"
 
 msgid "Filter by city"
 msgstr "按城市筛选"
@@ -993,6 +1311,12 @@ msgstr "按国家/地区筛选"
 msgid "Filter by person"
 msgstr "按人物筛选"
 
+msgid "Filter by role"
+msgstr "按角色筛选"
+
+msgid "Filter by status"
+msgstr "按状态筛选"
+
 msgid "Filter by type"
 msgstr "按类型筛选"
 
@@ -1001,6 +1325,12 @@ msgstr "筛选起始日期"
 
 msgid "Filter to date"
 msgstr "筛选截止日期"
+
+msgid "Filter {0}"
+msgstr "筛选 {0}"
+
+msgid "Filter: {0}"
+msgstr "筛选：{0}"
 
 msgid "Filters"
 msgstr "筛选"
@@ -1016,6 +1346,9 @@ msgstr "查找重复项"
 
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr "通过文件大小和内容检查，在一个或多个文件夹中查找重复项。"
+
+msgid "First page"
+msgstr "首页"
 
 msgid "Fix Broken Symlinks"
 msgstr "修复失效的符号链接"
@@ -1073,6 +1406,9 @@ msgstr "无相册文件夹名称"
 
 msgid "Folders"
 msgstr "文件夹"
+
+msgid "Folders of {0} changed"
+msgstr "已更改 {0} 的文件夹"
 
 msgid "Folders to scan"
 msgstr "要扫描的文件夹"
@@ -1137,6 +1473,15 @@ msgstr "强制更改密码"
 msgid "Force password change on first login"
 msgstr "首次登录时强制更改密码"
 
+msgid "Free disk space"
+msgstr "可用磁盘空间"
+
+msgid "Friday"
+msgstr "星期五"
+
+msgid "From"
+msgstr "发件人"
+
 msgid "GPTH messages"
 msgstr "GPTH 消息"
 
@@ -1145,6 +1490,9 @@ msgstr "通用参数"
 
 msgid "Get started in three steps"
 msgstr "三步即可开始"
+
+msgid "Give this temporary password to {0}. It is shown only once:"
+msgstr "请将此临时密码告知 {0}。它仅显示一次："
 
 msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
 msgstr "所有功能共用的全局参数：日志、执行、文件夹名称和筛选器。"
@@ -1221,6 +1569,9 @@ msgstr "主页（data）"
 msgid "Home (volumes)"
 msgstr "主页（volumes）"
 
+msgid "Hourly"
+msgstr "每小时"
+
 msgid "How to migrate"
 msgstr "如何迁移"
 
@@ -1243,6 +1594,9 @@ msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operat
 msgstr "重要：remove_duplicate 和 replace_duplicate 是不可逆操作。"
 
 msgid "IP Address"
+msgstr "IP 地址"
+
+msgid "IP address"
 msgstr "IP 地址"
 
 msgid "Idle"
@@ -1287,6 +1641,9 @@ msgstr "Immich"
 msgid "Immich Photos"
 msgstr "Immich Photos"
 
+msgid "Immich Photos accounts"
+msgstr "Immich Photos 账户"
+
 msgid "Immich Photos · PhotoMigrator"
 msgstr "Immich Photos · PhotoMigrator"
 
@@ -1307,6 +1664,9 @@ msgstr "当存在 Takeout 人物映射时，将 Google Takeout 的人物标签�
 
 msgid "Import people"
 msgstr "导入人物"
+
+msgid "Inactive"
+msgstr "未活跃"
 
 msgid "Include Memories as albums"
 msgstr "将“回忆”作为相册包含在内"
@@ -1367,6 +1727,21 @@ msgstr "最后更新：-"
 
 msgid "Last Updated: {0}"
 msgstr "最后更新：{0}"
+
+msgid "Last backup"
+msgstr "上次备份"
+
+msgid "Last page"
+msgstr "末页"
+
+msgid "Last sign-in"
+msgstr "上次登录"
+
+msgid "Last {0} days"
+msgstr "最近 {0} 天"
+
+msgid "Last {0} hours"
+msgstr "最近 {0} 小时"
 
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr "字母、数字、点、连字符或下划线"
@@ -1458,6 +1833,12 @@ msgstr "缺少必需参数：--{0}"
 msgid "Missing tab."
 msgstr "缺少标签页。"
 
+msgid "Monday"
+msgstr "星期一"
+
+msgid "Monthly"
+msgstr "每月"
+
 msgid "Move Assets"
 msgstr "移动资源"
 
@@ -1485,8 +1866,17 @@ msgstr "将整个图库迁移到另一项服务"
 msgid "Multiple albums can be separated by comma or space and quoted."
 msgstr "多个相册可用逗号或空格分隔，并加引号。"
 
+msgid "Must change password"
+msgstr "必须更改密码"
+
 msgid "Naming & Folders"
 msgstr "命名与文件夹"
+
+msgid "Never"
+msgstr "从不"
+
+msgid "Never shown. Leave it empty to keep the saved password."
+msgstr "不会显示。留空则保留已保存的密码。"
 
 msgid "New account request"
 msgstr "新账户申请"
@@ -1499,6 +1889,18 @@ msgstr "每个匹配相册的新名称。"
 
 msgid "New password"
 msgstr "新密码"
+
+msgid "New password for {0}"
+msgstr "{0} 的新密码"
+
+msgid "New user"
+msgstr "新用户"
+
+msgid "Next backup"
+msgstr "下次备份"
+
+msgid "Next page"
+msgstr "下一页"
 
 msgid "NextCloud"
 msgstr "NextCloud"
@@ -1515,8 +1917,17 @@ msgstr "否"
 msgid "No additional help for this field."
 msgstr "此字段没有更多帮助信息。"
 
+msgid "No backups yet"
+msgstr "暂无备份"
+
 msgid "No credentials for account {0} yet."
 msgstr "账户 {0} 尚无凭据。"
+
+msgid "No email · add one"
+msgstr "无电子邮件 · 请添加"
+
+msgid "No entries match the current filters."
+msgstr "没有符合当前筛选条件的条目。"
 
 msgid "No extra arguments required"
 msgstr "无需额外参数"
@@ -1532,6 +1943,9 @@ msgstr "没有正在运行的任务"
 
 msgid "No log file"
 msgstr "没有日志文件"
+
+msgid "No users match the current filters."
+msgstr "没有符合当前筛选条件的用户。"
 
 msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
 msgstr "非相册资源存放在 <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ 下，采用 year/month 结构。"
@@ -1560,6 +1974,12 @@ msgstr "Google Photos 账户 {0} 的 OAuth 客户端密钥"
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Google Photos 账户 {0} 的 OAuth 刷新令牌"
 
+msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
+msgstr "较早的计划备份会被删除，最新的一个除外。通过“立即备份”创建的备份永远不会被删除。"
+
+msgid "On"
+msgstr "开启"
+
 msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
 msgstr "在受支持的云端目标上，多余的变体会合并到首选的保留相册中。当 API 支持删除相册（Immich、Synology、NextCloud）时，随后会删除多余的相册。Google Photos 会保留多余的变体，因为公共 API 无法删除相册。"
 
@@ -1580,6 +2000,9 @@ msgstr "一次性密码"
 
 msgid "One value per line or comma-separated"
 msgstr "每行一个值，或以逗号分隔"
+
+msgid "Online now"
+msgstr "当前在线"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "只有已启用的管理员才能授权此操作。请输入管理员用户名和密码。"
@@ -1716,6 +2139,9 @@ msgstr "运行时被环境变量 '{0}' 覆盖。"
 msgid "Overwrite Configuration?"
 msgstr "覆盖配置？"
 
+msgid "Page {0} of {1}"
+msgstr "第 {0} 页，共 {1} 页"
+
 msgid "Parallel Migration"
 msgstr "并行迁移"
 
@@ -1725,8 +2151,20 @@ msgstr "密码"
 msgid "Password (at least {0} characters)"
 msgstr "密码（至少 {0} 个字符）"
 
+msgid "Password of {0} changed"
+msgstr "已更改 {0} 的密码"
+
+msgid "Password reset"
+msgstr "密码重置"
+
 msgid "Pattern and replacement"
 msgstr "模式和替换内容"
+
+msgid "Pending access requests"
+msgstr "待处理的访问申请"
+
+msgid "Period"
+msgstr "周期"
 
 msgid "Photo libraries"
 msgstr "照片图库"
@@ -1763,6 +2201,9 @@ msgstr "请选择要运行的功能/模块。"
 
 msgid "Please verify username/password and try again."
 msgstr "请检查用户名/密码后重试。"
+
+msgid "Port"
+msgstr "端口"
 
 msgid "Port ({0}, {1} or {2})"
 msgstr "端口（{0}、{1} 或 {2}）"
@@ -1802,6 +2243,12 @@ msgstr "预览不可用"
 
 msgid "Preview unavailable: {0}"
 msgstr "预览不可用：{0}"
+
+msgid "Previous page"
+msgstr "上一页"
+
+msgid "Primary-key values are protected"
+msgstr "主键值受保护"
 
 msgid "Process Duplicates"
 msgstr "处理重复项"
@@ -1878,6 +2325,15 @@ msgstr "准备运行"
 msgid "Reason: {0}"
 msgstr "原因：{0}"
 
+msgid "Recurrence"
+msgstr "重复周期"
+
+msgid "Recurring backups are off. Back up now still works."
+msgstr "定期备份已关闭。“立即备份”仍可使用。"
+
+msgid "Refresh"
+msgstr "刷新"
+
 msgid "Refresh Logs"
 msgstr "刷新日志"
 
@@ -1892,6 +2348,12 @@ msgstr "拒绝账户申请"
 
 msgid "Reject Request"
 msgstr "拒绝申请"
+
+msgid "Reject request"
+msgstr "拒绝申请"
+
+msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
+msgstr "拒绝 {0} 的访问申请？该账户将被删除，并向用户发送电子邮件。"
 
 msgid "Release Notes"
 msgstr "发行说明"
@@ -1956,6 +2418,9 @@ msgstr "删除重复相册（名称和大小相同）。"
 msgid "Remove empty albums."
 msgstr "删除空相册。"
 
+msgid "Remove the saved password"
+msgstr "删除已保存的密码"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "已删除：{0} | 失败：{1}"
 
@@ -1998,6 +2463,9 @@ msgstr "替换模式"
 msgid "Replacement text"
 msgstr "替换文本"
 
+msgid "Replaces the users, settings and credentials with the ones in the backup. The current data is saved first as a pre-restore backup."
+msgstr "将用户、设置和凭据替换为备份中的内容。当前数据会先保存为恢复前备份。"
+
 msgid "Request User Confirmation"
 msgstr "请求用户确认"
 
@@ -2025,6 +2493,21 @@ msgstr "重置密码"
 msgid "Reset Password: {0}"
 msgstr "重置密码：{0}"
 
+msgid "Reset password"
+msgstr "重置密码"
+
+msgid "Reset password: sets a temporary password"
+msgstr "重置密码：设置临时密码"
+
+msgid "Reset the password of {0}"
+msgstr "重置 {0} 的密码"
+
+msgid "Restore"
+msgstr "恢复"
+
+msgid "Restore backup"
+msgstr "恢复备份"
+
 msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
 msgstr "将 Apple iCloud 照片导出的日期和相册还原为可移植的图库。"
 
@@ -2037,6 +2520,9 @@ msgstr "恢复默认值"
 msgid "Restore the default values of the fields shown for this feature"
 msgstr "恢复此功能所显示字段的默认值"
 
+msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
+msgstr "恢复 {0}？用户、设置和凭据将替换为备份中的内容。当前数据会先保存为恢复前备份，您可能需要重新登录。"
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "结果会导出为 CSV，以便审核重复项以及每一项所选的操作。"
 
@@ -2048,6 +2534,15 @@ msgstr "路线图"
 
 msgid "Role"
 msgstr "角色"
+
+msgid "Role of {0}"
+msgstr "{0} 的角色"
+
+msgid "Role of {0} changed to {1}"
+msgstr "已将 {0} 的角色更改为 {1}"
+
+msgid "Role…"
+msgstr "角色…"
 
 msgid "Run"
 msgstr "运行"
@@ -2079,6 +2574,9 @@ msgstr "SMTP 密码"
 msgid "SMTP password (saved, leave empty to keep it)"
 msgstr "SMTP 密码（已保存，留空则保持不变）"
 
+msgid "SMTP server"
+msgstr "SMTP 服务器"
+
 msgid "SMTP server (for example mail.example.com)"
 msgstr "SMTP 服务器（例如 mail.example.com）"
 
@@ -2088,8 +2586,14 @@ msgstr "SMTP 用户名"
 msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
 msgstr "SOURCE 和 TARGET 可以是云端端点（带账户的 synology/immich/nextcloud/google）或本地文件夹。"
 
+msgid "STARTTLS usually uses port {0} and SSL/TLS port {1}."
+msgstr "STARTTLS 通常使用端口 {0}，SSL/TLS 使用端口 {1}。"
+
 msgid "Same name and size"
 msgstr "名称和大小相同"
+
+msgid "Saturday"
+msgstr "星期六"
 
 msgid "Save Email"
 msgstr "保存电子邮件"
@@ -2112,11 +2616,29 @@ msgstr "保存应用设置"
 msgid "Save config"
 msgstr "保存配置"
 
+msgid "Save email delivery"
+msgstr "保存邮件发送设置"
+
 msgid "Save people labels"
 msgstr "保存人物标签"
 
 msgid "Save row"
 msgstr "保存行"
+
+msgid "Save schedule"
+msgstr "保存计划"
+
+msgid "Save the SMTP server first"
+msgstr "请先保存 SMTP 服务器"
+
+msgid "Saved"
+msgstr "已保存"
+
+msgid "Saved · leave empty to keep it"
+msgstr "已保存 · 留空则保留"
+
+msgid "Saving…"
+msgstr "正在保存…"
 
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
 msgstr "递归扫描 <FOLDER_TO_FIX> 并尝试修复失效的符号链接。"
@@ -2124,11 +2646,29 @@ msgstr "递归扫描 <FOLDER_TO_FIX> 并尝试修复失效的符号链接。"
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
 msgstr "递归扫描 <FOLDER_TO_FIX> 并尝试修复失效的符号链接。当在 OUTPUT_TAKEOUT_FOLDER 中移动/重命名文件夹后某些相册显示为空时，此功能很有用。该工具会在同一文件夹树中搜索有效的目标文件，并尽可能重新建立链接。重要：仅当能从当前文件推断出有效目标时，才会修复链接。示例：--fix-symlinks-broken ./OUTPUT_FOLDER"
 
+msgid "Scheduled"
+msgstr "计划"
+
+msgid "Scheduled backups"
+msgstr "计划备份"
+
+msgid "Scheduler settings saved."
+msgstr "计划程序设置已保存。"
+
 msgid "Scroll log to the first line"
 msgstr "将日志滚动到第一行"
 
 msgid "Scroll log to the last line"
 msgstr "将日志滚动到最后一行"
+
+msgid "Search all values"
+msgstr "搜索所有值"
+
+msgid "Search users"
+msgstr "搜索用户"
+
+msgid "Search users by username or email"
+msgstr "按用户名或电子邮件搜索用户"
 
 msgid "Segoe UI"
 msgstr "Segoe UI"
@@ -2147,6 +2687,9 @@ msgstr "在自动迁移任务期间选择并行/顺序迁移。此参数仅在�
 
 msgid "Select a table first."
 msgstr "请先选择一个表。"
+
+msgid "Select all users"
+msgstr "选择所有用户"
 
 msgid "Select at least one folder first."
 msgstr "请至少选择一个文件夹。"
@@ -2193,26 +2736,53 @@ msgstr "发送测试邮件"
 msgid "Send a local folder or ZIP file to the server"
 msgstr "将本地文件夹或 ZIP 文件发送到服务器"
 
+msgid "Send a test email to"
+msgstr "发送测试邮件至"
+
 msgid "Send files here"
 msgstr "将文件发送到这里"
 
 msgid "Send request"
 msgstr "发送申请"
 
+msgid "Send test email"
+msgstr "发送测试邮件"
+
 msgid "Send the test email to (default: your email)"
 msgstr "测试邮件发送至（默认：您的电子邮件）"
+
+msgid "Sender"
+msgstr "发件人"
+
+msgid "Sender address"
+msgstr "发件人地址"
 
 msgid "Sender email"
 msgstr "发件人电子邮件"
 
+msgid "Sender name"
+msgstr "发件人名称"
+
 msgid "Sender name (PhotoMigrator)"
 msgstr "发件人名称（PhotoMigrator）"
+
+msgid "Sending…"
+msgstr "正在发送…"
+
+msgid "Server"
+msgstr "服务器"
 
 msgid "Service credentials"
 msgstr "服务凭据"
 
 msgid "Set a new password and confirm it."
 msgstr "设置新密码并确认。"
+
+msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
+msgstr "为 {0} 设置临时密码？该用户将在所有浏览器上退出登录，并且必须在下次登录时选择新密码。"
+
+msgid "Set with"
+msgstr "设置方式："
 
 msgid "Settings"
 msgstr "设置"
@@ -2229,6 +2799,12 @@ msgstr "所有功能共用的共享参数、服务凭据和偏好设置。"
 msgid "Show"
 msgstr "显示"
 
+msgid "Show API key admin"
+msgstr "显示管理员 API 密钥"
+
+msgid "Show API key user"
+msgstr "显示用户 API 密钥"
+
 msgid "Show Client secret"
 msgstr "显示客户端密钥"
 
@@ -2237,6 +2813,9 @@ msgstr "显示 GPTH 错误消息"
 
 msgid "Show GPTH info messages"
 msgstr "显示 GPTH 信息消息"
+
+msgid "Show Password"
+msgstr "显示密码"
 
 msgid "Show Refresh token"
 msgstr "显示刷新令牌"
@@ -2247,11 +2826,20 @@ msgstr "显示密码"
 msgid "Show {0}"
 msgstr "显示 {0}"
 
+msgid "Showing the first {0} matching values. Search to narrow them."
+msgstr "显示前 {0} 个匹配的值。请搜索以缩小范围。"
+
 msgid "Sign in"
 msgstr "登录"
 
 msgid "Sign in to PhotoMigrator"
 msgstr "登录 PhotoMigrator"
+
+msgid "Sign-in"
+msgstr "登录"
+
+msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
+msgstr "登录和管理面板更改：谁在何时、从何处做了什么。"
 
 msgid "Skip GPTH tool (not recommended)"
 msgstr "跳过 GPTH 工具（不推荐）"
@@ -2517,6 +3105,12 @@ msgstr "停止"
 msgid "Stop Running Module?"
 msgstr "停止正在运行的模块？"
 
+msgid "Stored backups"
+msgstr "已存储的备份"
+
+msgid "Sunday"
+msgstr "星期日"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -2525,6 +3119,9 @@ msgstr "Synology Photos"
 
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table"
+msgstr "表"
 
 msgid "Table status: 'access_logs' loaded (2/2 rows)"
 msgstr "表状态：'access_logs' 已加载（2/2 行）"
@@ -2577,6 +3174,15 @@ msgstr "迁移的目标端点或本地文件夹。"
 msgid "Target service"
 msgstr "目标服务"
 
+msgid "Test email"
+msgstr "测试邮件"
+
+msgid "Test email failed:"
+msgstr "测试邮件发送失败："
+
+msgid "Test email sent to {0}."
+msgstr "测试邮件已发送至 {0}。"
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr "该账户尚未启用。启用后我们会通过电子邮件通知您。"
 
@@ -2586,8 +3192,14 @@ msgstr "演示角色除 TimeZone 和 Theme 外，无法保存配置更改。"
 msgid "The demo role cannot {0} configuration directly."
 msgstr "演示角色无法直接{0}配置。"
 
+msgid "The password needs at least {0} characters."
+msgstr "密码至少需要 {0} 个字符。"
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "所选路径包含 '{0}'，这是 Google 保留的特殊文件夹名称。\\n\\n"
+
+msgid "The temporary password was emailed to {0}."
+msgstr "临时密码已通过电子邮件发送至 {0}。"
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
 msgstr "该工具会在同一文件夹树中搜索有效的目标文件，并尽可能重新建立链接。"
@@ -2600,6 +3212,9 @@ msgstr "主题"
 
 msgid "Theme used by the PhotoMigrator web interface."
 msgstr "PhotoMigrator 网页界面使用的主题。"
+
+msgid "There are no changed values in this row."
+msgstr "此行没有更改的值。"
 
 msgid "This argument only accepts one folder. Select exactly one."
 msgstr "此参数只接受一个文件夹。请恰好选择一个。"
@@ -2757,6 +3372,9 @@ msgstr "此模块将根据内容日期就地重命名本地相册文件夹。磁
 msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
 msgstr "此模块将根据内容日期就地重命名本地相册文件夹。磁盘上的原始文件夹名称将被更改。是否继续？"
 
+msgid "This permanently deletes the selected row of {0}."
+msgstr "这将永久删除 {0} 中所选的行。"
+
 msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
 msgstr "这将删除 '{0}' 的账户申请，并通过电子邮件告知对方申请未获批准。是否继续？"
 
@@ -2771,6 +3389,9 @@ msgstr "这将永久删除用户 '{0}'。是否继续？"
 
 msgid "This will permanently delete {0} selected folder(s) and all their contents."
 msgstr "这将永久删除所选的 {0} 个文件夹及其所有内容。"
+
+msgid "Thursday"
+msgstr "星期四"
 
 msgid "Time zone"
 msgstr "时区"
@@ -2787,11 +3408,17 @@ msgstr "时间戳 ▼"
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr "要保存任何其他配置字段，请输入有效的管理员凭据。"
 
+msgid "Today"
+msgstr "今天"
+
 msgid "Toggle {0}"
 msgstr "切换 {0}"
 
 msgid "Tools"
 msgstr "工具"
+
+msgid "Total size"
+msgstr "总大小"
 
 msgid "Transfer"
 msgstr "传输"
@@ -2816,6 +3443,12 @@ msgstr "尝试分组小相册"
 
 msgid "Try Truncated Albums Grouping"
 msgstr "尝试按截断名称分组相册"
+
+msgid "Tuesday"
+msgstr "星期二"
+
+msgid "Type a new password and leave the field to save it (at least {0} characters)"
+msgstr "输入新密码并离开该字段即可保存（至少 {0} 个字符）"
 
 msgid "Type an answer when the running job asks for input"
 msgstr "当运行中的任务请求输入时，在此输入回答"
@@ -2979,6 +3612,21 @@ msgstr "当在 OUTPUT_TAKEOUT_FOLDER 中移动/重命名文件夹后某些相册
 msgid "User"
 msgstr "用户"
 
+msgid "User created"
+msgstr "用户已创建"
+
+msgid "User deleted"
+msgstr "用户已删除"
+
+msgid "User not found."
+msgstr "未找到用户。"
+
+msgid "User update failed"
+msgstr "用户更新失败"
+
+msgid "User updated"
+msgstr "用户已更新"
+
 msgid "Username"
 msgstr "用户名"
 
@@ -2987,6 +3635,15 @@ msgstr "用户名或电子邮件"
 
 msgid "Users"
 msgstr "用户"
+
+msgid "Users active in the last {0} minutes · click to list them first"
+msgstr "最近 {0} 分钟内活跃的用户 · 点击可将其排在前面"
+
+msgid "Users, settings and credentials"
+msgstr "用户、设置和凭据"
+
+msgid "Users, settings, saved credentials and email settings, in one file. Backups made here are never deleted automatically."
+msgstr "用户、设置、已保存的凭据和电子邮件设置，合并在一个文件中。在此创建的备份永远不会被自动删除。"
 
 msgid "Uses the configured cloud account ID."
 msgstr "使用已配置的云端账户 ID。"
@@ -3003,8 +3660,14 @@ msgstr "使用设置中的默认值"
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "有效操作：restore_duplicate / remove_duplicate / replace_duplicate。"
 
+msgid "Values come from the whole table, not just this page."
+msgstr "值来自整个表，而不仅是当前页。"
+
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "版本 v5.0.0 · 登录以继续"
+
+msgid "Volumes folder"
+msgstr "卷文件夹"
 
 msgid "Warm palette"
 msgstr "暖色调色板"
@@ -3015,8 +3678,17 @@ msgstr "我们已收到您的账户申请"
 msgid "Web Interface"
 msgstr "网页界面"
 
+msgid "Web database"
+msgstr "Web 数据库"
+
 msgid "Website"
 msgstr "网站"
+
+msgid "Wednesday"
+msgstr "星期三"
+
+msgid "Weekly"
+msgstr "每周"
 
 msgid "Welcome back, admin"
 msgstr "欢迎回来，admin"
@@ -3081,11 +3753,32 @@ msgstr "工作区"
 msgid "Yes"
 msgstr "是"
 
+msgid "Yesterday"
+msgstr "昨天"
+
+msgid "You"
+msgstr "您"
+
 msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
 msgstr "您可以编辑单元格并点击“保存行”，或点击“删除行”。插入操作使用 JSON 对象语法。"
 
+msgid "You cannot deactivate your own account"
+msgstr "您不能停用自己的账户"
+
+msgid "You cannot deactivate your own account."
+msgstr "您不能停用自己的账户。"
+
+msgid "You cannot delete your own user"
+msgstr "您不能删除自己的用户"
+
+msgid "You cannot delete your own user."
+msgstr "您不能删除自己的用户。"
+
 msgid "You will be asked to confirm before it runs."
 msgstr "运行前会要求您确认。"
+
+msgid "Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "您的 Immich Photos ADMIN_API_KEY（可在 账户设置 --> API_KEY 密钥 中创建 API_KEY）"
 
 msgid "Your PhotoMigrator account"
 msgstr "您的 PhotoMigrator 账户"
@@ -3108,6 +3801,9 @@ msgstr "你自己的图库"
 msgid "Your password was changed"
 msgstr "您的密码已更改"
 
+msgid "Your password was reset"
+msgstr "您的密码已被重置"
+
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "您的临时密码是 <b>{0}</b>。首次登录时，您需要设置自己的密码。"
 
@@ -3120,8 +3816,14 @@ msgstr "管理员更改了您的 PhotoMigrator 账户 <b>{0}</b> 的密码。如
 msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
 msgstr "管理员已停用您的 PhotoMigrator 账户 <b>{0}</b>。如果您认为这是错误，请回复此邮件。"
 
+msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
+msgstr "管理员已重置您的 PhotoMigrator 账户 <b>{0}</b> 的密码。"
+
 msgid "backup_schedules ({0})"
 msgstr "backup_schedules ({0})"
+
+msgid "created"
+msgstr "创建于"
 
 msgid "data subpath (default username)"
 msgstr "data 子路径（默认为用户名）"
@@ -3132,6 +3834,9 @@ msgstr "例如 photos-2026 或 /app/data/photos-2026"
 msgid "environment variables."
 msgstr "环境变量。"
 
+msgid "failed"
+msgstr "失败"
+
 msgid "iCloud Takeout"
 msgstr "iCloud Takeout"
 
@@ -3141,8 +3846,14 @@ msgstr "iCloud Takeout · PhotoMigrator"
 msgid "immich-photos-1 -> immich-photos-1"
 msgstr "immich-photos-1 -> immich-photos-1"
 
+msgid "in the backup folder"
+msgstr "在备份文件夹中"
+
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
 msgstr "设置为“是”时，上传的 .zip 文件会在服务器上解压，并删除该 .zip 文件。设置为“否”时，.zip 文件保持上传时的原样。"
+
+msgid "key"
+msgstr "主键"
 
 msgid "max size {0} MB"
 msgstr "最大 {0} MB"
@@ -3150,11 +3861,20 @@ msgstr "最大 {0} MB"
 msgid "max size {0} MB · timeout {1} s"
 msgstr "最大 {0} MB · 超时 {1} 秒"
 
+msgid "name@example.com · empty = your own email"
+msgstr "name@example.com · 留空 = 您自己的电子邮件"
+
 msgid "nextcloud-photos-1 -> nextcloud-photos-1"
 msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 
+msgid "on the backup volume"
+msgstr "在备份卷上"
+
 msgid "sessions ({0})"
 msgstr "sessions ({0})"
+
+msgid "success"
+msgstr "成功"
 
 msgid "synology-photos-1 -> immich-photos-1"
 msgstr "synology-photos-1 -> immich-photos-1"
@@ -3210,11 +3930,41 @@ msgstr "您的任务 <b>{0}</b> 已成功完成。"
 msgid "your task <b>{0}</b> was stopped before it finished."
 msgstr "您的任务 <b>{0}</b> 在完成前被停止。"
 
+msgid "{0} / {1} rows"
+msgstr "{0} / {1} 行"
+
+msgid "{0} access request"
+msgstr "{0} 个访问申请"
+
+msgid "{0} access requests"
+msgstr "{0} 个访问申请"
+
+msgid "{0} account"
+msgstr "{0} 个账户"
+
 msgid "{0} accounts"
 msgstr "{0} 账户"
 
+msgid "{0} activated"
+msgstr "已激活 {0}"
+
+msgid "{0} created"
+msgstr "已创建 {0}"
+
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr "{0} 为您创建了 PhotoMigrator 账户。请使用用户名 <b>{1}</b> 或此电子邮件地址登录。"
+
+msgid "{0} days ago"
+msgstr "{0} 天前"
+
+msgid "{0} deactivated"
+msgstr "已停用 {0}"
+
+msgid "{0} deleted"
+msgstr "已删除 {0}"
+
+msgid "{0} events"
+msgstr "{0} 个事件"
 
 msgid "{0} failed"
 msgstr "{0} 失败"
@@ -3225,11 +3975,44 @@ msgstr "{0} 个功能"
 msgid "{0} finished"
 msgstr "{0} 已完成"
 
+msgid "{0} is active"
+msgstr "{0} 处于活跃状态"
+
+msgid "{0} must change the password"
+msgstr "{0} 必须更改密码"
+
+msgid "{0} no longer has to change the password"
+msgstr "{0} 不再需要更改密码"
+
+msgid "{0} of {1} users"
+msgstr "{0} / {1} 个用户"
+
+msgid "{0} online"
+msgstr "{0} 在线"
+
 msgid "{0} options"
 msgstr "{0} 选项"
 
+msgid "{0} rows"
+msgstr "{0} 行"
+
+msgid "{0} scheduled · {1} manual"
+msgstr "{0} 个计划 · {1} 个手动"
+
+msgid "{0} selected"
+msgstr "已选择 {0} 项"
+
 msgid "{0} stopped"
 msgstr "{0} 已停止"
+
+msgid "{0} users"
+msgstr "{0} 个用户"
+
+msgid "{0} users changed"
+msgstr "已更改 {0} 个用户"
+
+msgid "{0} will change the password at the next sign-in"
+msgstr "{0} 将在下次登录时更改密码"
 
 msgid "⏱️ Delayed Recovered"
 msgstr "⏱️ 延迟恢复"

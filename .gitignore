@@ -129,6 +129,7 @@ cover/
 # Translations
 *.mo
 *.pot
+!lang/messages.pot
 
 # Django stuff:
 *.log

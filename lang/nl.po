@@ -18,6 +18,9 @@ msgstr "(standaard: alles)"
 msgid "(no output)"
 msgstr "(geen uitvoer)"
 
+msgid "+ Add row"
+msgstr "+ Rij toevoegen"
+
 msgid "/app/data subpath"
 msgstr "Submap van /app/data"
 
@@ -44,6 +47,12 @@ msgstr "Een hele map, inclusief albums"
 
 msgid "ALL_PHOTOS Folder Name"
 msgstr "Mapnaam ALL_PHOTOS"
+
+msgid "API key admin"
+msgstr "Beheerders-API-sleutel"
+
+msgid "API key user"
+msgstr "Gebruikers-API-sleutel"
 
 msgid "About Auto Rename Folders Content Based"
 msgstr "Over Mappen automatisch hernoemen op basis van inhoud"
@@ -117,6 +126,9 @@ msgstr "Over {0}"
 msgid "Access Logs"
 msgstr "Toegangslogboeken"
 
+msgid "Access logs"
+msgstr "Toegangslogboek"
+
 msgid "Access logs: loaded {0} entries"
 msgstr "Toegangslogboeken: {0} items geladen"
 
@@ -125,6 +137,12 @@ msgstr "Toegangslogboeken: laden..."
 
 msgid "Access logs: {0}"
 msgstr "Toegangslogboeken: {0}"
+
+msgid "Access request"
+msgstr "Toegangsaanvraag"
+
+msgid "Access request of {0} approved"
+msgstr "Toegangsaanvraag van {0} goedgekeurd"
 
 msgid "Account"
 msgstr "Account"
@@ -141,8 +159,23 @@ msgstr "Accountaanvraag"
 msgid "Account request from {0}"
 msgstr "Accountaanvraag van {0}"
 
+msgid "Account requests from the login page"
+msgstr "Accountaanvragen vanaf de inlogpagina"
+
 msgid "Account {0}"
 msgstr "Account {0}"
+
+msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "Account {0}: je USER_API_KEY voor Immich Photos (je kunt een API_KEY aanmaken via Accountinstellingen --> API-sleutels)"
+
+msgid "Account {0}: Your password for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "Account {0}: je wachtwoord voor Immich Photos (verplicht als er geen API_KEY is opgegeven)"
+
+msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "Account {0}: je gebruikersnaam voor Immich Photos (verplicht als er geen API_KEY is opgegeven)"
+
+msgid "Accounts"
+msgstr "Accounts"
 
 msgid "Action"
 msgstr "Actie"
@@ -150,14 +183,26 @@ msgstr "Actie"
 msgid "Actions"
 msgstr "Acties"
 
+msgid "Activate"
+msgstr "Activeren"
+
+msgid "Activate the {0} selected users?"
+msgstr "De {0} geselecteerde gebruikers activeren?"
+
 msgid "Active"
 msgstr "Actief"
+
+msgid "Active and inactive"
+msgstr "Actief en inactief"
 
 msgid "Activity"
 msgstr "Activiteit"
 
 msgid "Activity · PhotoMigrator"
 msgstr "Activiteit · PhotoMigrator"
+
+msgid "Add row"
+msgstr "Rij toevoegen"
 
 msgid "Add the URL and credentials of each account in"
 msgstr "Voeg de URL en inloggegevens van elk account toe in"
@@ -246,11 +291,23 @@ msgstr "Albums met dezelfde naam"
 msgid "All Users"
 msgstr "Alle gebruikers"
 
+msgid "All dates"
+msgstr "Alle datums"
+
+msgid "All events"
+msgstr "Alle gebeurtenissen"
+
 msgid "All photos folder name"
 msgstr "Mapnaam voor alle foto's"
 
 msgid "All photos folder structure"
 msgstr "Structuur van de map met alle foto's"
+
+msgid "All roles"
+msgstr "Alle rollen"
+
+msgid "All users"
+msgstr "Alle gebruikers"
 
 msgid "Allow login into Synology Photos using 2FA with an OTP token."
 msgstr "Sta aanmelden bij Synology Photos toe met 2FA via een OTP-token."
@@ -266,6 +323,9 @@ msgstr "Vereist ook de modulekeuze '--dup-asset-keeper {more-people/tags-then-be
 
 msgid "An administrator reviews every request. You will get an email when your account is active."
 msgstr "Een beheerder beoordeelt elke aanvraag. Je ontvangt een e-mail zodra je account actief is."
+
+msgid "An email with the username and the password is sent to the new user."
+msgstr "Er wordt een e-mail met de gebruikersnaam en het wachtwoord naar de nieuwe gebruiker gestuurd."
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
 msgstr "Elke hier opgeslagen waarde blijft in de database bewaard, maar wordt genegeerd zolang die overschrijving actief is."
@@ -285,11 +345,23 @@ msgstr "Apple Photos"
 msgid "Apple iCloud Photos export"
 msgstr "Apple iCloud Photos-export"
 
+msgid "Application activity"
+msgstr "Applicatieactiviteit"
+
 msgid "Apply a reviewed duplicates CSV"
 msgstr "Een gecontroleerd duplicaten-CSV toepassen"
 
+msgid "Apply filter"
+msgstr "Filter toepassen"
+
 msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
 msgstr "Keur de aanvraag goed door het account te activeren in het Beheerpaneel, of wijs haar af in dezelfde lijst."
+
+msgid "Approve request"
+msgstr "Aanvraag goedkeuren"
+
+msgid "Approve the request of {0}"
+msgstr "De aanvraag van {0} goedkeuren"
 
 msgid "Are you sure?"
 msgstr "Weet je het zeker?"
@@ -297,8 +369,14 @@ msgstr "Weet je het zeker?"
 msgid "Arguments must be passed as two values separated by comma."
 msgstr "Argumenten moeten worden opgegeven als twee waarden, gescheiden door een komma."
 
+msgid "Asked at the first sign-in"
+msgstr "Gevraagd bij de eerste aanmelding"
+
 msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
 msgstr "Items worden na de migratie uit de bron verwijderd. Schakel 'Items verplaatsen' uit om ze te kopiëren."
+
+msgid "At least {0} characters"
+msgstr "Minstens {0} tekens"
 
 msgid "Authorize"
 msgstr "Autoriseren"
@@ -308,6 +386,9 @@ msgstr "Mappen automatisch hernoemen op basis van inhoud"
 
 msgid "Auto Scroll"
 msgstr "Automatisch scrollen"
+
+msgid "Automatic"
+msgstr "Automatisch"
 
 msgid "Automatic Migration"
 msgstr "Automatische migratie"
@@ -330,8 +411,41 @@ msgstr "Terug naar webinterface"
 msgid "Back to sign in"
 msgstr "Terug naar aanmelden"
 
+msgid "Back up now"
+msgstr "Nu back-up maken"
+
+msgid "Back up the web database now, restore a backup or schedule recurring backups."
+msgstr "Maak nu een back-up van de webdatabase, herstel een back-up of plan terugkerende back-ups."
+
+msgid "Backup"
+msgstr "Back-up"
+
 msgid "Backup Error"
 msgstr "Back-upfout"
+
+msgid "Backup deleted"
+msgstr "Back-up verwijderd"
+
+msgid "Backup failed:"
+msgstr "Back-up mislukt:"
+
+msgid "Backup file"
+msgstr "Back-upbestand"
+
+msgid "Backup folder"
+msgstr "Back-upmap"
+
+msgid "Backup protection"
+msgstr "Back-upbeveiliging"
+
+msgid "Backup restored"
+msgstr "Back-up hersteld"
+
+msgid "Backup restored. The previous data was saved as {0}."
+msgstr "Back-up hersteld. De vorige gegevens zijn opgeslagen als {0}."
+
+msgid "Backup saved: {0}"
+msgstr "Back-up opgeslagen: {0}"
 
 msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
 msgstr "Back-upstatus: inactief | Modus: daily_2am | Laatste uitvoering: - | Volgende: -"
@@ -348,14 +462,23 @@ msgstr "Back-upstatus: {0} | Bestand: {1}"
 msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
 msgstr "Back-upstatus: {0} | Modus: {1} | Laatste uitvoering: {2} | Volgende: {3}"
 
+msgid "Backups"
+msgstr "Back-ups"
+
 msgid "Backups Scheduler"
 msgstr "Back-upplanner"
+
+msgid "Before a restore"
+msgstr "Vóór een herstel"
 
 msgid "Blue palette"
 msgstr "Blauw palet"
 
 msgid "Browse"
 msgstr "Bladeren"
+
+msgid "Browse, edit or remove individual records of any table of the Web Interface database."
+msgstr "Bekijk, bewerk of verwijder afzonderlijke records van elke tabel in de database van de webinterface."
 
 msgid "By default migration runs in parallel with live dashboard enabled."
 msgstr "Standaard draait de migratie parallel met ingeschakeld live-dashboard."
@@ -366,14 +489,50 @@ msgstr "Standaard gebruikt de uitvoer de structuur 'year/month' en wordt die opg
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "CSV-endpoint niet beschikbaar in de backend. Herstart of werk de webbackend bij."
 
+msgid "Can sign in right away"
+msgstr "Kan meteen aanmelden"
+
 msgid "Cancel"
 msgstr "Annuleren"
+
+msgid "Cannot change role of the last active admin."
+msgstr "De rol van de laatste actieve beheerder kan niet worden gewijzigd."
+
+msgid "Cannot deactivate the last active admin."
+msgstr "De laatste actieve beheerder kan niet worden gedeactiveerd."
+
+msgid "Cannot delete the last active admin."
+msgstr "De laatste actieve beheerder kan niet worden verwijderd."
 
 msgid "Change Email"
 msgstr "E-mailadres wijzigen"
 
 msgid "Change Email: {0}"
 msgstr "E-mailadres wijzigen: {0}"
+
+msgid "Change any field in place: it saves on its own. Select several users to change them at once."
+msgstr "Wijzig elk veld direct: het wordt automatisch opgeslagen. Selecteer meerdere gebruikers om ze tegelijk te wijzigen."
+
+msgid "Change selected users"
+msgstr "Geselecteerde gebruikers wijzigen"
+
+msgid "Change the email"
+msgstr "E-mailadres wijzigen"
+
+msgid "Change the email of {0}"
+msgstr "E-mailadres van {0} wijzigen"
+
+msgid "Change the role of the selected users"
+msgstr "De rol van de geselecteerde gebruikers wijzigen"
+
+msgid "Change the role of the {0} selected users to {1}?"
+msgstr "De rol van de {0} geselecteerde gebruikers wijzigen in {1}?"
+
+msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
+msgstr "Vervang dit IP-adres door het IP-adres van je Immich-server of door je geldige Immich-URL"
+
+msgid "Changed {0} users. Not changed:"
+msgstr "{0} gebruikers gewijzigd. Niet gewijzigd:"
 
 msgid "Changes your library"
 msgstr "Wijzigt je bibliotheek"
@@ -405,6 +564,12 @@ msgstr "Kies het te behouden item voor '--remove-duplicates-assets'. De strategi
 msgid "Clean up"
 msgstr "Opruimen"
 
+msgid "Clear column"
+msgstr "Kolom wissen"
+
+msgid "Clear selection"
+msgstr "Selectie wissen"
+
 msgid "Client ID"
 msgstr "Client-ID"
 
@@ -416,6 +581,12 @@ msgstr "Sluiten"
 
 msgid "Close menu"
 msgstr "Menu sluiten"
+
+msgid "Close without adding"
+msgstr "Sluiten zonder toe te voegen"
+
+msgid "Close without creating"
+msgstr "Sluiten zonder aan te maken"
 
 msgid "Collapse panel"
 msgstr "Paneel samenvouwen"
@@ -492,13 +663,22 @@ msgstr "Configuratiebestand"
 msgid "Configuration for Google Photos"
 msgstr "Configuratie voor Google Photos"
 
+msgid "Configuration for Immich Photos"
+msgstr "Configuratie voor Immich Photos"
+
 msgid "Configured"
 msgstr "Geconfigureerd"
+
+msgid "Configured · SMTP server"
+msgstr "Geconfigureerd · SMTP-server"
 
 msgid "Confirm"
 msgstr "Bevestigen"
 
 msgid "Confirm Action"
+msgstr "Actie bevestigen"
+
+msgid "Confirm action"
 msgstr "Actie bevestigen"
 
 msgid "Confirm new password"
@@ -567,6 +747,9 @@ msgstr "Maken mislukt: {0}"
 msgid "Create stacks"
 msgstr "Stapels maken"
 
+msgid "Create user"
+msgstr "Gebruiker aanmaken"
+
 msgid "Created From"
 msgstr "Gemaakt vanaf"
 
@@ -575,6 +758,9 @@ msgstr "Gemaakt tot"
 
 msgid "Created: {0}"
 msgstr "Gemaakt: {0}"
+
+msgid "Creating…"
+msgstr "Aanmaken…"
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
 msgstr "Inloggegevens en service-instellingen worden per gebruiker opgeslagen in de webdatabase. Gevoelige waarden blijven versleuteld opgeslagen en worden door alle functies gebruikt."
@@ -606,6 +792,9 @@ msgstr "Databasefout bij invoegen"
 msgid "DB Update Error"
 msgstr "Databasefout bij bijwerken"
 
+msgid "Daily"
+msgstr "Dagelijks"
+
 msgid "Dangerous Module"
 msgstr "Gevaarlijke module"
 
@@ -615,8 +804,26 @@ msgstr "Donker interfacepalet"
 msgid "Dashboard"
 msgstr "Dashboard"
 
+msgid "Data folder"
+msgstr "Gegevensmap"
+
+msgid "Database"
+msgstr "Database"
+
 msgid "Database Manager"
 msgstr "Databasebeheer"
+
+msgid "Database edit"
+msgstr "Database bewerken"
+
+msgid "Database error"
+msgstr "Databasefout"
+
+msgid "Database viewer"
+msgstr "Databaseviewer"
+
+msgid "Date"
+msgstr "Datum"
 
 msgid "Date and range separators"
 msgstr "Scheidingstekens voor datums en bereiken"
@@ -626,6 +833,27 @@ msgstr "Scheidingstekens voor datums en bereiken kunnen worden aangepast met '--
 
 msgid "Date separator"
 msgstr "Datumscheidingsteken"
+
+msgid "Day of the month"
+msgstr "Dag van de maand"
+
+msgid "Day of the week"
+msgstr "Dag van de week"
+
+msgid "Day {0} of every month at {1}"
+msgstr "Dag {0} van elke maand om {1}"
+
+msgid "Days to keep"
+msgstr "Dagen bewaren"
+
+msgid "Days to keep: the scheduled backups of the last {0} days are kept (today: since {1})."
+msgstr "Dagen bewaren: de geplande back-ups van de laatste {0} dagen worden bewaard (vandaag: sinds {1})."
+
+msgid "Deactivate"
+msgstr "Deactiveren"
+
+msgid "Deactivate the {0} selected users?"
+msgstr "De {0} geselecteerde gebruikers deactiveren?"
 
 msgid "Default account available:"
 msgstr "Standaardaccount beschikbaar:"
@@ -648,6 +876,12 @@ msgstr "Geselecteerde mappen verwijderen?"
 msgid "Delete User"
 msgstr "Gebruiker verwijderen"
 
+msgid "Delete backup"
+msgstr "Back-up verwijderen"
+
+msgid "Delete database row"
+msgstr "Databaserij verwijderen"
+
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr "Verwijder-endpoint niet beschikbaar. Herstart de backend van de webinterface en probeer het opnieuw."
 
@@ -657,8 +891,26 @@ msgstr "Rij verwijderen"
 msgid "Delete row {0} from '{1}'?"
 msgstr "Rij {0} uit '{1}' verwijderen?"
 
+msgid "Delete the backup {0}? This action cannot be undone."
+msgstr "De back-up {0} verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+
+msgid "Delete the {0} selected users? This action cannot be undone."
+msgstr "De {0} geselecteerde gebruikers verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+
+msgid "Delete user"
+msgstr "Gebruiker verwijderen"
+
+msgid "Delete user {0}? This action cannot be undone."
+msgstr "Gebruiker {0} verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+
+msgid "Delete {0}"
+msgstr "{0} verwijderen"
+
 msgid "Demo"
 msgstr "Demo"
+
+msgid "Demo (read only)"
+msgstr "Demo (alleen-lezen)"
 
 msgid "Demo Role Restricted"
 msgstr "Demorol beperkt"
@@ -672,6 +924,12 @@ msgstr "Bestemming vereist"
 msgid "Destination folder"
 msgstr "Bestemmingsmap"
 
+msgid "Details"
+msgstr "Details"
+
+msgid "Disabled"
+msgstr "Uitgeschakeld"
+
 msgid "Do not save the GPTH log"
 msgstr "Het GPTH-logboek niet opslaan"
 
@@ -680,6 +938,9 @@ msgstr "Document"
 
 msgid "Documentation"
 msgstr "Documentatie"
+
+msgid "Download"
+msgstr "Downloaden"
 
 msgid "Download Albums"
 msgstr "Albums downloaden"
@@ -741,6 +1002,9 @@ msgstr "Behandel tijdens het uploaden gelijkwaardige bestaande albumnamen als é
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
 msgstr "Behandel tijdens het uploaden gelijkwaardige bestaande albumnamen als één groep en voeg hun items samen in het canonieke album dat behouden blijft. Overbodige albums worden alleen verwijderd als de service het verwijderen van albums ondersteunt."
 
+msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
+msgstr "Bewerk een waarde en klik op ✓ om die rij op te slaan. Sleutels zijn beveiligd. {0} rijen per pagina."
+
 msgid "Elapsed Time"
 msgstr "Verstreken tijd"
 
@@ -759,11 +1023,29 @@ msgstr "E-mail (SMTP)"
 msgid "Email check"
 msgstr "E-mailcontrole"
 
+msgid "Email delivery"
+msgstr "E-mailbezorging"
+
+msgid "Email delivery saved."
+msgstr "E-mailbezorging opgeslagen."
+
 msgid "Email is not configured on this server yet."
 msgstr "E-mail is op deze server nog niet geconfigureerd."
 
+msgid "Email is not configured: give the username and the password to the new user yourself."
+msgstr "E-mail is niet geconfigureerd: geef de gebruikersnaam en het wachtwoord zelf aan de nieuwe gebruiker."
+
 msgid "Email me when it finishes"
 msgstr "Mail me wanneer het klaar is"
+
+msgid "Email of {0}"
+msgstr "E-mailadres van {0}"
+
+msgid "Email of {0} changed"
+msgstr "E-mailadres van {0} gewijzigd"
+
+msgid "Email settings"
+msgstr "E-mailinstellingen"
 
 msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
 msgstr "E-mailstatus: niet geconfigureerd, er worden geen e-mails verzonden; accountaanvragen vanaf de aanmeldpagina zijn ingeschakeld."
@@ -779,6 +1061,9 @@ msgstr "E-mailstatus: testmail verzonden naar {0}."
 
 msgid "Email status: {0}"
 msgstr "E-mailstatus: {0}"
+
+msgid "Emails of the tool"
+msgstr "E-mails van de tool"
 
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "Schakel foutmeldingen tijdens de GPTH-verwerking in of uit."
@@ -798,8 +1083,14 @@ msgstr "Schakel het live-dashboard tijdens een automatische migratie in of uit."
 msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
 msgstr "Schakel het live-dashboard tijdens een automatische migratie in of uit. Dit argument is alleen van toepassing als zowel '--source' als '--target' zijn opgegeven. (standaard: True)."
 
+msgid "Enable recurring backups"
+msgstr "Terugkerende back-ups inschakelen"
+
 msgid "Enabled"
 msgstr "Ingeschakeld"
+
+msgid "Encryption"
+msgstr "Versleuteling"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "Voer een mapnaam in, of een absoluut pad binnen"
@@ -813,6 +1104,9 @@ msgstr "Fout: {0}"
 msgid "Estimated End"
 msgstr "Geschat einde"
 
+msgid "Event"
+msgstr "Gebeurtenis"
+
 msgid "Every album and asset"
 msgstr "Elk album en item"
 
@@ -825,11 +1119,23 @@ msgstr "Elk item en album"
 msgid "Every day (2:00 AM)"
 msgstr "Elke dag (02:00)"
 
+msgid "Every day at {0}"
+msgstr "Elke dag om {0}"
+
 msgid "Every hour"
 msgstr "Elk uur"
 
+msgid "Every hour at minute {0}"
+msgstr "Elk uur op minuut {0}"
+
 msgid "Every week (Monday 2:00 AM)"
 msgstr "Elke week (maandag 02:00)"
+
+msgid "Every {0} at {1}"
+msgstr "Elke {0} om {1}"
+
+msgid "Every {0} hours"
+msgstr "Elke {0} uur"
 
 msgid "Example: --consolidate-albums-names --preview-album-actions"
 msgstr "Voorbeeld: --consolidate-albums-names --preview-album-actions"
@@ -960,6 +1266,9 @@ msgstr "GPTH-tool uitvoeren"
 msgid "Execution"
 msgstr "Uitvoering"
 
+msgid "Execution time"
+msgstr "Uitvoeringstijd"
+
 msgid "Expand panel"
 msgstr "Paneel uitvouwen"
 
@@ -978,11 +1287,20 @@ msgstr "Uitgepakte ZIP-bestanden: {0} ({1} bestanden) |"
 msgid "Extracted ZIPs: {0}\\n"
 msgstr "Uitgepakte ZIP-bestanden: {0}\\n"
 
+msgid "Failed sign in"
+msgstr "Mislukte aanmelding"
+
 msgid "Failed: {0}"
 msgstr "Mislukt: {0}"
 
+msgid "Fill at least one value."
+msgstr "Vul minstens één waarde in."
+
 msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
 msgstr "Vul de verplichte velden in. Geavanceerde opties behouden hun standaardwaarden tenzij je ze opent."
+
+msgid "Filter"
+msgstr "Filter"
 
 msgid "Filter by city"
 msgstr "Filteren op stad"
@@ -993,6 +1311,12 @@ msgstr "Filteren op land"
 msgid "Filter by person"
 msgstr "Filteren op persoon"
 
+msgid "Filter by role"
+msgstr "Filteren op rol"
+
+msgid "Filter by status"
+msgstr "Filteren op status"
+
 msgid "Filter by type"
 msgstr "Filteren op type"
 
@@ -1001,6 +1325,12 @@ msgstr "Filteren vanaf datum"
 
 msgid "Filter to date"
 msgstr "Filteren tot datum"
+
+msgid "Filter {0}"
+msgstr "Filter {0}"
+
+msgid "Filter: {0}"
+msgstr "Filter: {0}"
 
 msgid "Filters"
 msgstr "Filters"
@@ -1016,6 +1346,9 @@ msgstr "Duplicaten zoeken"
 
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr "Zoek duplicaten in een of meer mappen aan de hand van bestandsgrootte en inhoudscontroles."
+
+msgid "First page"
+msgstr "Eerste pagina"
 
 msgid "Fix Broken Symlinks"
 msgstr "Verbroken symlinks herstellen"
@@ -1073,6 +1406,9 @@ msgstr "Mapnaam zonder albums"
 
 msgid "Folders"
 msgstr "Mappen"
+
+msgid "Folders of {0} changed"
+msgstr "Mappen van {0} gewijzigd"
 
 msgid "Folders to scan"
 msgstr "Te scannen mappen"
@@ -1137,6 +1473,15 @@ msgstr "Wachtwoordwijziging afdwingen"
 msgid "Force password change on first login"
 msgstr "Wachtwoordwijziging afdwingen bij eerste aanmelding"
 
+msgid "Free disk space"
+msgstr "Vrije schijfruimte"
+
+msgid "Friday"
+msgstr "Vrijdag"
+
+msgid "From"
+msgstr "Van"
+
 msgid "GPTH messages"
 msgstr "GPTH-meldingen"
 
@@ -1145,6 +1490,9 @@ msgstr "Algemene argumenten"
 
 msgid "Get started in three steps"
 msgstr "Aan de slag in drie stappen"
+
+msgid "Give this temporary password to {0}. It is shown only once:"
+msgstr "Geef dit tijdelijke wachtwoord aan {0}. Het wordt maar één keer getoond:"
 
 msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
 msgstr "Globale argumenten die door elke functie worden gedeeld: logboekregistratie, uitvoering, mapnamen en filters."
@@ -1221,6 +1569,9 @@ msgstr "Start (data)"
 msgid "Home (volumes)"
 msgstr "Start (volumes)"
 
+msgid "Hourly"
+msgstr "Elk uur"
+
 msgid "How to migrate"
 msgstr "Hoe te migreren"
 
@@ -1243,6 +1594,9 @@ msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operat
 msgstr "BELANGRIJK: remove_duplicate en replace_duplicate zijn onomkeerbare bewerkingen."
 
 msgid "IP Address"
+msgstr "IP-adres"
+
+msgid "IP address"
 msgstr "IP-adres"
 
 msgid "Idle"
@@ -1287,6 +1641,9 @@ msgstr "Immich"
 msgid "Immich Photos"
 msgstr "Immich Photos"
 
+msgid "Immich Photos accounts"
+msgstr "Immich Photos-accounts"
+
 msgid "Immich Photos · PhotoMigrator"
 msgstr "Immich Photos · PhotoMigrator"
 
@@ -1307,6 +1664,9 @@ msgstr "Importeer persoonslabels uit Google Takeout in Immich wanneer een person
 
 msgid "Import people"
 msgstr "Personen importeren"
+
+msgid "Inactive"
+msgstr "Inactief"
 
 msgid "Include Memories as albums"
 msgstr "Memories als albums opnemen"
@@ -1367,6 +1727,21 @@ msgstr "Laatst bijgewerkt: -"
 
 msgid "Last Updated: {0}"
 msgstr "Laatst bijgewerkt: {0}"
+
+msgid "Last backup"
+msgstr "Laatste back-up"
+
+msgid "Last page"
+msgstr "Laatste pagina"
+
+msgid "Last sign-in"
+msgstr "Laatste aanmelding"
+
+msgid "Last {0} days"
+msgstr "Laatste {0} dagen"
+
+msgid "Last {0} hours"
+msgstr "Laatste {0} uur"
 
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr "Letters, cijfers, punten, koppeltekens of underscores"
@@ -1458,6 +1833,12 @@ msgstr "Verplicht argument ontbreekt: --{0}"
 msgid "Missing tab."
 msgstr "Tabblad ontbreekt."
 
+msgid "Monday"
+msgstr "Maandag"
+
+msgid "Monthly"
+msgstr "Maandelijks"
+
 msgid "Move Assets"
 msgstr "Items verplaatsen"
 
@@ -1485,8 +1866,17 @@ msgstr "Verplaats je hele bibliotheek naar een andere service"
 msgid "Multiple albums can be separated by comma or space and quoted."
 msgstr "Meerdere albums kunnen worden gescheiden door een komma of spatie en tussen aanhalingstekens worden gezet."
 
+msgid "Must change password"
+msgstr "Moet wachtwoord wijzigen"
+
 msgid "Naming & Folders"
 msgstr "Naamgeving en mappen"
+
+msgid "Never"
+msgstr "Nooit"
+
+msgid "Never shown. Leave it empty to keep the saved password."
+msgstr "Wordt nooit getoond. Laat leeg om het opgeslagen wachtwoord te behouden."
 
 msgid "New account request"
 msgstr "Nieuwe accountaanvraag"
@@ -1499,6 +1889,18 @@ msgstr "Nieuwe naam voor elk overeenkomend album."
 
 msgid "New password"
 msgstr "Nieuw wachtwoord"
+
+msgid "New password for {0}"
+msgstr "Nieuw wachtwoord voor {0}"
+
+msgid "New user"
+msgstr "Nieuwe gebruiker"
+
+msgid "Next backup"
+msgstr "Volgende back-up"
+
+msgid "Next page"
+msgstr "Volgende pagina"
 
 msgid "NextCloud"
 msgstr "NextCloud"
@@ -1515,8 +1917,17 @@ msgstr "Nee"
 msgid "No additional help for this field."
 msgstr "Geen extra hulp voor dit veld."
 
+msgid "No backups yet"
+msgstr "Nog geen back-ups"
+
 msgid "No credentials for account {0} yet."
 msgstr "Nog geen inloggegevens voor account {0}."
+
+msgid "No email · add one"
+msgstr "Geen e-mailadres · voeg er een toe"
+
+msgid "No entries match the current filters."
+msgstr "Geen items komen overeen met de huidige filters."
 
 msgid "No extra arguments required"
 msgstr "Geen extra argumenten nodig"
@@ -1532,6 +1943,9 @@ msgstr "Geen taak actief"
 
 msgid "No log file"
 msgstr "Geen logbestand"
+
+msgid "No users match the current filters."
+msgstr "Geen gebruikers komen overeen met de huidige filters."
 
 msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
 msgstr "Items buiten albums komen in <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ met de structuur year/month."
@@ -1560,6 +1974,12 @@ msgstr "OAuth-client secret voor Google Photos-account {0}"
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "OAuth-vernieuwingstoken voor Google Photos-account {0}"
 
+msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
+msgstr "Oudere geplande back-ups worden verwijderd, behalve de nieuwste. Back-ups die met Nu back-up maken zijn gemaakt, worden nooit verwijderd."
+
+msgid "On"
+msgstr "Aan"
+
 msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
 msgstr "Bij ondersteunde clouddoelen worden overbodige varianten samengevoegd in het gewenste album dat behouden blijft. Als de API het verwijderen van albums ondersteunt (Immich, Synology, NextCloud), worden overbodige albums daarna verwijderd. Google Photos behoudt de overbodige varianten omdat de openbare API geen albums kan verwijderen."
 
@@ -1580,6 +2000,9 @@ msgstr "Eenmalig wachtwoord"
 
 msgid "One value per line or comma-separated"
 msgstr "Eén waarde per regel, of gescheiden door komma's"
+
+msgid "Online now"
+msgstr "Nu online"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "Alleen een actieve beheerder kan deze actie autoriseren. Voer de gebruikersnaam en het wachtwoord van de beheerder in."
@@ -1716,6 +2139,9 @@ msgstr "Tijdens uitvoering overschreven door omgevingsvariabele '{0}'."
 msgid "Overwrite Configuration?"
 msgstr "Configuratie overschrijven?"
 
+msgid "Page {0} of {1}"
+msgstr "Pagina {0} van {1}"
+
 msgid "Parallel Migration"
 msgstr "Parallelle migratie"
 
@@ -1725,8 +2151,20 @@ msgstr "Wachtwoord"
 msgid "Password (at least {0} characters)"
 msgstr "Wachtwoord (minstens {0} tekens)"
 
+msgid "Password of {0} changed"
+msgstr "Wachtwoord van {0} gewijzigd"
+
+msgid "Password reset"
+msgstr "Wachtwoord opnieuw instellen"
+
 msgid "Pattern and replacement"
 msgstr "Patroon en vervanging"
+
+msgid "Pending access requests"
+msgstr "Openstaande toegangsaanvragen"
+
+msgid "Period"
+msgstr "Periode"
 
 msgid "Photo libraries"
 msgstr "Fotobibliotheken"
@@ -1763,6 +2201,9 @@ msgstr "Selecteer een functie/module om uit te voeren."
 
 msgid "Please verify username/password and try again."
 msgstr "Controleer de gebruikersnaam en het wachtwoord en probeer het opnieuw."
+
+msgid "Port"
+msgstr "Poort"
 
 msgid "Port ({0}, {1} or {2})"
 msgstr "Poort ({0}, {1} of {2})"
@@ -1802,6 +2243,12 @@ msgstr "Voorbeeld niet beschikbaar"
 
 msgid "Preview unavailable: {0}"
 msgstr "Voorbeeld niet beschikbaar: {0}"
+
+msgid "Previous page"
+msgstr "Vorige pagina"
+
+msgid "Primary-key values are protected"
+msgstr "Waarden van primaire sleutels zijn beveiligd"
 
 msgid "Process Duplicates"
 msgstr "Duplicaten verwerken"
@@ -1878,6 +2325,15 @@ msgstr "Klaar om te starten"
 msgid "Reason: {0}"
 msgstr "Reden: {0}"
 
+msgid "Recurrence"
+msgstr "Herhaling"
+
+msgid "Recurring backups are off. Back up now still works."
+msgstr "Terugkerende back-ups staan uit. Nu back-up maken werkt nog steeds."
+
+msgid "Refresh"
+msgstr "Vernieuwen"
+
 msgid "Refresh Logs"
 msgstr "Logboeken vernieuwen"
 
@@ -1892,6 +2348,12 @@ msgstr "Accountaanvraag afwijzen"
 
 msgid "Reject Request"
 msgstr "Aanvraag afwijzen"
+
+msgid "Reject request"
+msgstr "Aanvraag afwijzen"
+
+msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
+msgstr "De toegangsaanvraag van {0} afwijzen? Het account wordt verwijderd en de gebruiker ontvangt een e-mail."
 
 msgid "Release Notes"
 msgstr "Release-opmerkingen"
@@ -1956,6 +2418,9 @@ msgstr "Verwijder dubbele albums (dezelfde naam en grootte)."
 msgid "Remove empty albums."
 msgstr "Verwijder lege albums."
 
+msgid "Remove the saved password"
+msgstr "Het opgeslagen wachtwoord verwijderen"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "Verwijderd: {0} | Mislukt: {1}"
 
@@ -1998,6 +2463,9 @@ msgstr "Vervangingspatroon"
 msgid "Replacement text"
 msgstr "Vervangende tekst"
 
+msgid "Replaces the users, settings and credentials with the ones in the backup. The current data is saved first as a pre-restore backup."
+msgstr "Vervangt de gebruikers, instellingen en inloggegevens door die uit de back-up. De huidige gegevens worden eerst opgeslagen als back-up vóór het herstel."
+
 msgid "Request User Confirmation"
 msgstr "Bevestiging van gebruiker vragen"
 
@@ -2025,6 +2493,21 @@ msgstr "Wachtwoord opnieuw instellen"
 msgid "Reset Password: {0}"
 msgstr "Wachtwoord opnieuw instellen: {0}"
 
+msgid "Reset password"
+msgstr "Wachtwoord opnieuw instellen"
+
+msgid "Reset password: sets a temporary password"
+msgstr "Wachtwoord opnieuw instellen: stelt een tijdelijk wachtwoord in"
+
+msgid "Reset the password of {0}"
+msgstr "Het wachtwoord van {0} opnieuw instellen"
+
+msgid "Restore"
+msgstr "Herstellen"
+
+msgid "Restore backup"
+msgstr "Back-up herstellen"
+
 msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
 msgstr "Herstel datums en albums van een Apple iCloud Photos-export in een draagbare bibliotheek."
 
@@ -2037,6 +2520,9 @@ msgstr "Standaardwaarden herstellen"
 msgid "Restore the default values of the fields shown for this feature"
 msgstr "Herstel de standaardwaarden van de velden die voor deze functie worden getoond"
 
+msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
+msgstr "{0} herstellen? De gebruikers, instellingen en inloggegevens worden vervangen door die uit de back-up. De huidige gegevens worden eerst opgeslagen als back-up vóór het herstel, en mogelijk moet je opnieuw aanmelden."
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "Het resultaat wordt geëxporteerd naar een CSV om duplicaten en de gekozen actie per item te controleren."
 
@@ -2048,6 +2534,15 @@ msgstr "Roadmap"
 
 msgid "Role"
 msgstr "Rol"
+
+msgid "Role of {0}"
+msgstr "Rol van {0}"
+
+msgid "Role of {0} changed to {1}"
+msgstr "Rol van {0} gewijzigd in {1}"
+
+msgid "Role…"
+msgstr "Rol…"
 
 msgid "Run"
 msgstr "Uitvoeren"
@@ -2079,6 +2574,9 @@ msgstr "SMTP-wachtwoord"
 msgid "SMTP password (saved, leave empty to keep it)"
 msgstr "SMTP-wachtwoord (opgeslagen, laat leeg om het te behouden)"
 
+msgid "SMTP server"
+msgstr "SMTP-server"
+
 msgid "SMTP server (for example mail.example.com)"
 msgstr "SMTP-server (bijvoorbeeld mail.example.com)"
 
@@ -2088,8 +2586,14 @@ msgstr "SMTP-gebruikersnaam"
 msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
 msgstr "SOURCE en TARGET kunnen cloud-endpoints zijn (synology/immich/nextcloud/google met account) of lokale mappen."
 
+msgid "STARTTLS usually uses port {0} and SSL/TLS port {1}."
+msgstr "STARTTLS gebruikt meestal poort {0} en SSL/TLS poort {1}."
+
 msgid "Same name and size"
 msgstr "Dezelfde naam en grootte"
+
+msgid "Saturday"
+msgstr "Zaterdag"
 
 msgid "Save Email"
 msgstr "E-mail opslaan"
@@ -2112,11 +2616,29 @@ msgstr "App-instellingen opslaan"
 msgid "Save config"
 msgstr "Configuratie opslaan"
 
+msgid "Save email delivery"
+msgstr "E-mailbezorging opslaan"
+
 msgid "Save people labels"
 msgstr "Persoonslabels opslaan"
 
 msgid "Save row"
 msgstr "Rij opslaan"
+
+msgid "Save schedule"
+msgstr "Schema opslaan"
+
+msgid "Save the SMTP server first"
+msgstr "Sla eerst de SMTP-server op"
+
+msgid "Saved"
+msgstr "Opgeslagen"
+
+msgid "Saved · leave empty to keep it"
+msgstr "Opgeslagen · laat leeg om te behouden"
+
+msgid "Saving…"
+msgstr "Opslaan…"
 
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
 msgstr "Scan <FOLDER_TO_FIX> recursief en probeer verbroken symbolische links te herstellen."
@@ -2124,11 +2646,29 @@ msgstr "Scan <FOLDER_TO_FIX> recursief en probeer verbroken symbolische links te
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
 msgstr "Scan <FOLDER_TO_FIX> recursief en probeer verbroken symbolische links te herstellen. Handig na het verplaatsen of hernoemen van mappen in OUTPUT_TAKEOUT_FOLDER wanneer sommige albums leeg lijken. De tool zoekt geldige doelbestanden in dezelfde mapstructuur en legt waar mogelijk de link opnieuw. BELANGRIJK: Links worden alleen hersteld wanneer uit de huidige bestanden een geldig doel kan worden afgeleid. Voorbeeld: --fix-symlinks-broken ./OUTPUT_FOLDER"
 
+msgid "Scheduled"
+msgstr "Gepland"
+
+msgid "Scheduled backups"
+msgstr "Geplande back-ups"
+
+msgid "Scheduler settings saved."
+msgstr "Plannerinstellingen opgeslagen."
+
 msgid "Scroll log to the first line"
 msgstr "Logboek naar de eerste regel scrollen"
 
 msgid "Scroll log to the last line"
 msgstr "Logboek naar de laatste regel scrollen"
+
+msgid "Search all values"
+msgstr "Alle waarden doorzoeken"
+
+msgid "Search users"
+msgstr "Gebruikers zoeken"
+
+msgid "Search users by username or email"
+msgstr "Zoek gebruikers op gebruikersnaam of e-mailadres"
 
 msgid "Segoe UI"
 msgstr "Segoe UI"
@@ -2147,6 +2687,9 @@ msgstr "Kies parallelle of sequentiële migratie tijdens een automatische migrat
 
 msgid "Select a table first."
 msgstr "Selecteer eerst een tabel."
+
+msgid "Select all users"
+msgstr "Alle gebruikers selecteren"
 
 msgid "Select at least one folder first."
 msgstr "Selecteer eerst minstens één map."
@@ -2193,26 +2736,53 @@ msgstr "Testmail verzenden"
 msgid "Send a local folder or ZIP file to the server"
 msgstr "Een lokale map of ZIP-bestand naar de server sturen"
 
+msgid "Send a test email to"
+msgstr "Stuur een testmail naar"
+
 msgid "Send files here"
 msgstr "Stuur bestanden hierheen"
 
 msgid "Send request"
 msgstr "Aanvraag verzenden"
 
+msgid "Send test email"
+msgstr "Testmail verzenden"
+
 msgid "Send the test email to (default: your email)"
 msgstr "Stuur de testmail naar (standaard: je e-mailadres)"
+
+msgid "Sender"
+msgstr "Afzender"
+
+msgid "Sender address"
+msgstr "Afzenderadres"
 
 msgid "Sender email"
 msgstr "E-mailadres afzender"
 
+msgid "Sender name"
+msgstr "Afzendernaam"
+
 msgid "Sender name (PhotoMigrator)"
 msgstr "Naam afzender (PhotoMigrator)"
+
+msgid "Sending…"
+msgstr "Verzenden…"
+
+msgid "Server"
+msgstr "Server"
 
 msgid "Service credentials"
 msgstr "Servicegegevens"
 
 msgid "Set a new password and confirm it."
 msgstr "Stel een nieuw wachtwoord in en bevestig het."
+
+msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
+msgstr "Een tijdelijk wachtwoord instellen voor {0}? De gebruiker wordt op elke browser afgemeld en moet bij de volgende aanmelding een nieuw wachtwoord kiezen."
+
+msgid "Set with"
+msgstr "Ingesteld met"
 
 msgid "Settings"
 msgstr "Instellingen"
@@ -2229,6 +2799,12 @@ msgstr "Gedeelde argumenten, servicegegevens en voorkeuren die door elke functie
 msgid "Show"
 msgstr "Tonen"
 
+msgid "Show API key admin"
+msgstr "API-sleutel voor beheerder tonen"
+
+msgid "Show API key user"
+msgstr "API-sleutel voor gebruiker tonen"
+
 msgid "Show Client secret"
 msgstr "Client secret tonen"
 
@@ -2237,6 +2813,9 @@ msgstr "GPTH-foutmeldingen tonen"
 
 msgid "Show GPTH info messages"
 msgstr "GPTH-infomeldingen tonen"
+
+msgid "Show Password"
+msgstr "Wachtwoord tonen"
 
 msgid "Show Refresh token"
 msgstr "Vernieuwingstoken tonen"
@@ -2247,11 +2826,20 @@ msgstr "Wachtwoord tonen"
 msgid "Show {0}"
 msgstr "{0} tonen"
 
+msgid "Showing the first {0} matching values. Search to narrow them."
+msgstr "De eerste {0} overeenkomende waarden worden getoond. Zoek om ze te beperken."
+
 msgid "Sign in"
 msgstr "Aanmelden"
 
 msgid "Sign in to PhotoMigrator"
 msgstr "Aanmelden bij PhotoMigrator"
+
+msgid "Sign-in"
+msgstr "Aanmelding"
+
+msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
+msgstr "Aanmeldingen en wijzigingen in het beheerpaneel: wie wat deed, wanneer en vanaf waar."
 
 msgid "Skip GPTH tool (not recommended)"
 msgstr "GPTH-tool overslaan (niet aanbevolen)"
@@ -2517,6 +3105,12 @@ msgstr "Stoppen"
 msgid "Stop Running Module?"
 msgstr "Actieve module stoppen?"
 
+msgid "Stored backups"
+msgstr "Opgeslagen back-ups"
+
+msgid "Sunday"
+msgstr "Zondag"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -2525,6 +3119,9 @@ msgstr "Synology Photos"
 
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table"
+msgstr "Tabel"
 
 msgid "Table status: 'access_logs' loaded (2/2 rows)"
 msgstr "Tabelstatus: 'access_logs' geladen (2/2 rijen)"
@@ -2577,6 +3174,15 @@ msgstr "Doel-endpoint of lokale map om naartoe te migreren."
 msgid "Target service"
 msgstr "Doelservice"
 
+msgid "Test email"
+msgstr "Testmail"
+
+msgid "Test email failed:"
+msgstr "Testmail mislukt:"
+
+msgid "Test email sent to {0}."
+msgstr "Testmail verzonden naar {0}."
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr "Het account is nog niet actief. We sturen je een e-mail zodra het actief is."
 
@@ -2586,8 +3192,14 @@ msgstr "De demorol kan geen configuratiewijzigingen opslaan, behalve TimeZone en
 msgid "The demo role cannot {0} configuration directly."
 msgstr "De demorol kan de configuratie niet rechtstreeks {0}."
 
+msgid "The password needs at least {0} characters."
+msgstr "Het wachtwoord moet minstens {0} tekens bevatten."
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "Het geselecteerde pad bevat '{0}', wat is gereserveerd als speciale mapnaam van Google.\\n\\n"
+
+msgid "The temporary password was emailed to {0}."
+msgstr "Het tijdelijke wachtwoord is per e-mail naar {0} gestuurd."
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
 msgstr "De tool zoekt geldige doelbestanden in dezelfde mapstructuur en legt waar mogelijk de link opnieuw."
@@ -2600,6 +3212,9 @@ msgstr "Thema"
 
 msgid "Theme used by the PhotoMigrator web interface."
 msgstr "Thema van de PhotoMigrator-webinterface."
+
+msgid "There are no changed values in this row."
+msgstr "Deze rij bevat geen gewijzigde waarden."
 
 msgid "This argument only accepts one folder. Select exactly one."
 msgstr "Dit argument accepteert maar één map. Selecteer er precies één."
@@ -2757,6 +3372,9 @@ msgstr "Deze module hernoemt lokale albummappen ter plekke op basis van de datum
 msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
 msgstr "Deze module hernoemt lokale albummappen ter plekke op basis van de datums van de inhoud. De oorspronkelijke mapnamen worden op schijf gewijzigd. Wil je doorgaan?"
 
+msgid "This permanently deletes the selected row of {0}."
+msgstr "Hiermee wordt de geselecteerde rij van {0} definitief verwijderd."
+
 msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
 msgstr "Dit verwijdert de accountaanvraag van '{0}' en stuurt een e-mail dat de aanvraag niet is goedgekeurd. Wil je doorgaan?"
 
@@ -2771,6 +3389,9 @@ msgstr "Dit verwijdert gebruiker '{0}' definitief. Wil je doorgaan?"
 
 msgid "This will permanently delete {0} selected folder(s) and all their contents."
 msgstr "Dit verwijdert {0} geselecteerde map(pen) en alle inhoud daarvan definitief."
+
+msgid "Thursday"
+msgstr "Donderdag"
 
 msgid "Time zone"
 msgstr "Tijdzone"
@@ -2787,11 +3408,17 @@ msgstr "Tijdstempel ▼"
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr "Voer de gegevens van een actieve beheerder in om andere configuratievelden op te slaan."
 
+msgid "Today"
+msgstr "Vandaag"
+
 msgid "Toggle {0}"
 msgstr "{0} omschakelen"
 
 msgid "Tools"
 msgstr "Hulpmiddelen"
+
+msgid "Total size"
+msgstr "Totale grootte"
 
 msgid "Transfer"
 msgstr "Overdragen"
@@ -2816,6 +3443,12 @@ msgstr "Groeperen van kleine albums proberen"
 
 msgid "Try Truncated Albums Grouping"
 msgstr "Groeperen van ingekorte albums proberen"
+
+msgid "Tuesday"
+msgstr "Dinsdag"
+
+msgid "Type a new password and leave the field to save it (at least {0} characters)"
+msgstr "Typ een nieuw wachtwoord en verlaat het veld om het op te slaan (minstens {0} tekens)"
 
 msgid "Type an answer when the running job asks for input"
 msgstr "Typ een antwoord wanneer de actieve taak om invoer vraagt"
@@ -2979,6 +3612,21 @@ msgstr "Handig na het verplaatsen of hernoemen van mappen in OUTPUT_TAKEOUT_FOLD
 msgid "User"
 msgstr "Gebruiker"
 
+msgid "User created"
+msgstr "Gebruiker aangemaakt"
+
+msgid "User deleted"
+msgstr "Gebruiker verwijderd"
+
+msgid "User not found."
+msgstr "Gebruiker niet gevonden."
+
+msgid "User update failed"
+msgstr "Gebruiker bijwerken mislukt"
+
+msgid "User updated"
+msgstr "Gebruiker bijgewerkt"
+
 msgid "Username"
 msgstr "Gebruikersnaam"
 
@@ -2987,6 +3635,15 @@ msgstr "Gebruikersnaam of e-mailadres"
 
 msgid "Users"
 msgstr "Gebruikers"
+
+msgid "Users active in the last {0} minutes · click to list them first"
+msgstr "Gebruikers die de afgelopen {0} minuten actief waren · klik om ze eerst te tonen"
+
+msgid "Users, settings and credentials"
+msgstr "Gebruikers, instellingen en inloggegevens"
+
+msgid "Users, settings, saved credentials and email settings, in one file. Backups made here are never deleted automatically."
+msgstr "Gebruikers, instellingen, opgeslagen inloggegevens en e-mailinstellingen in één bestand. Hier gemaakte back-ups worden nooit automatisch verwijderd."
 
 msgid "Uses the configured cloud account ID."
 msgstr "Gebruikt de geconfigureerde cloudaccount-ID."
@@ -3003,8 +3660,14 @@ msgstr "Standaardwaarden uit Instellingen worden gebruikt"
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "Geldige acties: restore_duplicate / remove_duplicate / replace_duplicate."
 
+msgid "Values come from the whole table, not just this page."
+msgstr "Waarden komen uit de hele tabel, niet alleen van deze pagina."
+
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "Versie v5.0.0 · Meld je aan om verder te gaan"
+
+msgid "Volumes folder"
+msgstr "Volumesmap"
 
 msgid "Warm palette"
 msgstr "Warm palet"
@@ -3015,8 +3678,17 @@ msgstr "We hebben je accountaanvraag ontvangen"
 msgid "Web Interface"
 msgstr "Webinterface"
 
+msgid "Web database"
+msgstr "Webdatabase"
+
 msgid "Website"
 msgstr "Website"
+
+msgid "Wednesday"
+msgstr "Woensdag"
+
+msgid "Weekly"
+msgstr "Wekelijks"
 
 msgid "Welcome back, admin"
 msgstr "Welkom terug, admin"
@@ -3081,11 +3753,32 @@ msgstr "Werkruimte"
 msgid "Yes"
 msgstr "Ja"
 
+msgid "Yesterday"
+msgstr "Gisteren"
+
+msgid "You"
+msgstr "Jij"
+
 msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
 msgstr "Je kunt cellen bewerken en op Rij opslaan klikken, of op Rij verwijderen. Voor invoegen wordt JSON-objectsyntaxis gebruikt."
 
+msgid "You cannot deactivate your own account"
+msgstr "Je kunt je eigen account niet deactiveren"
+
+msgid "You cannot deactivate your own account."
+msgstr "Je kunt je eigen account niet deactiveren."
+
+msgid "You cannot delete your own user"
+msgstr "Je kunt je eigen gebruiker niet verwijderen"
+
+msgid "You cannot delete your own user."
+msgstr "Je kunt je eigen gebruiker niet verwijderen."
+
 msgid "You will be asked to confirm before it runs."
 msgstr "Je wordt om bevestiging gevraagd voordat het wordt uitgevoerd."
+
+msgid "Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "Je ADMIN_API_KEY voor Immich Photos (je kunt een API_KEY aanmaken via Accountinstellingen --> API-sleutels)"
 
 msgid "Your PhotoMigrator account"
 msgstr "Je PhotoMigrator-account"
@@ -3108,6 +3801,9 @@ msgstr "Je eigen bibliotheek"
 msgid "Your password was changed"
 msgstr "Je wachtwoord is gewijzigd"
 
+msgid "Your password was reset"
+msgstr "Je wachtwoord is opnieuw ingesteld"
+
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "Je tijdelijke wachtwoord is <b>{0}</b>. Je kiest je eigen wachtwoord wanneer je de eerste keer aanmeldt."
 
@@ -3120,8 +3816,14 @@ msgstr "een beheerder heeft het wachtwoord van je PhotoMigrator-account <b>{0}</
 msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
 msgstr "een beheerder heeft je PhotoMigrator-account <b>{0}</b> uitgeschakeld. Als je denkt dat dit een vergissing is, beantwoord dan deze e-mail."
 
+msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
+msgstr "een beheerder heeft het wachtwoord van je PhotoMigrator-account <b>{0}</b> opnieuw ingesteld."
+
 msgid "backup_schedules ({0})"
 msgstr "backup_schedules ({0})"
+
+msgid "created"
+msgstr "aangemaakt"
 
 msgid "data subpath (default username)"
 msgstr "submap van data (standaard gebruikersnaam)"
@@ -3132,6 +3834,9 @@ msgstr "bijv. photos-2026 of /app/data/photos-2026"
 msgid "environment variables."
 msgstr "omgevingsvariabelen."
 
+msgid "failed"
+msgstr "mislukt"
+
 msgid "iCloud Takeout"
 msgstr "iCloud Takeout"
 
@@ -3141,8 +3846,14 @@ msgstr "iCloud Takeout · PhotoMigrator"
 msgid "immich-photos-1 -> immich-photos-1"
 msgstr "immich-photos-1 -> immich-photos-1"
 
+msgid "in the backup folder"
+msgstr "in de back-upmap"
+
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
 msgstr "is ingesteld op Ja, worden geüploade .zip-bestanden op de server uitgepakt en wordt het .zip-bestand verwijderd. Indien ingesteld op Nee, blijven .zip-bestanden zoals ze zijn geüpload."
+
+msgid "key"
+msgstr "sleutel"
 
 msgid "max size {0} MB"
 msgstr "maximale grootte {0} MB"
@@ -3150,11 +3861,20 @@ msgstr "maximale grootte {0} MB"
 msgid "max size {0} MB · timeout {1} s"
 msgstr "maximale grootte {0} MB · time-out {1} s"
 
+msgid "name@example.com · empty = your own email"
+msgstr "naam@voorbeeld.nl · leeg = je eigen e-mailadres"
+
 msgid "nextcloud-photos-1 -> nextcloud-photos-1"
 msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 
+msgid "on the backup volume"
+msgstr "op het back-upvolume"
+
 msgid "sessions ({0})"
 msgstr "sessions ({0})"
+
+msgid "success"
+msgstr "geslaagd"
 
 msgid "synology-photos-1 -> immich-photos-1"
 msgstr "synology-photos-1 -> immich-photos-1"
@@ -3210,11 +3930,41 @@ msgstr "je taak <b>{0}</b> is succesvol voltooid."
 msgid "your task <b>{0}</b> was stopped before it finished."
 msgstr "je taak <b>{0}</b> is gestopt voordat deze klaar was."
 
+msgid "{0} / {1} rows"
+msgstr "{0} / {1} rijen"
+
+msgid "{0} access request"
+msgstr "{0} toegangsaanvraag"
+
+msgid "{0} access requests"
+msgstr "{0} toegangsaanvragen"
+
+msgid "{0} account"
+msgstr "{0} account"
+
 msgid "{0} accounts"
 msgstr "{0}-accounts"
 
+msgid "{0} activated"
+msgstr "{0} geactiveerd"
+
+msgid "{0} created"
+msgstr "{0} aangemaakt"
+
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr "{0} heeft een PhotoMigrator-account voor je gemaakt. Meld je aan met de gebruikersnaam <b>{1}</b> of met dit e-mailadres."
+
+msgid "{0} days ago"
+msgstr "{0} dagen geleden"
+
+msgid "{0} deactivated"
+msgstr "{0} gedeactiveerd"
+
+msgid "{0} deleted"
+msgstr "{0} verwijderd"
+
+msgid "{0} events"
+msgstr "{0} gebeurtenissen"
 
 msgid "{0} failed"
 msgstr "{0} mislukt"
@@ -3225,11 +3975,44 @@ msgstr "{0} functies"
 msgid "{0} finished"
 msgstr "{0} voltooid"
 
+msgid "{0} is active"
+msgstr "{0} is actief"
+
+msgid "{0} must change the password"
+msgstr "{0} moet het wachtwoord wijzigen"
+
+msgid "{0} no longer has to change the password"
+msgstr "{0} hoeft het wachtwoord niet meer te wijzigen"
+
+msgid "{0} of {1} users"
+msgstr "{0} van {1} gebruikers"
+
+msgid "{0} online"
+msgstr "{0} online"
+
 msgid "{0} options"
 msgstr "Opties voor {0}"
 
+msgid "{0} rows"
+msgstr "{0} rijen"
+
+msgid "{0} scheduled · {1} manual"
+msgstr "{0} gepland · {1} handmatig"
+
+msgid "{0} selected"
+msgstr "{0} geselecteerd"
+
 msgid "{0} stopped"
 msgstr "{0} gestopt"
+
+msgid "{0} users"
+msgstr "{0} gebruikers"
+
+msgid "{0} users changed"
+msgstr "{0} gebruikers gewijzigd"
+
+msgid "{0} will change the password at the next sign-in"
+msgstr "{0} moet bij de volgende aanmelding het wachtwoord wijzigen"
 
 msgid "⏱️ Delayed Recovered"
 msgstr "⏱️ Vertraagd hersteld"

@@ -18,6 +18,9 @@ msgstr "(per defecte: tots)"
 msgid "(no output)"
 msgstr "(sense sortida)"
 
+msgid "+ Add row"
+msgstr "+ Afegeix una fila"
+
 msgid "/app/data subpath"
 msgstr "Subruta de /app/data"
 
@@ -44,6 +47,12 @@ msgstr "Una carpeta sencera, àlbums inclosos"
 
 msgid "ALL_PHOTOS Folder Name"
 msgstr "Nom de la carpeta ALL_PHOTOS"
+
+msgid "API key admin"
+msgstr "API key d'administrador"
+
+msgid "API key user"
+msgstr "API key d'usuari"
 
 msgid "About Auto Rename Folders Content Based"
 msgstr "Quant a Canvia el nom de les carpetes segons el contingut"
@@ -117,6 +126,9 @@ msgstr "Quant a {0}"
 msgid "Access Logs"
 msgstr "Registres d'accés"
 
+msgid "Access logs"
+msgstr "Registres d'accés"
+
 msgid "Access logs: loaded {0} entries"
 msgstr "Registres d'accés: s'han carregat {0} entrades"
 
@@ -125,6 +137,12 @@ msgstr "Registres d'accés: carregant..."
 
 msgid "Access logs: {0}"
 msgstr "Registres d'accés: {0}"
+
+msgid "Access request"
+msgstr "Sol·licitud d'accés"
+
+msgid "Access request of {0} approved"
+msgstr "Sol·licitud d'accés de {0} aprovada"
 
 msgid "Account"
 msgstr "Compte"
@@ -141,8 +159,23 @@ msgstr "Sol·licitud de compte"
 msgid "Account request from {0}"
 msgstr "Sol·licitud de compte de {0}"
 
+msgid "Account requests from the login page"
+msgstr "Sol·licituds de compte des de la pàgina d'inici de sessió"
+
 msgid "Account {0}"
 msgstr "Compte {0}"
+
+msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "Compte {0}: la teva USER_API_KEY d'Immich Photos (pots crear una API_KEY a Configuració del compte --> API_KEY Keys)"
+
+msgid "Account {0}: Your password for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "Compte {0}: la teva contrasenya d'Immich Photos (obligatòria si no s'indica una API_KEY)"
+
+msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "Compte {0}: el teu nom d'usuari d'Immich Photos (obligatori si no s'indica una API_KEY)"
+
+msgid "Accounts"
+msgstr "Comptes"
 
 msgid "Action"
 msgstr "Acció"
@@ -150,14 +183,26 @@ msgstr "Acció"
 msgid "Actions"
 msgstr "Accions"
 
+msgid "Activate"
+msgstr "Activa"
+
+msgid "Activate the {0} selected users?"
+msgstr "Vols activar els {0} usuaris seleccionats?"
+
 msgid "Active"
 msgstr "Actiu"
+
+msgid "Active and inactive"
+msgstr "Actius i inactius"
 
 msgid "Activity"
 msgstr "Activitat"
 
 msgid "Activity · PhotoMigrator"
 msgstr "Activitat · PhotoMigrator"
+
+msgid "Add row"
+msgstr "Afegeix una fila"
 
 msgid "Add the URL and credentials of each account in"
 msgstr "Afegiu l'URL i les credencials de cada compte a"
@@ -246,11 +291,23 @@ msgstr "Àlbums amb el mateix nom"
 msgid "All Users"
 msgstr "Tots els usuaris"
 
+msgid "All dates"
+msgstr "Totes les dates"
+
+msgid "All events"
+msgstr "Tots els esdeveniments"
+
 msgid "All photos folder name"
 msgstr "Nom de la carpeta de totes les fotos"
 
 msgid "All photos folder structure"
 msgstr "Estructura de la carpeta de totes les fotos"
+
+msgid "All roles"
+msgstr "Tots els rols"
+
+msgid "All users"
+msgstr "Tots els usuaris"
 
 msgid "Allow login into Synology Photos using 2FA with an OTP token."
 msgstr "Permet iniciar la sessió a Synology Photos amb 2FA mitjançant un testimoni OTP."
@@ -266,6 +323,9 @@ msgstr "Requereix també el selector de mòdul '--dup-asset-keeper {more-people/
 
 msgid "An administrator reviews every request. You will get an email when your account is active."
 msgstr "Un administrador revisa cada sol·licitud. Rebreu un correu electrònic quan el vostre compte estigui actiu."
+
+msgid "An email with the username and the password is sent to the new user."
+msgstr "S'envia un correu electrònic amb el nom d'usuari i la contrasenya al nou usuari."
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
 msgstr "Qualsevol valor desat aquí es conserva a la base de dades, però s'ignora mentre aquesta substitució continuï definida."
@@ -285,11 +345,23 @@ msgstr "Apple Photos"
 msgid "Apple iCloud Photos export"
 msgstr "Exportació d'Apple iCloud Photos"
 
+msgid "Application activity"
+msgstr "Activitat de l'aplicació"
+
 msgid "Apply a reviewed duplicates CSV"
 msgstr "Aplica un CSV de duplicats revisat"
 
+msgid "Apply filter"
+msgstr "Aplica el filtre"
+
 msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
 msgstr "Aproveu-la activant el compte al tauler d'administració o rebutgeu-la des de la mateixa llista."
+
+msgid "Approve request"
+msgstr "Aprova la sol·licitud"
+
+msgid "Approve the request of {0}"
+msgstr "Aprova la sol·licitud de {0}"
 
 msgid "Are you sure?"
 msgstr "Esteu segur?"
@@ -297,8 +369,14 @@ msgstr "Esteu segur?"
 msgid "Arguments must be passed as two values separated by comma."
 msgstr "Els arguments s'han de passar com a dos valors separats per una coma."
 
+msgid "Asked at the first sign-in"
+msgstr "Es demana en el primer inici de sessió"
+
 msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
 msgstr "Els recursos s'eliminen de l'origen un cop migrats. Desactiveu «Mou els recursos» per copiar-los."
+
+msgid "At least {0} characters"
+msgstr "Almenys {0} caràcters"
 
 msgid "Authorize"
 msgstr "Autoritza"
@@ -308,6 +386,9 @@ msgstr "Canvia el nom de les carpetes segons el contingut"
 
 msgid "Auto Scroll"
 msgstr "Desplaçament automàtic"
+
+msgid "Automatic"
+msgstr "Automàtic"
 
 msgid "Automatic Migration"
 msgstr "Migració automàtica"
@@ -330,8 +411,41 @@ msgstr "Torna a la interfície web"
 msgid "Back to sign in"
 msgstr "Torna a l'inici de sessió"
 
+msgid "Back up now"
+msgstr "Fes una còpia ara"
+
+msgid "Back up the web database now, restore a backup or schedule recurring backups."
+msgstr "Fes ara una còpia de seguretat de la base de dades web, restaura'n una o programa còpies periòdiques."
+
+msgid "Backup"
+msgstr "Còpia de seguretat"
+
 msgid "Backup Error"
 msgstr "Error de còpia de seguretat"
+
+msgid "Backup deleted"
+msgstr "Còpia de seguretat eliminada"
+
+msgid "Backup failed:"
+msgstr "Error en la còpia de seguretat:"
+
+msgid "Backup file"
+msgstr "Fitxer de còpia de seguretat"
+
+msgid "Backup folder"
+msgstr "Carpeta de còpies de seguretat"
+
+msgid "Backup protection"
+msgstr "Protecció de les còpies de seguretat"
+
+msgid "Backup restored"
+msgstr "Còpia de seguretat restaurada"
+
+msgid "Backup restored. The previous data was saved as {0}."
+msgstr "Còpia de seguretat restaurada. Les dades anteriors s'han desat com a {0}."
+
+msgid "Backup saved: {0}"
+msgstr "Còpia de seguretat desada: {0}"
 
 msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
 msgstr "Estat de la còpia de seguretat: inactiva | Mode: daily_2am | Darrera execució: - | Propera: -"
@@ -348,14 +462,23 @@ msgstr "Estat de la còpia de seguretat: {0} | Fitxer: {1}"
 msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
 msgstr "Estat de la còpia de seguretat: {0} | Mode: {1} | Darrera execució: {2} | Propera: {3}"
 
+msgid "Backups"
+msgstr "Còpies de seguretat"
+
 msgid "Backups Scheduler"
 msgstr "Programador de còpies de seguretat"
+
+msgid "Before a restore"
+msgstr "Abans d'una restauració"
 
 msgid "Blue palette"
 msgstr "Paleta blava"
 
 msgid "Browse"
 msgstr "Explora"
+
+msgid "Browse, edit or remove individual records of any table of the Web Interface database."
+msgstr "Explora, edita o elimina registres individuals de qualsevol taula de la base de dades de la interfície web."
 
 msgid "By default migration runs in parallel with live dashboard enabled."
 msgstr "Per defecte, la migració s'executa en paral·lel amb el tauler en directe activat."
@@ -366,14 +489,50 @@ msgstr "Per defecte, la sortida utilitza l'estructura 'year/month' i es desa a '
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "El punt final CSV no està disponible al backend. Reinicieu o actualitzeu el backend web."
 
+msgid "Can sign in right away"
+msgstr "Pot iniciar sessió immediatament"
+
 msgid "Cancel"
 msgstr "Cancel·la"
+
+msgid "Cannot change role of the last active admin."
+msgstr "No es pot canviar el rol de l'últim administrador actiu."
+
+msgid "Cannot deactivate the last active admin."
+msgstr "No es pot desactivar l'últim administrador actiu."
+
+msgid "Cannot delete the last active admin."
+msgstr "No es pot eliminar l'últim administrador actiu."
 
 msgid "Change Email"
 msgstr "Canvia el correu electrònic"
 
 msgid "Change Email: {0}"
 msgstr "Canvia el correu electrònic: {0}"
+
+msgid "Change any field in place: it saves on its own. Select several users to change them at once."
+msgstr "Canvia qualsevol camp directament: es desa sol. Selecciona diversos usuaris per canviar-los alhora."
+
+msgid "Change selected users"
+msgstr "Canvia els usuaris seleccionats"
+
+msgid "Change the email"
+msgstr "Canvia el correu electrònic"
+
+msgid "Change the email of {0}"
+msgstr "Canvia el correu electrònic de {0}"
+
+msgid "Change the role of the selected users"
+msgstr "Canvia el rol dels usuaris seleccionats"
+
+msgid "Change the role of the {0} selected users to {1}?"
+msgstr "Vols canviar el rol dels {0} usuaris seleccionats a {1}?"
+
+msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
+msgstr "Canvia aquesta IP per la IP del servidor Immich o per la teva URL d'Immich vàlida"
+
+msgid "Changed {0} users. Not changed:"
+msgstr "{0} usuaris canviats. No canviats:"
 
 msgid "Changes your library"
 msgstr "Modifica la vostra biblioteca"
@@ -405,6 +564,12 @@ msgstr "Trieu el recurs que es conserva per a '--remove-duplicates-assets'. Les 
 msgid "Clean up"
 msgstr "Neteja"
 
+msgid "Clear column"
+msgstr "Buida la columna"
+
+msgid "Clear selection"
+msgstr "Esborra la selecció"
+
 msgid "Client ID"
 msgstr "ID de client"
 
@@ -416,6 +581,12 @@ msgstr "Tanca"
 
 msgid "Close menu"
 msgstr "Tanca el menú"
+
+msgid "Close without adding"
+msgstr "Tanca sense afegir"
+
+msgid "Close without creating"
+msgstr "Tanca sense crear"
 
 msgid "Collapse panel"
 msgstr "Replega el tauler"
@@ -492,13 +663,22 @@ msgstr "Fitxer de configuració"
 msgid "Configuration for Google Photos"
 msgstr "Configuració de Google Photos"
 
+msgid "Configuration for Immich Photos"
+msgstr "Configuració d'Immich Photos"
+
 msgid "Configured"
 msgstr "Configurat"
+
+msgid "Configured · SMTP server"
+msgstr "Configurat · servidor SMTP"
 
 msgid "Confirm"
 msgstr "Confirma"
 
 msgid "Confirm Action"
+msgstr "Confirma l'acció"
+
+msgid "Confirm action"
 msgstr "Confirma l'acció"
 
 msgid "Confirm new password"
@@ -567,6 +747,9 @@ msgstr "Ha fallat la creació: {0}"
 msgid "Create stacks"
 msgstr "Crea piles"
 
+msgid "Create user"
+msgstr "Crea l'usuari"
+
 msgid "Created From"
 msgstr "Creat des de"
 
@@ -575,6 +758,9 @@ msgstr "Creat fins a"
 
 msgid "Created: {0}"
 msgstr "Creat: {0}"
+
+msgid "Creating…"
+msgstr "Creant…"
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
 msgstr "Les credencials i la configuració dels serveis es desen per usuari a la base de dades web. Els valors sensibles es mantenen xifrats i s'utilitzen en totes les funcions."
@@ -606,6 +792,9 @@ msgstr "Error en inserir a la BD"
 msgid "DB Update Error"
 msgstr "Error en actualitzar la BD"
 
+msgid "Daily"
+msgstr "Diària"
+
 msgid "Dangerous Module"
 msgstr "Mòdul perillós"
 
@@ -615,8 +804,26 @@ msgstr "Paleta fosca de la interfície"
 msgid "Dashboard"
 msgstr "Tauler"
 
+msgid "Data folder"
+msgstr "Carpeta de dades"
+
+msgid "Database"
+msgstr "Base de dades"
+
 msgid "Database Manager"
 msgstr "Gestor de la base de dades"
+
+msgid "Database edit"
+msgstr "Edició de la base de dades"
+
+msgid "Database error"
+msgstr "Error de base de dades"
+
+msgid "Database viewer"
+msgstr "Visor de la base de dades"
+
+msgid "Date"
+msgstr "Data"
 
 msgid "Date and range separators"
 msgstr "Separadors de data i d'interval"
@@ -626,6 +833,27 @@ msgstr "Els separadors de data i d'interval es poden personalitzar amb '--date-s
 
 msgid "Date separator"
 msgstr "Separador de data"
+
+msgid "Day of the month"
+msgstr "Dia del mes"
+
+msgid "Day of the week"
+msgstr "Dia de la setmana"
+
+msgid "Day {0} of every month at {1}"
+msgstr "El dia {0} de cada mes a les {1}"
+
+msgid "Days to keep"
+msgstr "Dies de conservació"
+
+msgid "Days to keep: the scheduled backups of the last {0} days are kept (today: since {1})."
+msgstr "Dies de conservació: es conserven les còpies programades dels últims {0} dies (avui: des de {1})."
+
+msgid "Deactivate"
+msgstr "Desactiva"
+
+msgid "Deactivate the {0} selected users?"
+msgstr "Vols desactivar els {0} usuaris seleccionats?"
 
 msgid "Default account available:"
 msgstr "Compte predeterminat disponible:"
@@ -648,6 +876,12 @@ msgstr "Voleu eliminar les carpetes seleccionades?"
 msgid "Delete User"
 msgstr "Elimina l'usuari"
 
+msgid "Delete backup"
+msgstr "Elimina la còpia de seguretat"
+
+msgid "Delete database row"
+msgstr "Elimina la fila de la base de dades"
+
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr "El punt final d'eliminació no està disponible. Reinicieu el backend de la interfície web i torneu-ho a provar."
 
@@ -657,8 +891,26 @@ msgstr "Elimina la fila"
 msgid "Delete row {0} from '{1}'?"
 msgstr "Voleu eliminar la fila {0} de '{1}'?"
 
+msgid "Delete the backup {0}? This action cannot be undone."
+msgstr "Vols eliminar la còpia de seguretat {0}? Aquesta acció no es pot desfer."
+
+msgid "Delete the {0} selected users? This action cannot be undone."
+msgstr "Vols eliminar els {0} usuaris seleccionats? Aquesta acció no es pot desfer."
+
+msgid "Delete user"
+msgstr "Elimina l'usuari"
+
+msgid "Delete user {0}? This action cannot be undone."
+msgstr "Vols eliminar l'usuari {0}? Aquesta acció no es pot desfer."
+
+msgid "Delete {0}"
+msgstr "Elimina {0}"
+
 msgid "Demo"
 msgstr "Demostració"
+
+msgid "Demo (read only)"
+msgstr "Demo (només lectura)"
 
 msgid "Demo Role Restricted"
 msgstr "Rol de demostració restringit"
@@ -672,6 +924,12 @@ msgstr "Cal una destinació"
 msgid "Destination folder"
 msgstr "Carpeta de destinació"
 
+msgid "Details"
+msgstr "Detalls"
+
+msgid "Disabled"
+msgstr "Desactivat"
+
 msgid "Do not save the GPTH log"
 msgstr "No desis el registre de GPTH"
 
@@ -680,6 +938,9 @@ msgstr "Document"
 
 msgid "Documentation"
 msgstr "Documentació"
+
+msgid "Download"
+msgstr "Baixa"
 
 msgid "Download Albums"
 msgstr "Descarrega àlbums"
@@ -741,6 +1002,9 @@ msgstr "Durant la pujada, tracta els noms d'àlbum existents equivalents com una
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
 msgstr "Durant la pujada, tracta els noms d'àlbum existents equivalents com una sola família i en fusiona els recursos a l'àlbum canònic que es conserva. Els àlbums redundants només s'eliminen quan el servei admet l'eliminació d'àlbums."
 
+msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
+msgstr "Edita un valor i prem ✓ per desar aquesta fila. Les claus estan protegides. {0} files per pàgina."
+
 msgid "Elapsed Time"
 msgstr "Temps transcorregut"
 
@@ -759,11 +1023,29 @@ msgstr "Correu electrònic (SMTP)"
 msgid "Email check"
 msgstr "Comprovació del correu electrònic"
 
+msgid "Email delivery"
+msgstr "Enviament de correus"
+
+msgid "Email delivery saved."
+msgstr "Enviament de correus desat."
+
 msgid "Email is not configured on this server yet."
 msgstr "El correu electrònic encara no està configurat en aquest servidor."
 
+msgid "Email is not configured: give the username and the password to the new user yourself."
+msgstr "El correu electrònic no està configurat: dona tu mateix el nom d'usuari i la contrasenya al nou usuari."
+
 msgid "Email me when it finishes"
 msgstr "Envia'm un correu en acabar"
+
+msgid "Email of {0}"
+msgstr "Correu electrònic de {0}"
+
+msgid "Email of {0} changed"
+msgstr "Correu electrònic de {0} canviat"
+
+msgid "Email settings"
+msgstr "Configuració del correu electrònic"
 
 msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
 msgstr "Estat del correu electrònic: no configurat, no s'envia cap correu; les sol·licituds de compte des de la pàgina d'inici de sessió estan activades."
@@ -779,6 +1061,9 @@ msgstr "Estat del correu electrònic: correu de prova enviat a {0}."
 
 msgid "Email status: {0}"
 msgstr "Estat del correu electrònic: {0}"
+
+msgid "Emails of the tool"
+msgstr "Correus de l'eina"
 
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "Activa o desactiva els missatges d'error durant el processament de GPTH."
@@ -798,8 +1083,14 @@ msgstr "Activa o desactiva el tauler en directe durant una tasca de migració au
 msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
 msgstr "Activa o desactiva el tauler en directe durant una tasca de migració automàtica. Aquest argument només s'aplica si s'indiquen alhora '--source' i '--target'. (per defecte: True)."
 
+msgid "Enable recurring backups"
+msgstr "Activa les còpies de seguretat periòdiques"
+
 msgid "Enabled"
 msgstr "Activat"
+
+msgid "Encryption"
+msgstr "Xifratge"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "Introduïu un nom de carpeta o una ruta absoluta dins de"
@@ -813,6 +1104,9 @@ msgstr "Error: {0}"
 msgid "Estimated End"
 msgstr "Final estimat"
 
+msgid "Event"
+msgstr "Esdeveniment"
+
 msgid "Every album and asset"
 msgstr "Tots els àlbums i recursos"
 
@@ -825,11 +1119,23 @@ msgstr "Tots els recursos i àlbums"
 msgid "Every day (2:00 AM)"
 msgstr "Cada dia (2:00)"
 
+msgid "Every day at {0}"
+msgstr "Cada dia a les {0}"
+
 msgid "Every hour"
 msgstr "Cada hora"
 
+msgid "Every hour at minute {0}"
+msgstr "Cada hora al minut {0}"
+
 msgid "Every week (Monday 2:00 AM)"
 msgstr "Cada setmana (dilluns a les 2:00)"
+
+msgid "Every {0} at {1}"
+msgstr "Cada {0} a les {1}"
+
+msgid "Every {0} hours"
+msgstr "Cada {0} hores"
 
 msgid "Example: --consolidate-albums-names --preview-album-actions"
 msgstr "Exemple: --consolidate-albums-names --preview-album-actions"
@@ -960,6 +1266,9 @@ msgstr "Eina GPTH d'execució"
 msgid "Execution"
 msgstr "Execució"
 
+msgid "Execution time"
+msgstr "Hora d'execució"
+
 msgid "Expand panel"
 msgstr "Desplega el tauler"
 
@@ -978,11 +1287,20 @@ msgstr "ZIP extrets: {0} ({1} fitxers) |"
 msgid "Extracted ZIPs: {0}\\n"
 msgstr "ZIP extrets: {0}\\n"
 
+msgid "Failed sign in"
+msgstr "Inici de sessió fallit"
+
 msgid "Failed: {0}"
 msgstr "Ha fallat: {0}"
 
+msgid "Fill at least one value."
+msgstr "Omple almenys un valor."
+
 msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
 msgstr "Ompliu els camps obligatoris. Les opcions avançades mantenen els valors per defecte tret que les obriu."
+
+msgid "Filter"
+msgstr "Filtra"
 
 msgid "Filter by city"
 msgstr "Filtra per ciutat"
@@ -993,6 +1311,12 @@ msgstr "Filtra per país"
 msgid "Filter by person"
 msgstr "Filtra per persona"
 
+msgid "Filter by role"
+msgstr "Filtra per rol"
+
+msgid "Filter by status"
+msgstr "Filtra per estat"
+
 msgid "Filter by type"
 msgstr "Filtra per tipus"
 
@@ -1001,6 +1325,12 @@ msgstr "Filtra des de la data"
 
 msgid "Filter to date"
 msgstr "Filtra fins a la data"
+
+msgid "Filter {0}"
+msgstr "Filtra {0}"
+
+msgid "Filter: {0}"
+msgstr "Filtre: {0}"
 
 msgid "Filters"
 msgstr "Filtres"
@@ -1016,6 +1346,9 @@ msgstr "Cercar duplicats"
 
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr "Cerca duplicats en una o més carpetes mitjançant la mida del fitxer i comprovacions de contingut."
+
+msgid "First page"
+msgstr "Primera pàgina"
 
 msgid "Fix Broken Symlinks"
 msgstr "Repara els enllaços simbòlics trencats"
@@ -1073,6 +1406,9 @@ msgstr "Nom de la carpeta sense àlbums"
 
 msgid "Folders"
 msgstr "Carpetes"
+
+msgid "Folders of {0} changed"
+msgstr "Carpetes de {0} canviades"
 
 msgid "Folders to scan"
 msgstr "Carpetes que s'han d'analitzar"
@@ -1137,6 +1473,15 @@ msgstr "Força el canvi de contrasenya"
 msgid "Force password change on first login"
 msgstr "Força el canvi de contrasenya en el primer inici de sessió"
 
+msgid "Free disk space"
+msgstr "Espai lliure al disc"
+
+msgid "Friday"
+msgstr "Divendres"
+
+msgid "From"
+msgstr "Remitent"
+
 msgid "GPTH messages"
 msgstr "Missatges de GPTH"
 
@@ -1145,6 +1490,9 @@ msgstr "Arguments generals"
 
 msgid "Get started in three steps"
 msgstr "Comenceu en tres passos"
+
+msgid "Give this temporary password to {0}. It is shown only once:"
+msgstr "Dona aquesta contrasenya temporal a {0}. Només es mostra una vegada:"
 
 msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
 msgstr "Arguments globals compartits per totes les funcions: registre, execució, noms de carpetes i filtres."
@@ -1221,6 +1569,9 @@ msgstr "Inici (data)"
 msgid "Home (volumes)"
 msgstr "Inici (volumes)"
 
+msgid "Hourly"
+msgstr "Cada hora"
+
 msgid "How to migrate"
 msgstr "Com migrar"
 
@@ -1243,6 +1594,9 @@ msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operat
 msgstr "IMPORTANT: remove_duplicate i replace_duplicate són operacions irreversibles."
 
 msgid "IP Address"
+msgstr "Adreça IP"
+
+msgid "IP address"
 msgstr "Adreça IP"
 
 msgid "Idle"
@@ -1287,6 +1641,9 @@ msgstr "Immich"
 msgid "Immich Photos"
 msgstr "Immich Photos"
 
+msgid "Immich Photos accounts"
+msgstr "Comptes d'Immich Photos"
+
 msgid "Immich Photos · PhotoMigrator"
 msgstr "Immich Photos · PhotoMigrator"
 
@@ -1307,6 +1664,9 @@ msgstr "Importa a Immich les etiquetes de persones de Google Takeout quan hi ha 
 
 msgid "Import people"
 msgstr "Importa persones"
+
+msgid "Inactive"
+msgstr "Inactiu"
 
 msgid "Include Memories as albums"
 msgstr "Inclou Memories com a àlbums"
@@ -1367,6 +1727,21 @@ msgstr "Darrera actualització: -"
 
 msgid "Last Updated: {0}"
 msgstr "Darrera actualització: {0}"
+
+msgid "Last backup"
+msgstr "Última còpia de seguretat"
+
+msgid "Last page"
+msgstr "Última pàgina"
+
+msgid "Last sign-in"
+msgstr "Últim inici de sessió"
+
+msgid "Last {0} days"
+msgstr "Últims {0} dies"
+
+msgid "Last {0} hours"
+msgstr "Últimes {0} hores"
 
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr "Lletres, números, punts, guions o guions baixos"
@@ -1458,6 +1833,12 @@ msgstr "Falta un argument obligatori: --{0}"
 msgid "Missing tab."
 msgstr "Falta la pestanya."
 
+msgid "Monday"
+msgstr "Dilluns"
+
+msgid "Monthly"
+msgstr "Mensual"
+
 msgid "Move Assets"
 msgstr "Mou els recursos"
 
@@ -1485,8 +1866,17 @@ msgstr "Moveu tota la vostra biblioteca a un altre servei"
 msgid "Multiple albums can be separated by comma or space and quoted."
 msgstr "Es poden indicar diversos àlbums separats per coma o espai i entre cometes."
 
+msgid "Must change password"
+msgstr "Ha de canviar la contrasenya"
+
 msgid "Naming & Folders"
 msgstr "Noms i carpetes"
+
+msgid "Never"
+msgstr "Mai"
+
+msgid "Never shown. Leave it empty to keep the saved password."
+msgstr "Mai es mostra. Deixa'l buit per conservar la contrasenya desada."
 
 msgid "New account request"
 msgstr "Sol·licitud de compte nova"
@@ -1499,6 +1889,18 @@ msgstr "Nom nou per a cada àlbum coincident."
 
 msgid "New password"
 msgstr "Contrasenya nova"
+
+msgid "New password for {0}"
+msgstr "Nova contrasenya de {0}"
+
+msgid "New user"
+msgstr "Nou usuari"
+
+msgid "Next backup"
+msgstr "Propera còpia de seguretat"
+
+msgid "Next page"
+msgstr "Pàgina següent"
 
 msgid "NextCloud"
 msgstr "NextCloud"
@@ -1515,8 +1917,17 @@ msgstr "No"
 msgid "No additional help for this field."
 msgstr "No hi ha cap ajuda addicional per a aquest camp."
 
+msgid "No backups yet"
+msgstr "Encara no hi ha còpies de seguretat"
+
 msgid "No credentials for account {0} yet."
 msgstr "Encara no hi ha credencials per al compte {0}."
+
+msgid "No email · add one"
+msgstr "Sense correu · afegeix-ne un"
+
+msgid "No entries match the current filters."
+msgstr "Cap entrada coincideix amb els filtres actuals."
 
 msgid "No extra arguments required"
 msgstr "No calen arguments addicionals"
@@ -1532,6 +1943,9 @@ msgstr "Cap tasca en execució"
 
 msgid "No log file"
 msgstr "Sense fitxer de registre"
+
+msgid "No users match the current filters."
+msgstr "Cap usuari coincideix amb els filtres actuals."
 
 msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
 msgstr "Els recursos que no són en cap àlbum van a <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ amb estructura year/month."
@@ -1560,6 +1974,12 @@ msgstr "Secret de client OAuth del compte {0} de Google Photos"
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Testimoni d'actualització OAuth del compte {0} de Google Photos"
 
+msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
+msgstr "Les còpies programades anteriors s'eliminen, excepte la més recent. Les còpies fetes amb Fes una còpia ara no s'eliminen mai."
+
+msgid "On"
+msgstr "Activat"
+
 msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
 msgstr "En les destinacions al núvol compatibles, les variants redundants es fusionen a l'àlbum preferit que es conserva. Quan l'API admet l'eliminació d'àlbums (Immich, Synology, NextCloud), els àlbums redundants s'eliminen després. Google Photos conserva les variants redundants perquè l'API pública no pot eliminar àlbums."
 
@@ -1580,6 +2000,9 @@ msgstr "Contrasenya d'un sol ús"
 
 msgid "One value per line or comma-separated"
 msgstr "Un valor per línia o separats per comes"
+
+msgid "Online now"
+msgstr "En línia ara"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "Només un administrador actiu pot autoritzar aquesta acció. Introduïu el nom d'usuari i la contrasenya d'administrador."
@@ -1716,6 +2139,9 @@ msgstr "Substituït en temps d'execució per la variable d'entorn '{0}'."
 msgid "Overwrite Configuration?"
 msgstr "Voleu sobreescriure la configuració?"
 
+msgid "Page {0} of {1}"
+msgstr "Pàgina {0} de {1}"
+
 msgid "Parallel Migration"
 msgstr "Migració en paral·lel"
 
@@ -1725,8 +2151,20 @@ msgstr "Contrasenya"
 msgid "Password (at least {0} characters)"
 msgstr "Contrasenya (almenys {0} caràcters)"
 
+msgid "Password of {0} changed"
+msgstr "Contrasenya de {0} canviada"
+
+msgid "Password reset"
+msgstr "Restabliment de contrasenya"
+
 msgid "Pattern and replacement"
 msgstr "Patró i reemplaçament"
+
+msgid "Pending access requests"
+msgstr "Sol·licituds d'accés pendents"
+
+msgid "Period"
+msgstr "Període"
 
 msgid "Photo libraries"
 msgstr "Biblioteques de fotos"
@@ -1763,6 +2201,9 @@ msgstr "Seleccioneu una funció/mòdul per executar."
 
 msgid "Please verify username/password and try again."
 msgstr "Comproveu el nom d'usuari i la contrasenya i torneu-ho a provar."
+
+msgid "Port"
+msgstr "Port"
 
 msgid "Port ({0}, {1} or {2})"
 msgstr "Port ({0}, {1} o {2})"
@@ -1802,6 +2243,12 @@ msgstr "Previsualització no disponible"
 
 msgid "Preview unavailable: {0}"
 msgstr "Previsualització no disponible: {0}"
+
+msgid "Previous page"
+msgstr "Pàgina anterior"
+
+msgid "Primary-key values are protected"
+msgstr "Els valors de clau primària estan protegits"
 
 msgid "Process Duplicates"
 msgstr "Processa duplicats"
@@ -1878,6 +2325,15 @@ msgstr "A punt per executar"
 msgid "Reason: {0}"
 msgstr "Motiu: {0}"
 
+msgid "Recurrence"
+msgstr "Periodicitat"
+
+msgid "Recurring backups are off. Back up now still works."
+msgstr "Les còpies periòdiques estan desactivades. Fes una còpia ara continua funcionant."
+
+msgid "Refresh"
+msgstr "Actualitza"
+
 msgid "Refresh Logs"
 msgstr "Actualitza els registres"
 
@@ -1892,6 +2348,12 @@ msgstr "Rebutja la sol·licitud de compte"
 
 msgid "Reject Request"
 msgstr "Rebutja la sol·licitud"
+
+msgid "Reject request"
+msgstr "Rebutja la sol·licitud"
+
+msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
+msgstr "Vols rebutjar la sol·licitud d'accés de {0}? S'elimina el compte i l'usuari rep un correu electrònic."
 
 msgid "Release Notes"
 msgstr "Notes de la versió"
@@ -1956,6 +2418,9 @@ msgstr "Elimina els àlbums duplicats (mateix nom i mida)."
 msgid "Remove empty albums."
 msgstr "Elimina els àlbums buits."
 
+msgid "Remove the saved password"
+msgstr "Treu la contrasenya desada"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "Eliminats: {0} | Fallits: {1}"
 
@@ -1998,6 +2463,9 @@ msgstr "Patró de reemplaçament"
 msgid "Replacement text"
 msgstr "Text de reemplaçament"
 
+msgid "Replaces the users, settings and credentials with the ones in the backup. The current data is saved first as a pre-restore backup."
+msgstr "Substitueix els usuaris, la configuració i les credencials pels de la còpia de seguretat. Abans es desen les dades actuals en una còpia prèvia a la restauració."
+
 msgid "Request User Confirmation"
 msgstr "Demana confirmació a l'usuari"
 
@@ -2025,6 +2493,21 @@ msgstr "Restableix la contrasenya"
 msgid "Reset Password: {0}"
 msgstr "Restableix la contrasenya: {0}"
 
+msgid "Reset password"
+msgstr "Restableix la contrasenya"
+
+msgid "Reset password: sets a temporary password"
+msgstr "Restableix la contrasenya: defineix una contrasenya temporal"
+
+msgid "Reset the password of {0}"
+msgstr "Restableix la contrasenya de {0}"
+
+msgid "Restore"
+msgstr "Restauració"
+
+msgid "Restore backup"
+msgstr "Restaura la còpia de seguretat"
+
 msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
 msgstr "Restaura les dates i els àlbums d'una exportació d'Apple iCloud Photos en una biblioteca portàtil."
 
@@ -2037,6 +2520,9 @@ msgstr "Restableix els valors per defecte"
 msgid "Restore the default values of the fields shown for this feature"
 msgstr "Restableix els valors per defecte dels camps d'aquesta funció"
 
+msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
+msgstr "Vols restaurar {0}? Els usuaris, la configuració i les credencials se substitueixen pels de la còpia de seguretat. Abans es desen les dades actuals en una còpia prèvia a la restauració i potser hauràs de tornar a iniciar sessió."
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "El resultat s'exporta a un CSV per revisar els duplicats i l'acció seleccionada per a cada element."
 
@@ -2048,6 +2534,15 @@ msgstr "Full de ruta"
 
 msgid "Role"
 msgstr "Rol"
+
+msgid "Role of {0}"
+msgstr "Rol de {0}"
+
+msgid "Role of {0} changed to {1}"
+msgstr "Rol de {0} canviat a {1}"
+
+msgid "Role…"
+msgstr "Rol…"
 
 msgid "Run"
 msgstr "Executa"
@@ -2079,6 +2574,9 @@ msgstr "Contrasenya SMTP"
 msgid "SMTP password (saved, leave empty to keep it)"
 msgstr "Contrasenya SMTP (desada, deixeu-la buida per conservar-la)"
 
+msgid "SMTP server"
+msgstr "Servidor SMTP"
+
 msgid "SMTP server (for example mail.example.com)"
 msgstr "Servidor SMTP (per exemple mail.example.com)"
 
@@ -2088,8 +2586,14 @@ msgstr "Nom d'usuari SMTP"
 msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
 msgstr "SOURCE i TARGET poden ser punts finals al núvol (synology/immich/nextcloud/google amb compte) o carpetes locals."
 
+msgid "STARTTLS usually uses port {0} and SSL/TLS port {1}."
+msgstr "STARTTLS sol usar el port {0} i SSL/TLS el port {1}."
+
 msgid "Same name and size"
 msgstr "Mateix nom i mida"
+
+msgid "Saturday"
+msgstr "Dissabte"
 
 msgid "Save Email"
 msgstr "Desa el correu electrònic"
@@ -2112,11 +2616,29 @@ msgstr "Desa la configuració de l'aplicació"
 msgid "Save config"
 msgstr "Desa la configuració"
 
+msgid "Save email delivery"
+msgstr "Desa l'enviament de correus"
+
 msgid "Save people labels"
 msgstr "Desa les etiquetes de persones"
 
 msgid "Save row"
 msgstr "Desa la fila"
+
+msgid "Save schedule"
+msgstr "Desa la programació"
+
+msgid "Save the SMTP server first"
+msgstr "Desa primer el servidor SMTP"
+
+msgid "Saved"
+msgstr "Desat"
+
+msgid "Saved · leave empty to keep it"
+msgstr "Desat · deixa'l buit per conservar-lo"
+
+msgid "Saving…"
+msgstr "Desant…"
 
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
 msgstr "Analitza <FOLDER_TO_FIX> de manera recursiva i prova de reparar els enllaços simbòlics trencats."
@@ -2124,11 +2646,29 @@ msgstr "Analitza <FOLDER_TO_FIX> de manera recursiva i prova de reparar els enll
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
 msgstr "Analitza <FOLDER_TO_FIX> de manera recursiva i prova de reparar els enllaços simbòlics trencats. Útil després de moure o canviar el nom de carpetes a OUTPUT_TAKEOUT_FOLDER quan alguns àlbums apareixen buits. L'eina cerca fitxers de destinació vàlids dins del mateix arbre de carpetes i, si pot, torna a enllaçar. IMPORTANT: Els enllaços només es reparen quan es pot deduir una destinació vàlida dels fitxers actuals. Exemple: --fix-symlinks-broken ./OUTPUT_FOLDER"
 
+msgid "Scheduled"
+msgstr "Programada"
+
+msgid "Scheduled backups"
+msgstr "Còpies programades"
+
+msgid "Scheduler settings saved."
+msgstr "Configuració del programador desada."
+
 msgid "Scroll log to the first line"
 msgstr "Desplaça el registre a la primera línia"
 
 msgid "Scroll log to the last line"
 msgstr "Desplaça el registre a l'última línia"
+
+msgid "Search all values"
+msgstr "Cerca en tots els valors"
+
+msgid "Search users"
+msgstr "Cerca usuaris"
+
+msgid "Search users by username or email"
+msgstr "Cerca usuaris per nom d'usuari o correu electrònic"
 
 msgid "Segoe UI"
 msgstr "Segoe UI"
@@ -2147,6 +2687,9 @@ msgstr "Seleccioneu la migració en paral·lel o seqüencial durant una tasca de
 
 msgid "Select a table first."
 msgstr "Seleccioneu una taula primer."
+
+msgid "Select all users"
+msgstr "Selecciona tots els usuaris"
 
 msgid "Select at least one folder first."
 msgstr "Seleccioneu almenys una carpeta primer."
@@ -2193,26 +2736,53 @@ msgstr "Envia un correu de prova"
 msgid "Send a local folder or ZIP file to the server"
 msgstr "Envieu una carpeta local o un fitxer ZIP al servidor"
 
+msgid "Send a test email to"
+msgstr "Envia un correu de prova a"
+
 msgid "Send files here"
 msgstr "Envia fitxers aquí"
 
 msgid "Send request"
 msgstr "Envia la sol·licitud"
 
+msgid "Send test email"
+msgstr "Envia un correu de prova"
+
 msgid "Send the test email to (default: your email)"
 msgstr "Envia el correu de prova a (per defecte: el vostre correu)"
+
+msgid "Sender"
+msgstr "Remitent"
+
+msgid "Sender address"
+msgstr "Adreça del remitent"
 
 msgid "Sender email"
 msgstr "Correu del remitent"
 
+msgid "Sender name"
+msgstr "Nom del remitent"
+
 msgid "Sender name (PhotoMigrator)"
 msgstr "Nom del remitent (PhotoMigrator)"
+
+msgid "Sending…"
+msgstr "Enviant…"
+
+msgid "Server"
+msgstr "Servidor"
 
 msgid "Service credentials"
 msgstr "Credencials dels serveis"
 
 msgid "Set a new password and confirm it."
 msgstr "Definiu una contrasenya nova i confirmeu-la."
+
+msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
+msgstr "Vols definir una contrasenya temporal per a {0}? L'usuari es desconnecta de tots els navegadors i ha d'escollir una contrasenya nova en el proper inici de sessió."
+
+msgid "Set with"
+msgstr "Definit amb"
 
 msgid "Settings"
 msgstr "Configuració"
@@ -2229,6 +2799,12 @@ msgstr "Arguments compartits, credencials dels serveis i preferències que utili
 msgid "Show"
 msgstr "Mostra"
 
+msgid "Show API key admin"
+msgstr "Mostra l'API key d'administrador"
+
+msgid "Show API key user"
+msgstr "Mostra l'API key d'usuari"
+
 msgid "Show Client secret"
 msgstr "Mostra el secret de client"
 
@@ -2237,6 +2813,9 @@ msgstr "Mostra els missatges d'error de GPTH"
 
 msgid "Show GPTH info messages"
 msgstr "Mostra els missatges d'informació de GPTH"
+
+msgid "Show Password"
+msgstr "Mostra la contrasenya"
 
 msgid "Show Refresh token"
 msgstr "Mostra el testimoni d'actualització"
@@ -2247,11 +2826,20 @@ msgstr "Mostra la contrasenya"
 msgid "Show {0}"
 msgstr "Mostra {0}"
 
+msgid "Showing the first {0} matching values. Search to narrow them."
+msgstr "Es mostren els primers {0} valors coincidents. Cerca per acotar-los."
+
 msgid "Sign in"
 msgstr "Inicia la sessió"
 
 msgid "Sign in to PhotoMigrator"
 msgstr "Inicieu la sessió a PhotoMigrator"
+
+msgid "Sign-in"
+msgstr "Inici de sessió"
+
+msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
+msgstr "Inicis de sessió i canvis del Tauler d'administració: qui ha fet què, quan i des d'on."
 
 msgid "Skip GPTH tool (not recommended)"
 msgstr "Omet l'eina GPTH (no recomanat)"
@@ -2517,6 +3105,12 @@ msgstr "Atura"
 msgid "Stop Running Module?"
 msgstr "Voleu aturar el mòdul en execució?"
 
+msgid "Stored backups"
+msgstr "Còpies desades"
+
+msgid "Sunday"
+msgstr "Diumenge"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -2525,6 +3119,9 @@ msgstr "Synology Photos"
 
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table"
+msgstr "Taula"
 
 msgid "Table status: 'access_logs' loaded (2/2 rows)"
 msgstr "Estat de la taula: 'access_logs' carregada (2/2 files)"
@@ -2577,6 +3174,15 @@ msgstr "Punt final de destinació o carpeta local on migrar."
 msgid "Target service"
 msgstr "Servei de destinació"
 
+msgid "Test email"
+msgstr "Correu de prova"
+
+msgid "Test email failed:"
+msgstr "Error en el correu de prova:"
+
+msgid "Test email sent to {0}."
+msgstr "Correu de prova enviat a {0}."
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr "El compte encara no està actiu. Us enviarem un correu quan ho estigui."
 
@@ -2586,8 +3192,14 @@ msgstr "El rol de demostració no pot desar canvis de configuració excepte Time
 msgid "The demo role cannot {0} configuration directly."
 msgstr "El rol de demostració no pot fer {0} a la configuració directament."
 
+msgid "The password needs at least {0} characters."
+msgstr "La contrasenya necessita almenys {0} caràcters."
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "La ruta seleccionada conté '{0}', que està reservat com a nom de carpeta especial de Google.\\n\\n"
+
+msgid "The temporary password was emailed to {0}."
+msgstr "La contrasenya temporal s'ha enviat per correu electrònic a {0}."
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
 msgstr "L'eina cerca fitxers de destinació vàlids dins del mateix arbre de carpetes i, si pot, torna a enllaçar."
@@ -2600,6 +3212,9 @@ msgstr "Tema"
 
 msgid "Theme used by the PhotoMigrator web interface."
 msgstr "Tema que utilitza la interfície web de PhotoMigrator."
+
+msgid "There are no changed values in this row."
+msgstr "No hi ha valors canviats en aquesta fila."
 
 msgid "This argument only accepts one folder. Select exactly one."
 msgstr "Aquest argument només accepta una carpeta. Seleccioneu-ne exactament una."
@@ -2757,6 +3372,9 @@ msgstr "Aquest mòdul canviarà el nom de les carpetes d'àlbums locals directam
 msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
 msgstr "Aquest mòdul canviarà el nom de les carpetes d'àlbums locals directament segons les dates del contingut. Els noms originals de les carpetes es canviaran al disc. Voleu continuar?"
 
+msgid "This permanently deletes the selected row of {0}."
+msgstr "Això elimina definitivament la fila seleccionada de {0}."
+
 msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
 msgstr "Això eliminarà la sol·licitud de compte de '{0}' i li enviarà un correu informant que no s'ha aprovat. Voleu continuar?"
 
@@ -2771,6 +3389,9 @@ msgstr "Això eliminarà definitivament l'usuari '{0}'. Voleu continuar?"
 
 msgid "This will permanently delete {0} selected folder(s) and all their contents."
 msgstr "Això eliminarà definitivament {0} carpeta(es) seleccionada(es) i tot el seu contingut."
+
+msgid "Thursday"
+msgstr "Dijous"
 
 msgid "Time zone"
 msgstr "Fus horari"
@@ -2787,11 +3408,17 @@ msgstr "Marca de temps ▼"
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr "Per desar qualsevol altre camp de configuració, introduïu les credencials d'un administrador actiu."
 
+msgid "Today"
+msgstr "Avui"
+
 msgid "Toggle {0}"
 msgstr "Commuta {0}"
 
 msgid "Tools"
 msgstr "Eines"
+
+msgid "Total size"
+msgstr "Mida total"
 
 msgid "Transfer"
 msgstr "Transferència"
@@ -2816,6 +3443,12 @@ msgstr "Prova l'agrupació d'àlbums petits"
 
 msgid "Try Truncated Albums Grouping"
 msgstr "Prova l'agrupació d'àlbums truncats"
+
+msgid "Tuesday"
+msgstr "Dimarts"
+
+msgid "Type a new password and leave the field to save it (at least {0} characters)"
+msgstr "Escriu una contrasenya nova i surt del camp per desar-la (almenys {0} caràcters)"
 
 msgid "Type an answer when the running job asks for input"
 msgstr "Escriviu una resposta quan la tasca en execució demani una entrada"
@@ -2979,6 +3612,21 @@ msgstr "Útil després de moure o canviar el nom de carpetes a OUTPUT_TAKEOUT_FO
 msgid "User"
 msgstr "Usuari"
 
+msgid "User created"
+msgstr "Usuari creat"
+
+msgid "User deleted"
+msgstr "Usuari eliminat"
+
+msgid "User not found."
+msgstr "Usuari no trobat."
+
+msgid "User update failed"
+msgstr "Error en actualitzar l'usuari"
+
+msgid "User updated"
+msgstr "Usuari actualitzat"
+
 msgid "Username"
 msgstr "Nom d'usuari"
 
@@ -2987,6 +3635,15 @@ msgstr "Nom d'usuari o correu electrònic"
 
 msgid "Users"
 msgstr "Usuaris"
+
+msgid "Users active in the last {0} minutes · click to list them first"
+msgstr "Usuaris actius en els últims {0} minuts · fes clic per llistar-los primer"
+
+msgid "Users, settings and credentials"
+msgstr "Usuaris, configuració i credencials"
+
+msgid "Users, settings, saved credentials and email settings, in one file. Backups made here are never deleted automatically."
+msgstr "Usuaris, configuració, credencials desades i configuració del correu electrònic, en un sol fitxer. Les còpies fetes aquí no s'eliminen mai automàticament."
 
 msgid "Uses the configured cloud account ID."
 msgstr "Utilitza l'ID del compte al núvol configurat."
@@ -3003,8 +3660,14 @@ msgstr "S'utilitzen els valors per defecte de Configuració"
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "Accions vàlides: restore_duplicate / remove_duplicate / replace_duplicate."
 
+msgid "Values come from the whole table, not just this page."
+msgstr "Els valors provenen de tota la taula, no només d'aquesta pàgina."
+
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "Versió v5.0.0 · Inicieu la sessió per continuar"
+
+msgid "Volumes folder"
+msgstr "Carpeta de volums"
 
 msgid "Warm palette"
 msgstr "Paleta càlida"
@@ -3015,8 +3678,17 @@ msgstr "Hem rebut la vostra sol·licitud de compte"
 msgid "Web Interface"
 msgstr "Interfície web"
 
+msgid "Web database"
+msgstr "Base de dades web"
+
 msgid "Website"
 msgstr "Lloc web"
+
+msgid "Wednesday"
+msgstr "Dimecres"
+
+msgid "Weekly"
+msgstr "Setmanal"
 
 msgid "Welcome back, admin"
 msgstr "Us donem la benvinguda de nou, admin"
@@ -3081,11 +3753,32 @@ msgstr "Espai de treball"
 msgid "Yes"
 msgstr "Sí"
 
+msgid "Yesterday"
+msgstr "Ahir"
+
+msgid "You"
+msgstr "Tu"
+
 msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
 msgstr "Podeu editar les cel·les i fer clic a Desa la fila, o a Elimina la fila. Les insercions utilitzen la sintaxi d'objecte JSON."
 
+msgid "You cannot deactivate your own account"
+msgstr "No pots desactivar el teu propi compte"
+
+msgid "You cannot deactivate your own account."
+msgstr "No pots desactivar el teu propi compte."
+
+msgid "You cannot delete your own user"
+msgstr "No pots eliminar el teu propi usuari"
+
+msgid "You cannot delete your own user."
+msgstr "No pots eliminar el teu propi usuari."
+
 msgid "You will be asked to confirm before it runs."
 msgstr "Se us demanarà confirmació abans que s'executi."
+
+msgid "Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "La teva ADMIN_API_KEY d'Immich Photos (pots crear una API_KEY a Configuració del compte --> API_KEY Keys)"
 
 msgid "Your PhotoMigrator account"
 msgstr "El vostre compte de PhotoMigrator"
@@ -3108,6 +3801,9 @@ msgstr "La teva pròpia biblioteca"
 msgid "Your password was changed"
 msgstr "S'ha canviat la vostra contrasenya"
 
+msgid "Your password was reset"
+msgstr "S'ha restablert la teva contrasenya"
+
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "La vostra contrasenya temporal és <b>{0}</b>. Triareu la vostra contrasenya la primera vegada que inicieu la sessió."
 
@@ -3120,8 +3816,14 @@ msgstr "un administrador ha canviat la contrasenya del vostre compte de PhotoMig
 msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
 msgstr "un administrador ha desactivat el vostre compte de PhotoMigrator <b>{0}</b>. Si creieu que és un error, responeu a aquest correu."
 
+msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
+msgstr "un administrador ha restablert la contrasenya del teu compte de PhotoMigrator <b>{0}</b>."
+
 msgid "backup_schedules ({0})"
 msgstr "backup_schedules ({0})"
+
+msgid "created"
+msgstr "creat"
 
 msgid "data subpath (default username)"
 msgstr "subruta de data (per defecte, el nom d'usuari)"
@@ -3132,6 +3834,9 @@ msgstr "p. ex. photos-2026 o /app/data/photos-2026"
 msgid "environment variables."
 msgstr "variables d'entorn."
 
+msgid "failed"
+msgstr "fallit"
+
 msgid "iCloud Takeout"
 msgstr "iCloud Takeout"
 
@@ -3141,8 +3846,14 @@ msgstr "iCloud Takeout · PhotoMigrator"
 msgid "immich-photos-1 -> immich-photos-1"
 msgstr "immich-photos-1 -> immich-photos-1"
 
+msgid "in the backup folder"
+msgstr "a la carpeta de còpies de seguretat"
+
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
 msgstr "està establert a Sí, els fitxers .zip pujats s'extreuen al servidor i se n'elimina el fitxer .zip. Si s'estableix a No, els fitxers .zip es conserven tal com s'han pujat."
+
+msgid "key"
+msgstr "clau"
 
 msgid "max size {0} MB"
 msgstr "mida màxima {0} MB"
@@ -3150,11 +3861,20 @@ msgstr "mida màxima {0} MB"
 msgid "max size {0} MB · timeout {1} s"
 msgstr "mida màxima {0} MB · temps d'espera {1} s"
 
+msgid "name@example.com · empty = your own email"
+msgstr "nom@exemple.com · buit = el teu propi correu"
+
 msgid "nextcloud-photos-1 -> nextcloud-photos-1"
 msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 
+msgid "on the backup volume"
+msgstr "al volum de còpies de seguretat"
+
 msgid "sessions ({0})"
 msgstr "sessions ({0})"
+
+msgid "success"
+msgstr "correcte"
 
 msgid "synology-photos-1 -> immich-photos-1"
 msgstr "synology-photos-1 -> immich-photos-1"
@@ -3210,11 +3930,41 @@ msgstr "la vostra tasca <b>{0}</b> ha acabat correctament."
 msgid "your task <b>{0}</b> was stopped before it finished."
 msgstr "la vostra tasca <b>{0}</b> s'ha aturat abans d'acabar."
 
+msgid "{0} / {1} rows"
+msgstr "{0} / {1} files"
+
+msgid "{0} access request"
+msgstr "{0} sol·licitud d'accés"
+
+msgid "{0} access requests"
+msgstr "{0} sol·licituds d'accés"
+
+msgid "{0} account"
+msgstr "{0} compte"
+
 msgid "{0} accounts"
 msgstr "{0} comptes"
 
+msgid "{0} activated"
+msgstr "{0} activat"
+
+msgid "{0} created"
+msgstr "{0} creat"
+
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr "{0} us ha creat un compte de PhotoMigrator. Inicieu la sessió amb el nom d'usuari <b>{1}</b> o amb aquesta adreça electrònica."
+
+msgid "{0} days ago"
+msgstr "Fa {0} dies"
+
+msgid "{0} deactivated"
+msgstr "{0} desactivat"
+
+msgid "{0} deleted"
+msgstr "{0} eliminat"
+
+msgid "{0} events"
+msgstr "{0} esdeveniments"
 
 msgid "{0} failed"
 msgstr "{0} ha fallat"
@@ -3225,11 +3975,44 @@ msgstr "{0} funcions"
 msgid "{0} finished"
 msgstr "{0} ha acabat"
 
+msgid "{0} is active"
+msgstr "{0} està actiu"
+
+msgid "{0} must change the password"
+msgstr "{0} ha de canviar la contrasenya"
+
+msgid "{0} no longer has to change the password"
+msgstr "{0} ja no ha de canviar la contrasenya"
+
+msgid "{0} of {1} users"
+msgstr "{0} de {1} usuaris"
+
+msgid "{0} online"
+msgstr "{0} en línia"
+
 msgid "{0} options"
 msgstr "Opcions de {0}"
 
+msgid "{0} rows"
+msgstr "{0} files"
+
+msgid "{0} scheduled · {1} manual"
+msgstr "{0} programades · {1} manuals"
+
+msgid "{0} selected"
+msgstr "{0} seleccionats"
+
 msgid "{0} stopped"
 msgstr "{0} aturat"
+
+msgid "{0} users"
+msgstr "{0} usuaris"
+
+msgid "{0} users changed"
+msgstr "{0} usuaris canviats"
+
+msgid "{0} will change the password at the next sign-in"
+msgstr "{0} canviarà la contrasenya en el proper inici de sessió"
 
 msgid "⏱️ Delayed Recovered"
 msgstr "⏱️ Recuperats amb retard"

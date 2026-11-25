@@ -7,157 +7,357 @@
     <title>{{ tool_name }} Admin</title>
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v=18" sizes="any">
     <link rel="apple-touch-icon" href="/assets/logos/logo_18_1024x1024.png?v=2">
-    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-colour">
+    <link rel="stylesheet" href="/static/style.css?v=20261125-v5-admin2">
 </head>
 <body class="admin-page">
 <main class="admin-wrapper">
     <header class="admin-header">
         <img class="admin-header__logo" src="/assets/logos/logo_18_1024x1024.png?v=18" alt="">
-        <h1>Administration Panel</h1>
+        <div class="admin-header__text">
+            <span class="admin-header__eyebrow">PhotoMigrator</span>
+            <h1>Administration Panel</h1>
+        </div>
         <div class="admin-header__actions">
             <span data-lang-picker></span>
             <a href="/features?view=home" class="ghost-btn">Back to Web UI</a>
-            <button id="logout-btn" class="ghost-btn">Logout</button>
+            <button id="logout-btn" type="button" class="adm-btn adm-btn--light">Logout</button>
         </div>
     </header>
     <nav class="admin-tabs" id="admin-tabs" role="tablist" aria-label="Administration sections">
-        <button type="button" role="tab" class="admin-tab tv-mig" data-admin-tab="users" aria-selected="true">Users</button>
+        <button type="button" role="tab" class="admin-tab tv-mig" data-admin-tab="users" aria-selected="true">Users<span id="tab-requests-badge" class="admin-tab__badge" hidden></span></button>
         <button type="button" role="tab" class="admin-tab tv-upl" data-admin-tab="email" aria-selected="false">Email (SMTP)</button>
-        <button type="button" role="tab" class="admin-tab tv-gph" data-admin-tab="database" aria-selected="false">Database Manager</button>
-        <button type="button" role="tab" class="admin-tab tv-ico" data-admin-tab="backups" aria-selected="false">Backups Scheduler</button>
-        <button type="button" role="tab" class="admin-tab tv-tool" data-admin-tab="logs" aria-selected="false">Access Logs</button>
+        <button type="button" role="tab" class="admin-tab tv-gph" data-admin-tab="database" aria-selected="false">Database</button>
+        <button type="button" role="tab" class="admin-tab tv-ico" data-admin-tab="backups" aria-selected="false">Backups</button>
+        <button type="button" role="tab" class="admin-tab tv-tool" data-admin-tab="logs" aria-selected="false">Access logs</button>
     </nav>
 
-    <section class="admin-section" data-admin-section="users">
-        <h2>Create User</h2>
-        <form id="create-user-form" class="admin-form-grid admin-form-grid--create" autocomplete="off">
-            <input id="new-username" placeholder="username" required>
-            <input id="new-email" type="email" placeholder="email" required autocomplete="off" spellcheck="false">
-            <input id="new-password" type="password" placeholder="password" required autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
-            <select id="new-role">
-                <option value="user" selected>User</option>
+    <!-- Users -->
+    <section class="adm-panel tv-mig" data-admin-section="users">
+        <div class="adm-panel__head">
+            <div class="adm-panel__title">
+                <span class="adm-eyebrow">Accounts</span>
+                <h2>Users</h2>
+                <p>Change any field in place: it saves on its own. Select several users to change them at once.</p>
+            </div>
+            <div class="adm-pills">
+                <span id="users-count-pill" class="adm-pill adm-pill--brand">0 users</span>
+                <button type="button" id="users-online-pill" class="adm-pill adm-pill--online" title="Users active in the last 5 minutes · click to list them first"><span class="adm-pill__dot"></span><span id="users-online-text">0 online</span></button>
+                <button type="button" id="users-requests-pill" class="adm-pill adm-pill--warn" hidden>0 access requests</button>
+            </div>
+        </div>
+        <div class="adm-toolbar">
+            <label class="adm-search">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14M20 20l-4-4"/></svg>
+                <input id="users-search" type="search" placeholder="Search users by username or email" aria-label="Search users" autocomplete="off" spellcheck="false">
+            </label>
+            <select id="users-role-filter" class="adm-select" aria-label="Filter by role">
+                <option value="">All roles</option>
                 <option value="admin">Admin</option>
+                <option value="user">User</option>
                 <option value="demo">Demo</option>
             </select>
-            <select id="new-must-change-password" title="Force password change on first login">
-                <option value="" selected>Force Password Change</option>
-                <option value="true">Yes</option>
-                <option value="false">No</option>
+            <select id="users-status-filter" class="adm-select" aria-label="Filter by status">
+                <option value="">Active and inactive</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="requests">Pending access requests</option>
             </select>
-            <input id="new-data-subpath" placeholder="data subpath (default username)">
-            <input id="new-volume1-subpath" placeholder="volumes subpath (default username)">
-            <label class="admin-checkbox"><input id="new-active" type="checkbox" checked> Active</label>
-            <button type="submit" class="run-btn admin-create-btn">Create</button>
-        </form>
-    </section>
-
-    <section class="admin-section" data-admin-section="users">
-        <h2>Users</h2>
-        <div id="admin-status" class="status">Status: loading...</div>
-        <table class="admin-table" id="users-table">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>User</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Active</th>
-                <th>Force Password Change</th>
-                <th>/app/data subpath</th>
-                <th>/app/volumes subpath</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </section>
-
-    <section class="admin-section" data-admin-section="email">
-        <h2>Email (SMTP)</h2>
-        <p class="admin-section__hint">Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the <code>SMTP_*</code> environment variables.</p>
-        <form id="mail-form" class="admin-form-grid admin-form-grid--mail" autocomplete="off">
-            <input id="mail-host" class="field__input" placeholder="SMTP server (for example mail.example.com)" spellcheck="false">
-            <input id="mail-port" class="field__input" type="number" min="1" max="65535" placeholder="Port (465, 587 or 25)">
-            <select id="mail-security" class="field__input" title="Connection security">
-                <option value="ssl">SSL/TLS</option>
-                <option value="starttls">STARTTLS</option>
-                <option value="none">None</option>
+            <button type="button" id="new-user-btn" class="adm-btn adm-btn--primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a4 4 0 1 0 0-8a4 4 0 1 0 0 8M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg>New user</button>
+        </div>
+        <div id="users-bulk-bar" class="adm-bulk" hidden>
+            <span id="users-bulk-count">0 selected</span>
+            <select id="users-bulk-role" class="adm-select adm-select--light" aria-label="Change the role of the selected users">
+                <option value="">Role…</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+                <option value="demo">Demo</option>
             </select>
-            <input id="mail-username" class="field__input" placeholder="SMTP username" autocomplete="off" spellcheck="false">
-            <input id="mail-password" class="field__input" type="password" placeholder="SMTP password" autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
-            <input id="mail-from-address" class="field__input" type="email" placeholder="Sender email" spellcheck="false">
-            <input id="mail-from-name" class="field__input" placeholder="Sender name (PhotoMigrator)">
-            <button id="mail-save" type="submit" class="run-btn">Save Email Settings</button>
-        </form>
-        <div class="admin-form-grid admin-form-grid--test">
-            <input id="mail-test-to" class="field__input" type="email" placeholder="Send the test email to (default: your email)" spellcheck="false">
-            <button id="mail-test" type="button" class="run-btn">Send Test Email</button>
+            <button type="button" class="adm-btn adm-btn--ok" data-bulk-action="activate">Activate</button>
+            <button type="button" class="adm-btn adm-btn--light" data-bulk-action="deactivate">Deactivate</button>
+            <button type="button" class="adm-btn adm-btn--danger-soft" data-bulk-action="delete">Delete</button>
+            <span class="adm-spacer"></span>
+            <button type="button" id="users-bulk-clear" class="adm-icon-btn adm-icon-btn--on-dark" aria-label="Clear selection">×</button>
         </div>
-        <div id="mail-status" class="status">Email status: loading...</div>
-    </section>
-
-    <section class="admin-section" data-admin-section="database">
-        <h2>Database Manager</h2>
-        <div class="admin-db-toolbar">
-            <select id="db-table-select" class="field__input"></select>
-            <button id="db-table-load" type="button" class="ghost-btn">Load Table</button>
-            <button id="db-table-refresh" type="button" class="ghost-btn">Refresh Tables</button>
-        </div>
-        <p class="admin-db-hint">You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax.</p>
-        <div class="admin-db-insert">
-            <textarea id="db-insert-json" class="field__input" rows="3" placeholder='{"column":"value"}'></textarea>
-            <button id="db-insert-btn" type="button" class="run-btn">Insert Row</button>
-        </div>
-        <div id="db-table-meta" class="status">Table status: idle</div>
-        <div id="db-table-container" class="admin-db-table-wrap" data-no-i18n></div>
-    </section>
-
-    <section class="admin-section" data-admin-section="backups">
-        <h2>Backups Scheduler</h2>
-        <div class="admin-backup-grid">
-            <label class="admin-checkbox"><input id="backup-enabled" type="checkbox"> Enabled</label>
-            <select id="backup-mode" class="field__input">
-                <option value="hourly">Every hour</option>
-                <option value="daily_2am">Every day (2:00 AM)</option>
-                <option value="weekly_monday_2am">Every week (Monday 2:00 AM)</option>
-            </select>
-            <input id="backup-keep-last" class="field__input" type="number" min="1" placeholder="Keep last N backups">
-            <input id="backup-dir" class="field__input" type="text" value="/app/config/backups" placeholder="/app/config/backups">
-            <button id="backup-save" type="button" class="run-btn">Save Schedule</button>
-            <button id="backup-run-now" type="button" class="run-btn">Run Backup Now</button>
-        </div>
-        <div id="backup-status" class="status">Backup status: idle</div>
-    </section>
-
-    <section class="admin-section" data-admin-section="logs">
-        <h2>Access Logs</h2>
-        <div class="admin-db-toolbar">
-            <select id="access-logs-user-filter" class="field__input">
-                <option value="">All Users</option>
-            </select>
-            <button id="access-logs-refresh" type="button" class="ghost-btn">Refresh Logs</button>
-        </div>
-        <div id="access-logs-status" class="status">Access logs: loading...</div>
-        <div class="admin-access-logs-table-wrap">
-            <table class="admin-table" id="access-logs-table">
+        <div class="adm-table-wrap">
+            <table class="adm-table adm-users" id="users-table">
                 <thead>
-                <tr>
-                    <th id="access-logs-sort-id" data-sort-col="id">ID</th>
-                    <th id="access-logs-sort-created" data-sort-col="created_at">Timestamp</th>
-                    <th id="access-logs-sort-username" data-sort-col="username">Username</th>
-                    <th id="access-logs-sort-ip" data-sort-col="ip_address">IP Address</th>
-                </tr>
+                    <tr>
+                        <th class="adm-col-check"><input type="checkbox" id="users-select-all" aria-label="Select all users"></th>
+                        <th><button type="button" class="adm-sort" data-sort="username">User</button></th>
+                        <th><button type="button" class="adm-sort" data-sort="last_login_at">Last sign-in</button></th>
+                        <th>New password</th>
+                        <th><button type="button" class="adm-sort" data-sort="role">Role</button></th>
+                        <th><button type="button" class="adm-sort" data-sort="is_active">Active</button></th>
+                        <th>Must change password</th>
+                        <th>Folders</th>
+                        <th>Actions</th>
+                    </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
+        <div id="users-empty" class="adm-empty" hidden>No users match the current filters.</div>
+        <div id="users-status" class="adm-save-status" aria-live="polite"></div>
+    </section>
+
+    <!-- Email -->
+    <section class="adm-panel tv-upl" data-admin-section="email" hidden>
+        <div class="adm-panel__head">
+            <div class="adm-panel__title">
+                <span class="adm-eyebrow">Emails of the tool</span>
+                <h2>Email delivery</h2>
+                <p>Used for account notices (requests, activations, password changes) and for the emails of finished tasks. Empty fields use the <code>SMTP_*</code> environment variables.</p>
+            </div>
+            <div class="adm-pills"><span id="mail-status-pill" class="adm-pill adm-pill--muted">Not configured</span></div>
+        </div>
+        <form id="mail-form" class="adm-cards adm-cards--3" autocomplete="off">
+            <div class="adm-card">
+                <div class="adm-card__head"><span class="adm-chip tv-upl"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v6H4zM4 13h16v6H4zM8 8h.01M8 16h.01"/></svg></span><div><span class="adm-eyebrow">SMTP</span><h3>Server</h3></div></div>
+                <label class="adm-field">SMTP server<input id="mail-host" class="adm-input" placeholder="mail.example.com" autocomplete="off" spellcheck="false" readonly data-guard-autofill></label>
+                <label class="adm-field">Port<input id="mail-port" class="adm-input" type="number" min="1" max="65535" placeholder="465" autocomplete="off"></label>
+                <label class="adm-field">Encryption
+                    <select id="mail-security" class="adm-input">
+                        <option value="ssl">SSL/TLS</option>
+                        <option value="starttls">STARTTLS</option>
+                        <option value="none">None</option>
+                    </select>
+                    <span class="adm-help">STARTTLS usually uses port 587 and SSL/TLS port 465.</span>
+                </label>
+            </div>
+            <div class="adm-card">
+                <div class="adm-card__head"><span class="adm-chip tv-mig"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3"/></svg></span><div><span class="adm-eyebrow">Sign-in</span><h3>Account</h3></div></div>
+                <label class="adm-field">Username<input id="mail-username" class="adm-input" name="pm-smtp-account" autocomplete="off" spellcheck="false" readonly data-guard-autofill data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true"></label>
+                <label class="adm-field">Password<input id="mail-password" class="adm-input adm-input--masked" name="pm-smtp-secret" type="text" autocomplete="new-password" spellcheck="false" readonly data-guard-autofill data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true">
+                    <span class="adm-help">Never shown. Leave it empty to keep the saved password.</span>
+                </label>
+                <label id="mail-clear-password-row" class="adm-check" hidden><input id="mail-clear-password" type="checkbox"> Remove the saved password</label>
+            </div>
+            <div class="adm-card">
+                <div class="adm-card__head"><span class="adm-chip tv-loc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg></span><div><span class="adm-eyebrow">Sender</span><h3>From</h3></div></div>
+                <label class="adm-field">Sender address<input id="mail-from-address" class="adm-input" placeholder="photomigrator@example.com" autocomplete="off" spellcheck="false" readonly data-guard-autofill></label>
+                <label class="adm-field">Sender name<input id="mail-from-name" class="adm-input" placeholder="PhotoMigrator" autocomplete="off"></label>
+                <div class="adm-field">Account requests from the login page<span id="mail-requests-state" class="adm-readonly">-</span><span class="adm-help">Set with <code>PHOTOMIGRATOR_WEB_ACCOUNT_REQUESTS</code>.</span></div>
+            </div>
+        </form>
+        <div class="adm-actions">
+            <button type="submit" form="mail-form" id="mail-save" class="adm-btn adm-btn--primary">Save email delivery</button>
+            <span id="mail-status" class="adm-inline-status" aria-live="polite"></span>
+        </div>
+        <div class="adm-subcard adm-test-mail">
+            <label class="adm-field">Send a test email to<input id="mail-test-to" class="adm-input" placeholder="name@example.com · empty = your own email" autocomplete="off" spellcheck="false" readonly data-guard-autofill></label>
+            <button type="button" id="mail-test" class="adm-btn adm-btn--outline">Send test email</button>
+            <span id="mail-test-status" class="adm-inline-status" aria-live="polite"></span>
+        </div>
+    </section>
+
+    <!-- Database -->
+    <section class="adm-panel tv-gph" data-admin-section="database" hidden>
+        <div class="adm-panel__head">
+            <div class="adm-panel__title">
+                <span class="adm-eyebrow">Web database</span>
+                <h2>Database viewer</h2>
+                <p>Browse, edit or remove individual records of any table of the Web Interface database.</p>
+            </div>
+        </div>
+        <div class="adm-toolbar">
+            <select id="db-table-select" class="adm-select adm-select--wide" aria-label="Table"></select>
+            <button type="button" id="db-table-refresh" class="adm-btn adm-btn--outline"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4"/></svg>Refresh</button>
+            <span id="db-rows-pill" class="adm-pill adm-pill--brand">0 / 0 rows</span>
+            <div id="db-filter-chips" class="adm-chips"></div>
+            <span class="adm-spacer"></span>
+            <button type="button" id="db-add-row-btn" class="adm-btn adm-btn--primary">+ Add row</button>
+        </div>
+        <div class="adm-table-wrap adm-table-wrap--scroll">
+            <table class="adm-table adm-db" id="db-table">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="adm-footer-row">
+            <span class="adm-help">Edit a value and press ✓ to save that row. Keys are protected. 100 rows per page.</span>
+            <span class="adm-spacer"></span>
+            <div id="db-pager" class="adm-pager">
+                <button type="button" class="adm-icon-btn" data-page="first" aria-label="First page">«</button>
+                <button type="button" class="adm-icon-btn" data-page="prev" aria-label="Previous page">‹</button>
+                <span id="db-page-label">Page 1 of 1</span>
+                <button type="button" class="adm-icon-btn" data-page="next" aria-label="Next page">›</button>
+                <button type="button" class="adm-icon-btn" data-page="last" aria-label="Last page">»</button>
+            </div>
+        </div>
+        <div id="db-filter-popover" class="adm-popover" hidden>
+            <b id="db-filter-title">Filter</b>
+            <input id="db-filter-search" class="adm-input" type="search" placeholder="Search all values" autocomplete="off" spellcheck="false">
+            <div id="db-filter-values" class="adm-popover__values"></div>
+            <span id="db-filter-note" class="adm-help">Values come from the whole table, not just this page.</span>
+            <div class="adm-popover__actions">
+                <button type="button" id="db-filter-close" class="adm-btn adm-btn--outline adm-btn--small">Close</button>
+                <button type="button" id="db-filter-clear" class="adm-btn adm-btn--outline adm-btn--small">Clear column</button>
+                <button type="button" id="db-filter-apply" class="adm-btn adm-btn--primary adm-btn--small">Apply filter</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Backups -->
+    <section class="adm-panel tv-ico" data-admin-section="backups" hidden>
+        <div class="adm-panel__head">
+            <div class="adm-panel__title">
+                <span class="adm-eyebrow">Users, settings and credentials</span>
+                <h2>Backup protection</h2>
+                <p>Back up the web database now, restore a backup or schedule recurring backups.</p>
+            </div>
+        </div>
+        <div class="adm-stats">
+            <div class="adm-stat"><span>Stored backups</span><b id="bk-count">-</b><small id="bk-count-detail"></small></div>
+            <div class="adm-stat"><span>Total size</span><b id="bk-size">-</b><small>in the backup folder</small></div>
+            <div class="adm-stat" id="bk-free-card"><span>Free disk space</span><b id="bk-free">-</b><small>on the backup volume</small></div>
+            <div class="adm-stat" id="bk-last-card"><span>Last backup</span><b id="bk-last">-</b><small id="bk-last-detail"></small></div>
+            <div class="adm-stat"><span>Next backup</span><b id="bk-next">-</b><small id="bk-next-detail"></small></div>
+        </div>
+        <div class="adm-cards adm-cards--backups">
+            <div class="adm-card">
+                <h3>Back up now</h3>
+                <p class="adm-help">Users, settings, saved credentials and email settings, in one file. Backups made here are never deleted automatically.</p>
+                <label class="adm-field">Backup folder<input id="bk-dir-input" class="adm-input adm-input--mono" placeholder="/app/config/backups" autocomplete="off" spellcheck="false"></label>
+                <span class="adm-spacer-v"></span>
+                <button type="button" id="bk-run-now" class="adm-btn adm-btn--primary adm-btn--block">Back up now</button>
+            </div>
+            <div class="adm-card">
+                <h3>Restore</h3>
+                <p class="adm-help">Replaces the users, settings and credentials with the ones in the backup. The current data is saved first as a pre-restore backup.</p>
+                <label class="adm-field">Backup file<select id="bk-file-select" class="adm-input"></select></label>
+                <div class="adm-row">
+                    <button type="button" id="bk-download" class="adm-btn adm-btn--outline">Download</button>
+                    <button type="button" id="bk-delete" class="adm-btn adm-btn--danger-outline">Delete</button>
+                </div>
+                <span class="adm-spacer-v"></span>
+                <button type="button" id="bk-restore" class="adm-btn adm-btn--danger adm-btn--block">Restore backup</button>
+            </div>
+            <div class="adm-card">
+                <div class="adm-card__head adm-card__head--switch">
+                    <h3>Scheduled backups</h3>
+                    <label class="adm-switch"><input id="bk-enabled" type="checkbox"><span>Enable recurring backups</span></label>
+                </div>
+                <div id="bk-schedule-fields" class="adm-grid-3">
+                    <label class="adm-field">Recurrence
+                        <select id="bk-recurrence" class="adm-input">
+                            <option value="hourly">Hourly</option>
+                            <option value="every_4_hours">Every 4 hours</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </label>
+                    <label class="adm-field" id="bk-weekday-field">Day of the week
+                        <select id="bk-weekday" class="adm-input">
+                            <option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option><option value="3">Thursday</option><option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option>
+                        </select>
+                    </label>
+                    <label class="adm-field" id="bk-monthday-field">Day of the month<input id="bk-monthday" class="adm-input" type="number" min="1" max="28"></label>
+                    <label class="adm-field" id="bk-time-field">Execution time<input id="bk-time" class="adm-input" type="time"></label>
+                    <label class="adm-field">Days to keep<input id="bk-keep-days" class="adm-input" type="number" min="1" max="3650"></label>
+                </div>
+                <ul id="bk-explain" class="adm-explain"></ul>
+                <span class="adm-spacer-v"></span>
+                <div class="adm-actions">
+                    <button type="button" id="bk-save" class="adm-btn adm-btn--primary">Save schedule</button>
+                    <span id="bk-status" class="adm-inline-status" aria-live="polite"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Access logs -->
+    <section class="adm-panel tv-tool" data-admin-section="logs" hidden>
+        <div class="adm-panel__head">
+            <div class="adm-panel__title">
+                <span class="adm-eyebrow">Application activity</span>
+                <h2>Access logs</h2>
+                <p>Sign-ins and Administration Panel changes: who did what, when and from where.</p>
+            </div>
+            <div class="adm-pills"><span id="logs-count-pill" class="adm-pill adm-pill--brand">0 events</span></div>
+        </div>
+        <div class="adm-toolbar">
+            <select id="logs-days" class="adm-select" aria-label="Period">
+                <option value="1">Last 24 hours</option>
+                <option value="7" selected>Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="0">All dates</option>
+            </select>
+            <select id="logs-user" class="adm-select" aria-label="User"><option value="">All users</option></select>
+            <select id="logs-event" class="adm-select" aria-label="Event"><option value="">All events</option></select>
+            <span class="adm-spacer"></span>
+            <button type="button" id="logs-refresh" class="adm-btn adm-btn--outline"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4"/></svg>Refresh</button>
+        </div>
+        <div class="adm-table-wrap adm-table-wrap--scroll">
+            <table class="adm-table adm-logs" id="logs-table">
+                <thead><tr><th>ID</th><th>Date</th><th>User</th><th>IP address</th><th>Event</th><th>Details</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div id="logs-empty" class="adm-empty" hidden>No entries match the current filters.</div>
     </section>
 </main>
+
+<dialog id="new-user-dialog" class="adm-dialog">
+    <form id="new-user-form" class="adm-dialog__card" autocomplete="off">
+        <div class="adm-dialog__head tv-mig">
+            <span id="new-user-avatar" class="adm-dialog__avatar">?</span>
+            <div><span class="adm-eyebrow">Accounts</span><h3>New user</h3></div>
+            <button type="button" class="adm-icon-btn adm-icon-btn--on-dark" data-close-dialog aria-label="Close without creating">×</button>
+        </div>
+        <div class="adm-dialog__body adm-grid-2">
+            <label class="adm-field">Username<input id="new-username" class="adm-input" required maxlength="64" pattern="[A-Za-z0-9._\-]{1,64}" title="Letters, numbers, dots, hyphens or underscores" autocomplete="off" autocapitalize="none" spellcheck="false" readonly data-guard-autofill></label>
+            <label class="adm-field">Email<input id="new-email" class="adm-input" type="email" required autocomplete="off" spellcheck="false" readonly data-guard-autofill></label>
+            <label class="adm-field">Password
+                <span class="adm-input-group"><input id="new-password" class="adm-input adm-input--masked" type="text" required minlength="8" autocomplete="new-password" spellcheck="false" readonly data-guard-autofill data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true"><button type="button" id="new-password-toggle" class="adm-btn adm-btn--outline adm-btn--small" aria-pressed="false">Show</button></span>
+                <span class="adm-help">At least 8 characters</span>
+            </label>
+            <label class="adm-field">Role
+                <select id="new-role" class="adm-input">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="demo">Demo (read only)</option>
+                </select>
+            </label>
+            <label class="adm-switch-card"><input id="new-active" type="checkbox" checked><span><b>Active</b><small>Can sign in right away</small></span></label>
+            <label class="adm-switch-card"><input id="new-must-change" type="checkbox" checked><span><b>Must change password</b><small>Asked at the first sign-in</small></span></label>
+            <details class="adm-details adm-grid-span">
+                <summary>Folders</summary>
+                <div class="adm-grid-2">
+                    <label class="adm-field">Data folder<input id="new-data-subpath" class="adm-input adm-input--mono" placeholder="(username)" autocomplete="off" spellcheck="false"></label>
+                    <label class="adm-field">Volumes folder<input id="new-volume1-subpath" class="adm-input adm-input--mono" placeholder="(username)" autocomplete="off" spellcheck="false"></label>
+                </div>
+            </details>
+            <p id="new-user-note" class="adm-help adm-grid-span">An email with the username and the password is sent to the new user.</p>
+            <p id="new-user-status" class="adm-inline-status adm-grid-span" aria-live="polite"></p>
+        </div>
+        <div class="adm-dialog__actions">
+            <button type="button" class="adm-btn adm-btn--outline" data-close-dialog>Cancel</button>
+            <button type="submit" class="adm-btn adm-btn--primary">Create user</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog id="db-row-dialog" class="adm-dialog">
+    <form id="db-row-form" class="adm-dialog__card" autocomplete="off">
+        <div class="adm-dialog__head tv-gph">
+            <div><span class="adm-eyebrow" id="db-row-table">Table</span><h3>Add row</h3></div>
+            <button type="button" class="adm-icon-btn adm-icon-btn--on-dark" data-close-dialog aria-label="Close without adding">×</button>
+        </div>
+        <div id="db-row-fields" class="adm-dialog__body adm-grid-2"></div>
+        <p id="db-row-status" class="adm-inline-status adm-dialog__status" aria-live="polite"></p>
+        <div class="adm-dialog__actions">
+            <button type="button" class="adm-btn adm-btn--outline" data-close-dialog>Cancel</button>
+            <button type="submit" class="adm-btn adm-btn--primary">Add row</button>
+        </div>
+    </form>
+</dialog>
 
 <dialog id="admin-notice-dialog" class="confirm-dialog">
     <div class="confirm-dialog__card">
         <h3 id="admin-notice-title" class="confirm-dialog__title">Notice</h3>
         <p id="admin-notice-message" class="confirm-dialog__message">Message</p>
+        <code id="admin-notice-code" class="adm-notice-code" data-no-i18n hidden></code>
         <div class="confirm-dialog__actions">
             <button type="button" id="admin-notice-close" class="run-btn">OK</button>
         </div>
@@ -166,7 +366,7 @@
 
 <dialog id="admin-confirm-dialog" class="confirm-dialog">
     <div class="confirm-dialog__card">
-        <h3 id="admin-confirm-title" class="confirm-dialog__title">Confirm Action</h3>
+        <h3 id="admin-confirm-title" class="confirm-dialog__title">Confirm action</h3>
         <p id="admin-confirm-message" class="confirm-dialog__message">Are you sure?</p>
         <div class="confirm-dialog__actions">
             <button type="button" id="admin-confirm-cancel" class="ghost-btn">Cancel</button>
@@ -175,58 +375,26 @@
     </div>
 </dialog>
 
-<dialog id="email-dialog" class="confirm-dialog">
-    <div class="confirm-dialog__card">
-        <h3 id="email-dialog-title" class="confirm-dialog__title">Change Email</h3>
-        <p class="confirm-dialog__message">The user can sign in with this email and receives account and task notices there.</p>
-        <input id="email-new" class="field__input" type="email" placeholder="Email" autocomplete="off" spellcheck="false">
-        <div id="email-dialog-status" class="status">Status: idle</div>
-        <div class="confirm-dialog__actions">
-            <button type="button" id="email-dialog-cancel" class="ghost-btn">Cancel</button>
-            <button type="button" id="email-dialog-save" class="run-btn">Save Email</button>
-        </div>
-    </div>
-</dialog>
-
-<dialog id="password-dialog" class="confirm-dialog">
-    <div class="confirm-dialog__card">
-        <h3 id="password-dialog-title" class="confirm-dialog__title">Reset Password</h3>
-        <p class="confirm-dialog__message">Set a new password and confirm it.</p>
-        <div class="admin-password-grid">
-            <input id="password-new" class="field__input" type="password" placeholder="New password" autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
-            <input id="password-confirm" class="field__input" type="password" placeholder="Confirm new password" autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
-        </div>
-        <div id="password-dialog-status" class="status">Status: idle</div>
-        <div class="confirm-dialog__actions">
-            <button type="button" id="password-dialog-cancel" class="ghost-btn">Cancel</button>
-            <button type="button" id="password-dialog-save" class="run-btn run-btn--danger">Save Password</button>
-        </div>
-    </div>
-</dialog>
-
 <script>
-    (function setupAdminTabs() {
-        const tabs = [...document.querySelectorAll("[data-admin-tab]")];
-        const sections = [...document.querySelectorAll("[data-admin-section]")];
-        function show(key) {
-            tabs.forEach((tab) => tab.setAttribute("aria-selected", tab.dataset.adminTab === key ? "true" : "false"));
-            sections.forEach((section) => { section.hidden = section.dataset.adminSection !== key; });
-            try { sessionStorage.setItem("pm_admin_tab", key); } catch (error) { /* storage unavailable */ }
-        }
-        tabs.forEach((tab) => tab.addEventListener("click", () => show(tab.dataset.adminTab)));
-        let initial = "users";
-        try { initial = sessionStorage.getItem("pm_admin_tab") || initial; } catch (error) { /* storage unavailable */ }
-        show(tabs.some((tab) => tab.dataset.adminTab === initial) ? initial : "users");
-    })();
-
     const THEMES = new Set(["ocean", "emerald", "dark", "sunset"]);
-    let activePasswordUserId = null;
-    let dbTablesCache = [];
-    let dbCurrentTable = "";
-    let dbCurrentColumns = [];
-    let accessLogsRows = [];
-    let accessLogsSort = {column: "created_at", direction: "desc"};
+    const ROLES = ["admin", "user", "demo"];
+    const ROLE_LABELS = {admin: "Admin", user: "User", demo: "Demo"};
+    const T = (text) => (typeof window.pmT === "function" ? window.pmT(text) : text);
+    const fmt = (template, ...values) => T(template).replace(/\{(\d+)\}/g, (_m, index) => String(values[Number(index)] ?? ""));
 
+    let usersCache = [];
+    let currentUserId = null;
+    let mailConfigured = false;
+    const selectedUserIds = new Set();
+    let usersSort = {key: "username", dir: 1};
+    let onlineFirst = false;
+    const DB_PAGE_SIZE = 100;
+    let dbTables = [];
+    let dbState = {table: "", columns: [], rows: [], total: 0, totalRows: 0, offset: 0, filters: {}, hasRowid: true};
+    let dbFilterColumn = "";
+    let backupStatus = null;
+
+    // ---------- Helpers ----------
     async function apiFetch(url, options = {}) {
         const response = await fetch(url, options);
         if (response.status === 401) {
@@ -234,46 +402,52 @@
             throw new Error("Unauthorized");
         }
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-            throw new Error(String(data?.detail || "Request failed"));
-        }
+        if (!response.ok) throw new Error(String(data?.detail || "Request failed"));
         return data;
     }
 
-    function showAdminNotice({title, message}) {
-        const dialog = document.getElementById("admin-notice-dialog");
-        const titleEl = document.getElementById("admin-notice-title");
-        const messageEl = document.getElementById("admin-notice-message");
-        titleEl.textContent = title || "Notice";
-        messageEl.textContent = message || "";
-        dialog.showModal();
+    const jsonBody = (method, payload) => ({method, headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload)});
+
+    function el(tag, className = "", text = "") {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text) node.textContent = text;
+        return node;
     }
 
-    function askAdminConfirmation({title, message, acceptLabel = "Delete"}) {
+    function icon(path) {
+        const span = el("span", "adm-ico");
+        span.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
+        return span;
+    }
+
+    function showAdminNotice({title, message, code = ""}) {
+        document.getElementById("admin-notice-title").textContent = title || "Notice";
+        document.getElementById("admin-notice-message").textContent = message || "";
+        const codeEl = document.getElementById("admin-notice-code");
+        codeEl.textContent = code;
+        codeEl.hidden = !code;
+        document.getElementById("admin-notice-dialog").showModal();
+    }
+
+    function askAdminConfirmation({title, message, acceptLabel = "Delete", danger = true}) {
         const dialog = document.getElementById("admin-confirm-dialog");
-        const titleEl = document.getElementById("admin-confirm-title");
-        const messageEl = document.getElementById("admin-confirm-message");
+        document.getElementById("admin-confirm-title").textContent = title || "Confirm action";
+        document.getElementById("admin-confirm-message").textContent = message || "";
         const acceptBtn = document.getElementById("admin-confirm-accept");
         const cancelBtn = document.getElementById("admin-confirm-cancel");
-        titleEl.textContent = title || "Confirm Action";
-        messageEl.textContent = message || "Please confirm this action.";
         acceptBtn.textContent = acceptLabel;
+        acceptBtn.classList.toggle("run-btn--danger", danger);
         return new Promise((resolve) => {
-            const cleanup = () => {
+            const finish = (value) => {
                 acceptBtn.removeEventListener("click", onAccept);
                 cancelBtn.removeEventListener("click", onCancel);
                 dialog.removeEventListener("cancel", onCancel);
-            };
-            const onAccept = () => {
-                cleanup();
                 if (dialog.open) dialog.close();
-                resolve(true);
+                resolve(value);
             };
-            const onCancel = () => {
-                cleanup();
-                if (dialog.open) dialog.close();
-                resolve(false);
-            };
+            const onAccept = () => finish(true);
+            const onCancel = () => finish(false);
             acceptBtn.addEventListener("click", onAccept);
             cancelBtn.addEventListener("click", onCancel);
             dialog.addEventListener("cancel", onCancel);
@@ -281,675 +455,1125 @@
         });
     }
 
-    function rowActionButton(label, onClick, className = "") {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = className || "ghost-btn";
-        btn.textContent = label;
-        btn.addEventListener("click", onClick);
-        return btn;
+    function flashStatus(element, message, kind = "ok") {
+        if (!element) return;
+        element.textContent = message;
+        element.dataset.kind = kind;
+        clearTimeout(element._flashTimer);
+        if (kind === "ok") element._flashTimer = setTimeout(() => { element.textContent = ""; }, 6000);
     }
 
-    function tableActionButton(label, onClick, className = "") {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = className || "ghost-btn";
-        btn.textContent = label;
-        btn.addEventListener("click", onClick);
-        return btn;
+    function formatBytes(bytes) {
+        const value = Number(bytes || 0);
+        if (value < 1024) return `${value} B`;
+        const units = ["KB", "MB", "GB", "TB"];
+        let size = value / 1024;
+        let unit = 0;
+        while (size >= 1024 && unit < units.length - 1) { size /= 1024; unit += 1; }
+        return `${size >= 100 ? Math.round(size) : size.toFixed(1)} ${units[unit]}`;
     }
 
-    function applyTheme(theme) {
-        const safe = THEMES.has(theme) ? theme : "ocean";
-        document.body.setAttribute("data-theme", safe);
+    function formatDateTime(raw) {
+        if (!raw) return "";
+        const date = new Date(raw);
+        if (Number.isNaN(date.getTime())) return String(raw);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
 
-    async function loadThemeFromState() {
+    function relativeAge(raw) {
+        if (!raw) return "";
+        const date = new Date(raw);
+        if (Number.isNaN(date.getTime())) return "";
+        const today = new Date();
+        const startOf = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        const days = Math.round((startOf(today) - startOf(date)) / 86400000);
+        if (days <= 0) return T("Today");
+        if (days === 1) return T("Yesterday");
+        return fmt("{0} days ago", days);
+    }
+
+    // Password managers fill the first text and password fields they see with the admin's own sign-in.
+    // These fields stay read-only until they get the focus, and keep their own values on back/forward navigation.
+    function guardAutofill(root = document) {
+        root.querySelectorAll("[data-guard-autofill]").forEach((input) => {
+            if (input.dataset.guarded === "1") return;
+            input.dataset.guarded = "1";
+            input.addEventListener("focus", () => input.removeAttribute("readonly"));
+            input.addEventListener("pointerdown", () => input.removeAttribute("readonly"));
+        });
+    }
+
+    window.addEventListener("pageshow", () => {
+        document.querySelectorAll("[data-guard-autofill]").forEach((input) => {
+            if (document.activeElement !== input) input.value = input.dataset.serverValue ?? "";
+        });
+    });
+
+    // ---------- Tabs ----------
+    function showAdminTab(key) {
+        document.querySelectorAll("[data-admin-tab]").forEach((tab) => tab.setAttribute("aria-selected", tab.dataset.adminTab === key ? "true" : "false"));
+        document.querySelectorAll("[data-admin-section]").forEach((section) => { section.hidden = section.dataset.adminSection !== key; });
+        try { sessionStorage.setItem("pm_admin_tab", key); } catch (error) { /* storage unavailable */ }
+        if (key === "database" && !dbTables.length) loadDbTables();
+        if (key === "backups") loadBackupStatus();
+        if (key === "logs") loadAccessLogs();
+    }
+
+    // ---------- Users ----------
+    async function loadUsers() {
+        const data = await apiFetch("/api/admin/users");
+        usersCache = Array.isArray(data.users) ? data.users : [];
+        currentUserId = data.current_user_id;
+        mailConfigured = Boolean(data.mail_configured);
+        [...selectedUserIds].forEach((id) => { if (!usersCache.some((user) => user.id === id)) selectedUserIds.delete(id); });
+        renderUsers();
+        updateLogsUserFilter();
+    }
+
+    function userMatchesFilters(user) {
+        const search = document.getElementById("users-search").value.trim().toLowerCase();
+        const role = document.getElementById("users-role-filter").value;
+        const status = document.getElementById("users-status-filter").value;
+        if (search && !`${user.username} ${user.email || ""}`.toLowerCase().includes(search)) return false;
+        if (role && user.role !== role) return false;
+        if (status === "active" && !user.is_active) return false;
+        if (status === "inactive" && user.is_active) return false;
+        if (status === "requests" && !user.pending_request) return false;
+        return true;
+    }
+
+    function sortedUsers(users) {
+        const {key, dir} = usersSort;
+        return [...users].sort((a, b) => {
+            if (onlineFirst && a.online !== b.online) return a.online ? -1 : 1;
+            if (a.pending_request !== b.pending_request) return a.pending_request ? -1 : 1;
+            const va = key === "is_active" ? Number(a.is_active) : String(a[key] || "").toLowerCase();
+            const vb = key === "is_active" ? Number(b.is_active) : String(b[key] || "").toLowerCase();
+            if (va < vb) return -dir;
+            if (va > vb) return dir;
+            return String(a.username).localeCompare(String(b.username));
+        });
+    }
+
+    function renderUsers() {
+        const total = usersCache.length;
+        const visible = sortedUsers(usersCache.filter(userMatchesFilters));
+        const online = usersCache.filter((user) => user.online).length;
+        const requests = usersCache.filter((user) => user.pending_request).length;
+        document.getElementById("users-count-pill").textContent = visible.length === total ? fmt("{0} users", total) : fmt("{0} of {1} users", visible.length, total);
+        document.getElementById("users-online-text").textContent = fmt("{0} online", online);
+        const requestsPill = document.getElementById("users-requests-pill");
+        requestsPill.hidden = !requests;
+        requestsPill.textContent = requests === 1 ? T("1 access request") : fmt("{0} access requests", requests);
+        const badge = document.getElementById("tab-requests-badge");
+        badge.hidden = !requests;
+        badge.textContent = String(requests);
+        document.querySelectorAll("#users-table .adm-sort").forEach((button) => {
+            const active = button.dataset.sort === usersSort.key;
+            button.dataset.dir = active ? (usersSort.dir > 0 ? "asc" : "desc") : "";
+        });
+
+        const tbody = document.querySelector("#users-table tbody");
+        tbody.innerHTML = "";
+        visible.forEach((user) => tbody.appendChild(renderUserRow(user)));
+        document.getElementById("users-empty").hidden = visible.length > 0;
+        syncBulkBar(visible);
+        guardAutofill(tbody);
+    }
+
+    function avatarFor(user) {
+        const avatar = el("span", "adm-avatar", String(user.username || "?").slice(0, 2).toUpperCase());
+        avatar.style.setProperty("--hue", String((Number(user.id) * 67) % 360));
+        if (user.online) avatar.appendChild(el("span", "adm-avatar__online"));
+        return avatar;
+    }
+
+    function toggleSwitch(checked, label, onChange, disabled = false, title = "") {
+        const wrap = el("label", "adm-toggle");
+        const input = el("input");
+        input.type = "checkbox";
+        input.checked = Boolean(checked);
+        input.disabled = disabled;
+        input.setAttribute("aria-label", label);
+        if (title) wrap.title = title;
+        input.addEventListener("change", () => onChange(input.checked, input));
+        wrap.append(input, el("span", "adm-toggle__track"));
+        return wrap;
+    }
+
+    function renderUserRow(user) {
+        const tr = el("tr");
+        tr.dataset.userId = String(user.id);
+        if (!user.is_active) tr.classList.add("is-inactive");
+        if (user.pending_request) tr.classList.add("is-request");
+        if (selectedUserIds.has(user.id)) tr.classList.add("is-selected");
+
+        const checkTd = el("td", "adm-col-check");
+        const check = el("input");
+        check.type = "checkbox";
+        check.checked = selectedUserIds.has(user.id);
+        check.setAttribute("aria-label", fmt("Select {0}", user.username));
+        check.addEventListener("change", () => {
+            if (check.checked) selectedUserIds.add(user.id); else selectedUserIds.delete(user.id);
+            tr.classList.toggle("is-selected", check.checked);
+            syncBulkBar(usersCache.filter(userMatchesFilters));
+        });
+        checkTd.appendChild(check);
+
+        const userTd = el("td");
+        const who = el("div", "adm-user");
+        who.appendChild(avatarFor(user));
+        const info = el("div", "adm-user__info");
+        const name = el("span", "adm-user__name");
+        name.append(el("span", "", user.username));
+        name.setAttribute("data-no-i18n", "");
+        if (user.pending_request) name.appendChild(el("span", "adm-tag adm-tag--warn", T("Access request")));
+        if (user.is_current_user) name.appendChild(el("span", "adm-tag", T("You")));
+        info.appendChild(name);
+        info.appendChild(el("span", "adm-user__meta", `#${user.id} · ${T("created")} ${String(user.created_at || "").slice(0, 10)}`));
+        const emailRow = el("span", "adm-user__email");
+        const emailText = el("span", user.email ? "" : "is-missing", user.email || T("No email · add one"));
+        if (user.email) emailText.setAttribute("data-no-i18n", "");
+        const editBtn = el("button", "adm-icon-btn adm-icon-btn--tiny");
+        editBtn.type = "button";
+        editBtn.setAttribute("aria-label", fmt("Change the email of {0}", user.username));
+        editBtn.title = T("Change the email");
+        editBtn.appendChild(icon("M4 20h4L20 8l-4-4L4 16z"));
+        editBtn.addEventListener("click", () => startEmailEdit(user, emailRow));
+        emailRow.append(emailText, editBtn);
+        info.appendChild(emailRow);
+        if (user.pending_request && user.request_note) info.appendChild(el("span", "adm-user__note", `“${user.request_note}”`));
+        who.appendChild(info);
+        userTd.appendChild(who);
+
+        const loginTd = el("td");
+        const loginBox = el("div", "adm-login");
+        if (user.last_login_at) {
+            loginBox.append(el("b", "", formatDateTime(user.last_login_at)), el("small", "", user.online ? T("Online now") : relativeAge(user.last_login_at)));
+        } else {
+            loginBox.append(el("span", "is-never", T("Never")));
+        }
+        loginTd.appendChild(loginBox);
+
+        const passTd = el("td");
+        const pass = el("input", "adm-input adm-input--masked adm-input--cell");
+        pass.type = "text";
+        pass.placeholder = "••••••••";
+        pass.autocomplete = "new-password";
+        pass.spellcheck = false;
+        pass.readOnly = true;
+        pass.dataset.guardAutofill = "";
+        ["data-lpignore", "data-1p-ignore", "data-bwignore", "data-protonpass-ignore"].forEach((attr) => pass.setAttribute(attr, "true"));
+        pass.setAttribute("aria-label", fmt("New password for {0}", user.username));
+        pass.title = T("Type a new password and leave the field to save it (at least 8 characters)");
+        pass.addEventListener("keydown", (event) => { if (event.key === "Enter") pass.blur(); if (event.key === "Escape") { pass.value = ""; pass.blur(); } });
+        pass.addEventListener("blur", async () => {
+            const value = pass.value;
+            if (!value) return;
+            if (value.length < 8) {
+                showAdminNotice({title: "User update failed", message: T("The password needs at least 8 characters.")});
+                pass.value = "";
+                return;
+            }
+            pass.value = "";
+            await saveUserField(user, {password: value}, fmt("Password of {0} changed", user.username));
+        });
+        passTd.appendChild(pass);
+
+        const roleTd = el("td");
+        const roleSelect = el("select", `adm-role adm-role--${user.role}`);
+        roleSelect.setAttribute("aria-label", fmt("Role of {0}", user.username));
+        ROLES.forEach((role) => {
+            const option = el("option", "", T(ROLE_LABELS[role]));
+            option.value = role;
+            option.selected = role === user.role;
+            roleSelect.appendChild(option);
+        });
+        roleSelect.addEventListener("change", async () => {
+            const ok = await saveUserField(user, {role: roleSelect.value}, fmt("Role of {0} changed to {1}", user.username, T(ROLE_LABELS[roleSelect.value])));
+            if (!ok) roleSelect.value = user.role;
+        });
+        roleTd.appendChild(roleSelect);
+
+        const activeTd = el("td");
+        const selfTitle = user.is_current_user ? T("You cannot deactivate your own account") : "";
+        activeTd.appendChild(toggleSwitch(user.is_active, fmt("{0} is active", user.username), async (checked, input) => {
+            const message = checked
+                ? (user.pending_request ? fmt("Access request of {0} approved", user.username) : fmt("{0} activated", user.username))
+                : fmt("{0} deactivated", user.username);
+            const ok = await saveUserField(user, {is_active: checked}, message);
+            if (!ok) input.checked = !checked;
+        }, Boolean(user.is_current_user), selfTitle));
+
+        const mustTd = el("td");
+        mustTd.appendChild(toggleSwitch(user.must_change_password, fmt("{0} must change the password", user.username), async (checked, input) => {
+            const ok = await saveUserField(user, {must_change_password: checked}, checked ? fmt("{0} will change the password at the next sign-in", user.username) : fmt("{0} no longer has to change the password", user.username));
+            if (!ok) input.checked = !checked;
+        }));
+
+        const foldersTd = el("td");
+        const folders = el("div", "adm-folders");
+        [["data_subpath", "data/"], ["volume1_subpath", "volumes/"]].forEach(([field, prefix]) => {
+            const label = el("label", "adm-folder");
+            label.append(el("span", "", prefix));
+            const input = el("input", "adm-input adm-input--cell adm-input--mono");
+            input.value = user[field] || "";
+            input.setAttribute("aria-label", `${prefix}${user.username}`);
+            input.addEventListener("keydown", (event) => { if (event.key === "Enter") input.blur(); if (event.key === "Escape") { input.value = user[field] || ""; input.blur(); } });
+            input.addEventListener("blur", async () => {
+                const value = input.value.trim();
+                if (value === String(user[field] || "")) return;
+                const ok = await saveUserField(user, {[field]: value}, fmt("Folders of {0} changed", user.username));
+                if (!ok) input.value = user[field] || "";
+            });
+            label.appendChild(input);
+            folders.appendChild(label);
+        });
+        foldersTd.appendChild(folders);
+
+        const actionsTd = el("td");
+        const actions = el("div", "adm-row-actions");
+        if (user.pending_request) {
+            const approve = el("button", "adm-icon-btn adm-icon-btn--ok");
+            approve.type = "button";
+            approve.title = T("Approve request");
+            approve.setAttribute("aria-label", fmt("Approve the request of {0}", user.username));
+            approve.appendChild(icon("M5 12l5 5L20 7"));
+            approve.addEventListener("click", () => saveUserField(user, {is_active: true}, fmt("Access request of {0} approved", user.username)));
+            actions.appendChild(approve);
+        } else {
+            const reset = el("button", "adm-icon-btn");
+            reset.type = "button";
+            reset.title = T("Reset password: sets a temporary password");
+            reset.setAttribute("aria-label", fmt("Reset the password of {0}", user.username));
+            reset.appendChild(icon("M15 7a4 4 0 1 0-3.5 5.9L8 16.5V19h2.5v-2h2v-2l1.5-1.5A4 4 0 0 0 15 7zM16 8h.01"));
+            reset.addEventListener("click", () => resetUserPassword(user));
+            actions.appendChild(reset);
+        }
+        const del = el("button", "adm-icon-btn adm-icon-btn--danger");
+        del.type = "button";
+        del.disabled = Boolean(user.is_current_user);
+        del.title = user.is_current_user ? T("You cannot delete your own user") : (user.pending_request ? T("Reject request") : T("Delete user"));
+        del.setAttribute("aria-label", fmt("Delete {0}", user.username));
+        del.appendChild(icon("M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"));
+        del.addEventListener("click", () => deleteUser(user));
+        actions.appendChild(del);
+        actionsTd.appendChild(actions);
+
+        tr.append(checkTd, userTd, loginTd, passTd, roleTd, activeTd, mustTd, foldersTd, actionsTd);
+        return tr;
+    }
+
+    function startEmailEdit(user, emailRow) {
+        emailRow.innerHTML = "";
+        const input = el("input", "adm-input adm-input--cell");
+        input.type = "email";
+        input.value = user.email || "";
+        input.placeholder = "name@example.com";
+        input.autocomplete = "off";
+        input.spellcheck = false;
+        input.setAttribute("aria-label", fmt("Email of {0}", user.username));
+        emailRow.appendChild(input);
+        input.focus();
+        let done = false;
+        const finish = async (save) => {
+            if (done) return;
+            done = true;
+            const value = input.value.trim();
+            if (save && value !== String(user.email || "")) {
+                await saveUserField(user, {email: value}, fmt("Email of {0} changed", user.username));
+            }
+            renderUsers();
+        };
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") { event.preventDefault(); finish(true); }
+            if (event.key === "Escape") finish(false);
+        });
+        input.addEventListener("blur", () => finish(true));
+    }
+
+    async function saveUserField(user, changes, successMessage) {
+        const statusEl = document.getElementById("users-status");
+        flashStatus(statusEl, T("Saving…"), "busy");
         try {
-            const data = await apiFetch("/api/state");
-            const theme = data?.ui_state?.theme || "ocean";
-            applyTheme(theme);
-        } catch (_error) {
-            applyTheme("ocean");
+            await apiFetch(`/api/admin/users/${user.id}`, jsonBody("PUT", changes));
+            await loadUsers();
+            flashStatus(statusEl, `${T("Saved")} · ${successMessage}`, "ok");
+            return true;
+        } catch (error) {
+            flashStatus(statusEl, "", "ok");
+            showAdminNotice({title: "User update failed", message: String(error.message || error)});
+            await loadUsers().catch(() => {});
+            return false;
         }
     }
 
-    function openPasswordDialog(user) {
-        activePasswordUserId = user.id;
-        document.getElementById("password-dialog-title").textContent = `Reset Password: ${user.username}`;
-        document.getElementById("password-new").value = "";
-        document.getElementById("password-confirm").value = "";
-        document.getElementById("password-dialog-status").textContent = "Status: idle";
-        document.getElementById("password-dialog").showModal();
+    async function resetUserPassword(user) {
+        const ok = await askAdminConfirmation({
+            title: "Reset password",
+            message: fmt("Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in.", user.username),
+            acceptLabel: "Reset password",
+            danger: false
+        });
+        if (!ok) return;
+        try {
+            const result = await apiFetch(`/api/admin/users/${user.id}/reset-password`, {method: "POST"});
+            await loadUsers();
+            if (result.emailed) {
+                showAdminNotice({title: "Password reset", message: fmt("The temporary password was emailed to {0}.", user.email)});
+            } else {
+                showAdminNotice({title: "Password reset", message: fmt("Give this temporary password to {0}. It is shown only once:", user.username), code: result.temporary_password});
+            }
+        } catch (error) {
+            showAdminNotice({title: "Reset password", message: String(error.message || error)});
+        }
     }
 
-    function closePasswordDialog() {
-        activePasswordUserId = null;
-        const dialog = document.getElementById("password-dialog");
-        if (dialog.open) dialog.close();
+    async function deleteUser(user) {
+        const ok = await askAdminConfirmation({
+            title: user.pending_request ? "Reject request" : "Delete user",
+            message: user.pending_request
+                ? fmt("Reject the access request of {0}? The account is deleted and the user gets an email.", user.username)
+                : fmt("Delete user {0}? This action cannot be undone.", user.username),
+            acceptLabel: user.pending_request ? "Reject" : "Delete"
+        });
+        if (!ok) return;
+        try {
+            await apiFetch(`/api/admin/users/${user.id}`, {method: "DELETE"});
+            selectedUserIds.delete(user.id);
+            await loadUsers();
+            flashStatus(document.getElementById("users-status"), `${T("Saved")} · ${fmt("{0} deleted", user.username)}`, "ok");
+        } catch (error) {
+            showAdminNotice({title: "Delete user", message: String(error.message || error)});
+        }
     }
 
-    let activeEmailUserId = null;
-
-    function openEmailDialog(user) {
-        activeEmailUserId = user.id;
-        document.getElementById("email-dialog-title").textContent = `Change Email: ${user.username}`;
-        document.getElementById("email-new").value = user.email || "";
-        document.getElementById("email-dialog-status").textContent = "Status: idle";
-        document.getElementById("email-dialog").showModal();
+    function syncBulkBar(visibleUsers) {
+        const bar = document.getElementById("users-bulk-bar");
+        bar.hidden = selectedUserIds.size === 0;
+        document.getElementById("users-bulk-count").textContent = fmt("{0} selected", selectedUserIds.size);
+        const selectAll = document.getElementById("users-select-all");
+        const visibleIds = (visibleUsers || []).map((user) => user.id);
+        const selectedVisible = visibleIds.filter((id) => selectedUserIds.has(id)).length;
+        selectAll.checked = visibleIds.length > 0 && selectedVisible === visibleIds.length;
+        selectAll.indeterminate = selectedVisible > 0 && selectedVisible < visibleIds.length;
     }
 
-    function closeEmailDialog() {
-        activeEmailUserId = null;
-        const dialog = document.getElementById("email-dialog");
-        if (dialog.open) dialog.close();
+    async function runBulkAction(action, value = "") {
+        const count = selectedUserIds.size;
+        if (!count) return;
+        const labels = {
+            activate: fmt("Activate the {0} selected users?", count),
+            deactivate: fmt("Deactivate the {0} selected users?", count),
+            delete: fmt("Delete the {0} selected users? This action cannot be undone.", count),
+            role: fmt("Change the role of the {0} selected users to {1}?", count, T(ROLE_LABELS[value] || value))
+        };
+        const ok = await askAdminConfirmation({title: "Change selected users", message: labels[action], acceptLabel: "Apply", danger: action === "delete"});
+        if (!ok) return;
+        try {
+            const result = await apiFetch("/api/admin/users/bulk", jsonBody("POST", {user_ids: [...selectedUserIds], action, value}));
+            selectedUserIds.clear();
+            await loadUsers();
+            const skipped = Array.isArray(result.skipped) ? result.skipped : [];
+            if (skipped.length) {
+                showAdminNotice({
+                    title: "Change selected users",
+                    message: `${fmt("Changed {0} users. Not changed:", (result.updated || []).length)} ${skipped.map((item) => `${item.username || item.id} (${T(item.reason)})`).join(", ")}`
+                });
+            } else {
+                flashStatus(document.getElementById("users-status"), `${T("Saved")} · ${fmt("{0} users changed", (result.updated || []).length)}`, "ok");
+            }
+        } catch (error) {
+            showAdminNotice({title: "Change selected users", message: String(error.message || error)});
+        }
+    }
+
+    // ---------- New user ----------
+    function openNewUserDialog() {
+        const form = document.getElementById("new-user-form");
+        form.reset();
+        document.getElementById("new-active").checked = true;
+        document.getElementById("new-must-change").checked = true;
+        document.getElementById("new-user-avatar").textContent = "?";
+        document.getElementById("new-user-status").textContent = "";
+        document.getElementById("new-user-note").textContent = mailConfigured
+            ? T("An email with the username and the password is sent to the new user.")
+            : T("Email is not configured: give the username and the password to the new user yourself.");
+        document.querySelectorAll("#new-user-form [data-guard-autofill]").forEach((input) => input.setAttribute("readonly", ""));
+        setNewPasswordVisible(false);
+        document.getElementById("new-user-dialog").showModal();
+        document.getElementById("new-username").focus();
+    }
+
+    function setNewPasswordVisible(visible) {
+        const input = document.getElementById("new-password");
+        const toggle = document.getElementById("new-password-toggle");
+        input.classList.toggle("adm-input--masked", !visible);
+        toggle.textContent = T(visible ? "Hide" : "Show");
+        toggle.setAttribute("aria-pressed", visible ? "true" : "false");
+    }
+
+    async function createUser(event) {
+        event.preventDefault();
+        const statusEl = document.getElementById("new-user-status");
+        const payload = {
+            username: document.getElementById("new-username").value.trim(),
+            email: document.getElementById("new-email").value.trim(),
+            password: document.getElementById("new-password").value,
+            role: document.getElementById("new-role").value,
+            is_active: document.getElementById("new-active").checked,
+            must_change_password: document.getElementById("new-must-change").checked,
+            data_subpath: document.getElementById("new-data-subpath").value.trim(),
+            volume1_subpath: document.getElementById("new-volume1-subpath").value.trim()
+        };
+        if (payload.password.length < 8) {
+            flashStatus(statusEl, T("The password needs at least 8 characters."), "error");
+            return;
+        }
+        flashStatus(statusEl, T("Creating…"), "busy");
+        try {
+            await apiFetch("/api/admin/users", jsonBody("POST", payload));
+            document.getElementById("new-user-dialog").close();
+            await loadUsers();
+            flashStatus(document.getElementById("users-status"), `${T("Saved")} · ${fmt("{0} created", payload.username)}`, "ok");
+        } catch (error) {
+            flashStatus(statusEl, String(error.message || error), "error");
+        }
+    }
+
+    // ---------- Email ----------
+    function setServerValue(id, value) {
+        const input = document.getElementById(id);
+        input.value = value ?? "";
+        input.dataset.serverValue = value ?? "";
     }
 
     async function loadMailSettings() {
-        let data;
-        try {
-            data = await apiFetch("/api/admin/mail");
-        } catch (error) {
-            document.getElementById("mail-status").textContent = `Email status: ${String(error)}`;
-            return;
-        }
-        document.getElementById("mail-host").value = data.host || "";
+        const data = await apiFetch("/api/admin/mail");
+        setServerValue("mail-host", data.host || "");
         document.getElementById("mail-port").value = data.port || "";
         document.getElementById("mail-security").value = data.security || "ssl";
-        document.getElementById("mail-username").value = data.username || "";
-        document.getElementById("mail-password").value = "";
-        document.getElementById("mail-password").placeholder = data.has_password ? "SMTP password (saved, leave empty to keep it)" : "SMTP password";
-        document.getElementById("mail-from-address").value = data.from_address || "";
+        setServerValue("mail-username", data.username || "");
+        setServerValue("mail-password", "");
+        document.getElementById("mail-password").placeholder = T(data.has_password ? "Saved · leave empty to keep it" : "Not set");
+        document.getElementById("mail-clear-password-row").hidden = !data.has_password;
+        document.getElementById("mail-clear-password").checked = false;
+        setServerValue("mail-from-address", data.from_address || "");
         document.getElementById("mail-from-name").value = data.from_name || "";
-        const requests = data.account_requests_enabled ? "account requests from the login page are enabled" : "account requests from the login page are disabled";
-        document.getElementById("mail-status").textContent = data.configured
-            ? `Email status: configured (${data.from_address} via ${data.host}:${data.port}); ${requests}.`
-            : `Email status: not configured, no emails are sent; ${requests}.`;
+        document.getElementById("mail-requests-state").textContent = T(data.account_requests_enabled ? "On" : "Off");
+        mailConfigured = Boolean(data.configured);
+        const pill = document.getElementById("mail-status-pill");
+        pill.textContent = T(data.configured ? "Configured · SMTP server" : "Not configured");
+        pill.className = `adm-pill ${data.configured ? "adm-pill--online" : "adm-pill--muted"}`;
+        document.getElementById("mail-test").disabled = !data.configured;
+        document.getElementById("mail-test").title = data.configured ? "" : T("Save the SMTP server first");
     }
 
     async function saveMailSettings(event) {
         event.preventDefault();
         const statusEl = document.getElementById("mail-status");
-        statusEl.textContent = "Email status: saving...";
+        const port = Number(document.getElementById("mail-port").value || 0);
+        flashStatus(statusEl, T("Saving…"), "busy");
         try {
-            const portValue = document.getElementById("mail-port").value.trim();
-            await apiFetch("/api/admin/mail", {
-                method: "PUT",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    host: document.getElementById("mail-host").value.trim(),
-                    port: portValue ? Number(portValue) : null,
-                    security: document.getElementById("mail-security").value,
-                    username: document.getElementById("mail-username").value.trim(),
-                    password: document.getElementById("mail-password").value,
-                    from_address: document.getElementById("mail-from-address").value.trim(),
-                    from_name: document.getElementById("mail-from-name").value.trim()
-                })
-            });
+            await apiFetch("/api/admin/mail", jsonBody("PUT", {
+                host: document.getElementById("mail-host").value.trim(),
+                port: port || null,
+                security: document.getElementById("mail-security").value,
+                username: document.getElementById("mail-username").value.trim(),
+                password: document.getElementById("mail-password").value,
+                clear_password: document.getElementById("mail-clear-password").checked,
+                from_address: document.getElementById("mail-from-address").value.trim(),
+                from_name: document.getElementById("mail-from-name").value.trim()
+            }));
             await loadMailSettings();
+            flashStatus(statusEl, T("Email delivery saved."), "ok");
         } catch (error) {
-            statusEl.textContent = `Email status: ${String(error)}`;
+            flashStatus(statusEl, String(error.message || error), "error");
         }
     }
 
     async function sendTestMail() {
-        const statusEl = document.getElementById("mail-status");
-        statusEl.textContent = "Email status: sending test email...";
+        const statusEl = document.getElementById("mail-test-status");
+        flashStatus(statusEl, T("Sending…"), "busy");
         try {
-            const data = await apiFetch("/api/admin/mail/test", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({to: document.getElementById("mail-test-to").value.trim()})
-            });
-            statusEl.textContent = `Email status: test email sent to ${data.to}.`;
+            const result = await apiFetch("/api/admin/mail/test", jsonBody("POST", {to: document.getElementById("mail-test-to").value.trim()}));
+            flashStatus(statusEl, fmt("Test email sent to {0}.", result.to), "ok");
         } catch (error) {
-            statusEl.textContent = `Email status: ${String(error)}`;
+            flashStatus(statusEl, `${T("Test email failed:")} ${String(error.message || error)}`, "error");
         }
     }
 
-    async function loadUsers() {
-        const statusEl = document.getElementById("admin-status");
-        statusEl.textContent = "Status: loading users...";
-        const data = await apiFetch("/api/admin/users");
-        updateAccessLogUserFilter(data.users || []);
-        const tbody = document.querySelector("#users-table tbody");
-        tbody.innerHTML = "";
-        for (const user of data.users || []) {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${user.id}</td>
-                <td>${user.username}</td>
-                <td class="admin-email-cell"></td>
-                <td>${user.role}</td>
-                <td>${user.is_active ? "yes" : "no"}</td>
-                <td>${user.must_change_password ? "yes" : "no"}</td>
-                <td>${user.data_subpath || ""}</td>
-                <td>${user.volume1_subpath || ""}</td>
-                <td></td>
-            `;
-            const emailCell = tr.querySelector(".admin-email-cell");
-            emailCell.textContent = user.email || "missing";
-            if (!user.email) emailCell.classList.add("admin-email-cell--missing");
-            if (user.pending_request) {
-                const badge = document.createElement("span");
-                badge.className = "admin-request-badge";
-                badge.textContent = "Account request";
-                badge.title = user.request_note ? `Message: ${user.request_note}` : "Requested from the login page";
-                tr.children[1].appendChild(badge);
-            }
-            const actions = tr.querySelector("td:last-child");
-            const roleSelect = document.createElement("select");
-            roleSelect.className = "admin-role-select";
-            roleSelect.innerHTML = `
-                <option value="user">user</option>
-                <option value="admin">admin</option>
-                <option value="demo">demo</option>
-            `;
-            roleSelect.value = user.role || "user";
-            roleSelect.title = "Select user role";
-            roleSelect.addEventListener("change", async () => {
-                try {
-                    await apiFetch(`/api/admin/users/${user.id}`, {
-                        method: "PUT",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({role: roleSelect.value})
-                    });
-                    await loadUsers();
-                } catch (error) {
-                    showAdminNotice({title: "Warning", message: String(error)});
-                    roleSelect.value = user.role || "user";
-                }
-            });
-            actions.appendChild(roleSelect);
-
-            const activeBtnClass = user.is_active ? "admin-action-btn admin-action-btn--active" : "admin-action-btn admin-action-btn--inactive";
-            const activeBtnLabel = user.pending_request ? "Approve" : (user.is_active ? "Active" : "Inactive");
-            actions.appendChild(rowActionButton(activeBtnLabel, async () => {
-                try {
-                    await apiFetch(`/api/admin/users/${user.id}`, {
-                        method: "PUT",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({is_active: !user.is_active})
-                    });
-                    await loadUsers();
-                } catch (error) {
-                    showAdminNotice({title: "Warning", message: String(error)});
-                }
-            }, activeBtnClass));
-            actions.appendChild(rowActionButton("Email", async () => {
-                openEmailDialog(user);
-            }, "admin-action-btn admin-action-btn--neutral"));
-            actions.appendChild(rowActionButton("Reset Password", async () => {
-                openPasswordDialog(user);
-            }, "admin-action-btn admin-action-btn--neutral"));
-            actions.appendChild(rowActionButton(user.pending_request ? "Reject" : "Delete", async () => {
-                const confirmed = await askAdminConfirmation(user.pending_request ? {
-                    title: "Reject Account Request",
-                    message: `This will delete the account request of '${user.username}' and email them that it was not approved. Do you want to continue?`,
-                    acceptLabel: "Reject Request"
-                } : {
-                    title: "Delete User",
-                    message: `This will permanently delete user '${user.username}'. Do you want to continue?`,
-                    acceptLabel: "Delete User"
-                });
-                if (!confirmed) return;
-                try {
-                    await apiFetch(`/api/admin/users/${user.id}`, {method: "DELETE"});
-                    await loadUsers();
-                } catch (error) {
-                    showAdminNotice({title: "Warning", message: String(error)});
-                }
-            }, "admin-action-btn admin-action-btn--danger"));
-            tbody.appendChild(tr);
-        }
-        const pendingCount = (data.users || []).filter((user) => user.pending_request).length;
-        const missingEmails = (data.users || []).filter((user) => !user.email).length;
-        const notes = [];
-        if (pendingCount) notes.push(`${pendingCount} account request(s) waiting for approval`);
-        if (missingEmails) notes.push(`${missingEmails} user(s) without email`);
-        if (!data.mail_configured) notes.push("email is not configured, no notices are sent");
-        statusEl.textContent = `Status: loaded ${data.users?.length || 0} users${notes.length ? ` · ${notes.join(" · ")}` : ""}`;
-    }
-
-    function updateAccessLogUserFilter(users) {
-        const select = document.getElementById("access-logs-user-filter");
-        if (!select) return;
-        const current = String(select.value || "");
-        const usernames = [...new Set((users || [])
-            .map((u) => String(u?.username || "").trim())
-            .filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b));
-        select.innerHTML = "";
-        select.add(new Option("All Users", ""));
-        usernames.forEach((name) => {
-            select.add(new Option(name, name));
-        });
-        if (current && usernames.includes(current)) {
-            select.value = current;
-        } else {
-            select.value = "";
-        }
-    }
-
+    // ---------- Database ----------
     async function loadDbTables() {
-        const statusEl = document.getElementById("db-table-meta");
-        statusEl.textContent = "Table status: loading table list...";
-        try {
-            const data = await apiFetch("/api/admin/db/tables");
-            dbTablesCache = data.tables || [];
-            const select = document.getElementById("db-table-select");
-            select.innerHTML = "";
-            dbTablesCache.forEach((table) => {
-                const opt = new Option(`${table.name} (${table.row_count})`, table.name);
-                select.add(opt);
-            });
-            if (!dbCurrentTable || !dbTablesCache.some((t) => t.name === dbCurrentTable)) {
-                dbCurrentTable = dbTablesCache[0]?.name || "";
-            }
-            select.value = dbCurrentTable;
-            statusEl.textContent = `Table status: loaded ${dbTablesCache.length} tables`;
-        } catch (error) {
-            statusEl.textContent = `Table status: ${String(error)}`;
-            throw error;
-        }
+        const data = await apiFetch("/api/admin/db/tables");
+        dbTables = Array.isArray(data.tables) ? data.tables : [];
+        const select = document.getElementById("db-table-select");
+        const previous = dbState.table || select.value;
+        select.innerHTML = "";
+        dbTables.forEach((table) => {
+            const option = el("option", "", `${table.name} · ${fmt("{0} rows", table.row_count)}`);
+            option.value = table.name;
+            option.setAttribute("data-no-i18n", "");
+            select.appendChild(option);
+        });
+        const chosen = dbTables.some((table) => table.name === previous) ? previous : (dbTables[0]?.name || "");
+        select.value = chosen;
+        if (chosen) await openDbTable(chosen, chosen !== dbState.table);
     }
 
-    async function loadDbTableRows(tableName = null) {
-        const targetTable = tableName || document.getElementById("db-table-select").value;
-        if (!targetTable) {
-            document.getElementById("db-table-meta").textContent = "Table status: no table selected";
-            return;
-        }
-        dbCurrentTable = targetTable;
-        const statusEl = document.getElementById("db-table-meta");
-        statusEl.textContent = `Table status: loading '${targetTable}'...`;
-        const data = await apiFetch(`/api/admin/db/table/${encodeURIComponent(targetTable)}?limit=200&offset=0`);
-        dbCurrentColumns = data.columns || [];
-        const rows = data.rows || [];
-        const container = document.getElementById("db-table-container");
-        container.innerHTML = "";
-        if (!rows.length) {
-            container.innerHTML = `<div class="folder-error">No rows in table '${targetTable}'.</div>`;
-            statusEl.textContent = `Table status: '${targetTable}' loaded (0 rows)`;
-            return;
-        }
+    async function openDbTable(table, reset = true) {
+        if (reset) dbState = {...dbState, table, offset: 0, filters: {}};
+        await loadDbRows();
+    }
 
-        const table = document.createElement("table");
-        table.className = "admin-table";
-        const thead = document.createElement("thead");
-        const headRow = document.createElement("tr");
-        if (data.has_rowid) {
-            const thId = document.createElement("th");
-            thId.textContent = "_rowid";
-            headRow.appendChild(thId);
-        }
-        dbCurrentColumns.forEach((col) => {
-            const th = document.createElement("th");
-            th.textContent = col.name;
+    async function loadDbRows() {
+        if (!dbState.table) return;
+        const params = new URLSearchParams({limit: String(DB_PAGE_SIZE), offset: String(dbState.offset)});
+        if (Object.keys(dbState.filters).length) params.set("filters", JSON.stringify(dbState.filters));
+        const data = await apiFetch(`/api/admin/db/table/${encodeURIComponent(dbState.table)}?${params}`);
+        dbState = {...dbState, columns: data.columns || [], rows: data.rows || [], total: Number(data.total || 0), totalRows: Number(data.total_rows ?? data.total ?? 0), hasRowid: data.has_rowid !== false};
+        renderDbTable();
+    }
+
+    function renderDbTable() {
+        const {columns, rows, total, totalRows, offset, filters, hasRowid} = dbState;
+        document.getElementById("db-rows-pill").textContent = fmt("{0} / {1} rows", total, totalRows);
+        const chips = document.getElementById("db-filter-chips");
+        chips.innerHTML = "";
+        Object.entries(filters).forEach(([column, values]) => {
+            const chip = el("button", "adm-filter-chip", `${column} · ${fmt("{0} selected", values.length)} ×`);
+            chip.type = "button";
+            chip.setAttribute("data-no-i18n", "");
+            chip.addEventListener("click", () => { delete dbState.filters[column]; dbState.offset = 0; loadDbRows(); });
+            chips.appendChild(chip);
+        });
+
+        const thead = document.querySelector("#db-table thead");
+        const headRow = el("tr");
+        headRow.appendChild(el("th", "", T("Actions")));
+        columns.forEach((column) => {
+            const th = el("th");
+            th.title = column.type || "";
+            const label = el("span", "", column.pk ? `${column.name} · ${T("key")}` : column.name);
+            label.setAttribute("data-no-i18n", "");
+            th.appendChild(label);
+            const filterBtn = el("button", `adm-col-filter${filters[column.name] ? " is-active" : ""}`, filters[column.name] ? String(filters[column.name].length) : "⌄");
+            filterBtn.type = "button";
+            filterBtn.setAttribute("aria-label", fmt("Filter {0}", column.name));
+            filterBtn.addEventListener("click", (event) => openDbFilter(column.name, event.currentTarget));
+            th.appendChild(filterBtn);
             headRow.appendChild(th);
         });
-        const thActions = document.createElement("th");
-        thActions.textContent = "Actions";
-        headRow.appendChild(thActions);
+        thead.innerHTML = "";
         thead.appendChild(headRow);
-        table.appendChild(thead);
 
-        const tbody = document.createElement("tbody");
+        const tbody = document.querySelector("#db-table tbody");
+        tbody.innerHTML = "";
         rows.forEach((row) => {
-            const tr = document.createElement("tr");
-            if (data.has_rowid) {
-                const tdId = document.createElement("td");
-                tdId.textContent = String(row._rowid ?? "");
-                tr.appendChild(tdId);
-            }
-            dbCurrentColumns.forEach((col) => {
-                const td = document.createElement("td");
-                const input = document.createElement("input");
-                input.className = "field__input";
-                input.type = "text";
-                input.value = row[col.name] === null || row[col.name] === undefined ? "" : String(row[col.name]);
-                input.dataset.col = col.name;
+            const tr = el("tr");
+            const inputs = [];
+            const actionTd = el("td", "adm-db-actions");
+            const save = el("button", "adm-icon-btn adm-icon-btn--save", "✓");
+            save.type = "button";
+            save.title = T("Save row");
+            save.setAttribute("aria-label", T("Save row"));
+            save.disabled = !hasRowid;
+            const remove = el("button", "adm-icon-btn adm-icon-btn--danger", "×");
+            remove.type = "button";
+            remove.title = T("Delete row");
+            remove.setAttribute("aria-label", T("Delete row"));
+            remove.disabled = !hasRowid;
+            actionTd.append(save, remove);
+            tr.appendChild(actionTd);
+            columns.forEach((column) => {
+                const td = el("td");
+                const input = el("input", "adm-input adm-input--cell");
+                const raw = row[column.name];
+                input.value = raw === null || raw === undefined ? "" : (typeof raw === "object" ? JSON.stringify(raw) : String(raw));
+                input.dataset.original = input.value;
+                input.dataset.column = column.name;
+                input.setAttribute("data-no-i18n", "");
+                input.setAttribute("aria-label", column.name);
+                if (column.pk) {
+                    input.disabled = true;
+                    input.title = T("Primary-key values are protected");
+                }
+                input.addEventListener("input", () => {
+                    const changed = inputs.some((item) => item.value !== item.dataset.original);
+                    tr.classList.toggle("is-changed", changed);
+                    input.classList.toggle("is-changed", input.value !== input.dataset.original);
+                });
+                inputs.push(input);
                 td.appendChild(input);
                 tr.appendChild(td);
             });
-            const tdActions = document.createElement("td");
-            const rowid = row._rowid;
-            tdActions.appendChild(tableActionButton("Save row", async () => {
-                if (rowid === undefined || rowid === null) {
-                    showAdminNotice({title: "Warning", message: "This table does not expose rowid; inline update is unavailable."});
-                    return;
-                }
-                const values = {};
-                tr.querySelectorAll("input[data-col]").forEach((el) => {
-                    values[el.dataset.col] = el.value;
-                });
-                try {
-                    await apiFetch(`/api/admin/db/table/${encodeURIComponent(targetTable)}/update`, {
-                        method: "PUT",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({rowid, values})
-                    });
-                    statusEl.textContent = `Table status: row ${rowid} updated`;
-                } catch (error) {
-                    showAdminNotice({title: "DB Update Error", message: String(error)});
-                }
-            }, "ghost-btn"));
-            tdActions.appendChild(tableActionButton("Delete row", async () => {
-                if (rowid === undefined || rowid === null) {
-                    showAdminNotice({title: "Warning", message: "This table does not expose rowid; delete is unavailable."});
-                    return;
-                }
-                const confirmed = await askAdminConfirmation({
-                    title: "Delete DB Row",
-                    message: `Delete row ${rowid} from '${targetTable}'?`,
-                    acceptLabel: "Delete Row"
-                });
-                if (!confirmed) return;
-                try {
-                    await apiFetch(`/api/admin/db/table/${encodeURIComponent(targetTable)}/delete`, {
-                        method: "DELETE",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({rowid})
-                    });
-                    await loadDbTableRows(targetTable);
-                } catch (error) {
-                    showAdminNotice({title: "DB Delete Error", message: String(error)});
-                }
-            }, "admin-action-btn admin-action-btn--danger"));
-            tr.appendChild(tdActions);
+            save.addEventListener("click", () => saveDbRow(row, inputs));
+            remove.addEventListener("click", () => deleteDbRow(row));
             tbody.appendChild(tr);
         });
-        table.appendChild(tbody);
-        container.appendChild(table);
-        statusEl.textContent = `Table status: '${targetTable}' loaded (${rows.length}/${data.total} rows)`;
+
+        const pages = Math.max(1, Math.ceil(total / DB_PAGE_SIZE));
+        const page = Math.floor(offset / DB_PAGE_SIZE) + 1;
+        document.getElementById("db-page-label").textContent = fmt("Page {0} of {1}", page, pages);
+        document.getElementById("db-pager").hidden = pages <= 1;
     }
 
-    async function insertDbRow() {
-        const table = dbCurrentTable || document.getElementById("db-table-select").value;
-        if (!table) {
-            showAdminNotice({title: "DB Insert Error", message: "Select a table first."});
-            return;
-        }
-        const raw = document.getElementById("db-insert-json").value.trim();
-        if (!raw) {
-            showAdminNotice({title: "DB Insert Error", message: "Provide JSON values to insert."});
-            return;
-        }
-        let payload;
-        try {
-            payload = JSON.parse(raw);
-        } catch (_error) {
-            showAdminNotice({title: "DB Insert Error", message: "Invalid JSON format."});
+    async function saveDbRow(row, inputs) {
+        const values = {};
+        inputs.forEach((input) => { if (!input.disabled && input.value !== input.dataset.original) values[input.dataset.column] = input.value; });
+        if (!Object.keys(values).length) {
+            showAdminNotice({title: "Database", message: T("There are no changed values in this row.")});
             return;
         }
         try {
-            await apiFetch(`/api/admin/db/table/${encodeURIComponent(table)}/insert`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({values: payload})
-            });
-            document.getElementById("db-insert-json").value = "";
-            await loadDbTableRows(table);
+            await apiFetch(`/api/admin/db/table/${encodeURIComponent(dbState.table)}/update`, jsonBody("PUT", {rowid: row._rowid, values}));
+            await loadDbRows();
         } catch (error) {
-            showAdminNotice({title: "DB Insert Error", message: String(error)});
+            showAdminNotice({title: "Database error", message: String(error.message || error)});
         }
     }
 
-    async function loadBackupConfig() {
+    async function deleteDbRow(row) {
+        const ok = await askAdminConfirmation({title: "Delete database row", message: fmt("This permanently deletes the selected row of {0}.", dbState.table)});
+        if (!ok) return;
         try {
-            const data = await apiFetch("/api/admin/backups/config");
-            document.getElementById("backup-enabled").checked = Boolean(data.enabled);
-            document.getElementById("backup-mode").value = String(data.schedule_mode || "daily_2am");
-            document.getElementById("backup-keep-last").value = String(data.keep_last || 14);
-            document.getElementById("backup-dir").value = String(data.backup_dir || "/app/config/backups");
-            document.getElementById("backup-status").textContent =
-                `Backup status: ${data.last_status || "idle"} | Mode: ${data.schedule_mode || "-"} | Last run: ${data.last_run_at || "-"} | Next: ${data.next_run_at || "-"}`;
+            await apiFetch(`/api/admin/db/table/${encodeURIComponent(dbState.table)}/delete`, jsonBody("DELETE", {rowid: row._rowid}));
+            await loadDbRows();
+            await refreshDbCounts();
         } catch (error) {
-            document.getElementById("backup-status").textContent = `Backup status: ${String(error)}`;
-            throw error;
+            showAdminNotice({title: "Database error", message: String(error.message || error)});
         }
     }
 
-    async function saveBackupConfig() {
+    async function refreshDbCounts() {
+        const data = await apiFetch("/api/admin/db/tables").catch(() => null);
+        if (!data) return;
+        dbTables = data.tables || [];
+        const select = document.getElementById("db-table-select");
+        [...select.options].forEach((option) => {
+            const table = dbTables.find((item) => item.name === option.value);
+            if (table) option.textContent = `${table.name} · ${fmt("{0} rows", table.row_count)}`;
+        });
+    }
+
+    async function openDbFilter(column, anchor) {
+        dbFilterColumn = column;
+        const popover = document.getElementById("db-filter-popover");
+        document.getElementById("db-filter-title").textContent = fmt("Filter: {0}", column);
+        document.getElementById("db-filter-search").value = "";
+        const section = popover.closest(".adm-panel");
+        const rect = anchor.getBoundingClientRect();
+        const base = section.getBoundingClientRect();
+        popover.style.left = `${Math.max(0, Math.min(rect.left - base.left - 120, base.width - 320))}px`;
+        popover.style.top = `${rect.bottom - base.top + 6}px`;
+        popover.hidden = false;
+        await loadDbFilterValues();
+        document.getElementById("db-filter-search").focus();
+    }
+
+    async function loadDbFilterValues() {
+        const params = new URLSearchParams({column: dbFilterColumn, search: document.getElementById("db-filter-search").value.trim()});
+        const others = {...dbState.filters};
+        delete others[dbFilterColumn];
+        if (Object.keys(others).length) params.set("filters", JSON.stringify(others));
+        const data = await apiFetch(`/api/admin/db/table/${encodeURIComponent(dbState.table)}/values?${params}`);
+        const selected = new Set(dbState.filters[dbFilterColumn] || []);
+        const list = document.getElementById("db-filter-values");
+        list.innerHTML = "";
+        (data.values || []).forEach((item) => {
+            const label = el("label", "adm-check");
+            const check = el("input");
+            check.type = "checkbox";
+            check.value = item.value;
+            check.checked = selected.has(item.value);
+            const text = el("span", "", `${item.value} (${item.count})`);
+            text.setAttribute("data-no-i18n", "");
+            label.append(check, text);
+            list.appendChild(label);
+        });
+        document.getElementById("db-filter-note").textContent = data.has_more
+            ? T("Showing the first 200 matching values. Search to narrow them.")
+            : T("Values come from the whole table, not just this page.");
+    }
+
+    function closeDbFilter() {
+        document.getElementById("db-filter-popover").hidden = true;
+    }
+
+    function applyDbFilter(clear = false) {
+        const values = clear ? [] : [...document.querySelectorAll("#db-filter-values input:checked")].map((input) => input.value);
+        if (values.length) dbState.filters[dbFilterColumn] = values; else delete dbState.filters[dbFilterColumn];
+        dbState.offset = 0;
+        closeDbFilter();
+        loadDbRows();
+    }
+
+    function openDbRowDialog() {
+        if (!dbState.table) return;
+        document.getElementById("db-row-table").textContent = dbState.table;
+        const fields = document.getElementById("db-row-fields");
+        fields.innerHTML = "";
+        dbState.columns.forEach((column) => {
+            const label = el("label", "adm-field");
+            const name = el("span", "", column.name);
+            name.setAttribute("data-no-i18n", "");
+            label.appendChild(name);
+            const input = el("input", "adm-input");
+            input.dataset.column = column.name;
+            input.placeholder = column.pk ? T("Automatic") : (column.default !== null && column.default !== undefined ? String(column.default) : (column.type || ""));
+            input.autocomplete = "off";
+            input.spellcheck = false;
+            label.appendChild(input);
+            fields.appendChild(label);
+        });
+        document.getElementById("db-row-status").textContent = "";
+        document.getElementById("db-row-dialog").showModal();
+    }
+
+    async function insertDbRow(event) {
+        event.preventDefault();
+        const values = {};
+        document.querySelectorAll("#db-row-fields input").forEach((input) => { if (input.value !== "") values[input.dataset.column] = input.value; });
+        const statusEl = document.getElementById("db-row-status");
+        if (!Object.keys(values).length) {
+            flashStatus(statusEl, T("Fill at least one value."), "error");
+            return;
+        }
         try {
-            const payload = {
-                enabled: document.getElementById("backup-enabled").checked,
-                schedule_mode: document.getElementById("backup-mode").value || "daily_2am",
-                keep_last: Number(document.getElementById("backup-keep-last").value || "14"),
-                backup_dir: document.getElementById("backup-dir").value || "/app/config/backups"
-            };
-            const res = await apiFetch("/api/admin/backups/config", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(payload)
-            });
-            document.getElementById("backup-status").textContent =
-                `Backup status: schedule saved | Next: ${res?.config?.next_run_at || "-"}`;
+            await apiFetch(`/api/admin/db/table/${encodeURIComponent(dbState.table)}/insert`, jsonBody("POST", {values}));
+            document.getElementById("db-row-dialog").close();
+            await loadDbRows();
+            await refreshDbCounts();
         } catch (error) {
-            showAdminNotice({title: "Backup Error", message: String(error)});
+            flashStatus(statusEl, String(error.message || error), "error");
+        }
+    }
+
+    // ---------- Backups ----------
+    const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    async function loadBackupStatus() {
+        backupStatus = await apiFetch("/api/admin/backups/status");
+        const cfg = backupStatus.config || {};
+        document.getElementById("bk-count").textContent = String(backupStatus.count);
+        document.getElementById("bk-count-detail").textContent = fmt("{0} scheduled · {1} manual", backupStatus.count - backupStatus.manual_count, backupStatus.manual_count);
+        document.getElementById("bk-size").textContent = formatBytes(backupStatus.total_size);
+        const free = backupStatus.free_bytes;
+        document.getElementById("bk-free").textContent = free === null || free === undefined ? "-" : formatBytes(free);
+        document.getElementById("bk-free-card").classList.toggle("is-low", free !== null && free !== undefined && free < 1024 ** 3);
+        const failed = backupStatus.last_status === "failed";
+        document.getElementById("bk-last").textContent = backupStatus.last_run_at ? formatDateTime(backupStatus.last_run_at) : T("Never");
+        document.getElementById("bk-last-detail").textContent = failed ? `${T("failed")}: ${backupStatus.last_error || ""}` : (backupStatus.last_run_at ? T("success") : "");
+        document.getElementById("bk-last-card").classList.toggle("is-low", failed);
+        document.getElementById("bk-next").textContent = backupStatus.next_run_at ? formatDateTime(backupStatus.next_run_at) : T("Disabled");
+        document.getElementById("bk-next-detail").textContent = cfg.enabled ? recurrenceLabel(cfg) : "";
+
+        const dirInput = document.getElementById("bk-dir-input");
+        if (document.activeElement !== dirInput) dirInput.value = cfg.backup_dir || "";
+        document.getElementById("bk-enabled").checked = Boolean(cfg.enabled);
+        document.getElementById("bk-recurrence").value = cfg.recurrence || "daily";
+        document.getElementById("bk-weekday").value = String(cfg.weekday ?? 0);
+        document.getElementById("bk-monthday").value = String(cfg.monthday ?? 1);
+        document.getElementById("bk-time").value = cfg.run_time || "02:00";
+        document.getElementById("bk-keep-days").value = String(cfg.keep_days ?? 30);
+        syncScheduleFields();
+
+        const select = document.getElementById("bk-file-select");
+        const previous = select.value;
+        select.innerHTML = "";
+        (backupStatus.files || []).forEach((file) => {
+            const origin = {manual: T("Back up now"), prerestore: T("Before a restore"), scheduled: T("Scheduled")}[file.origin] || file.origin;
+            const option = el("option", "", `${file.name} · ${formatDateTime(file.modified)} · ${formatBytes(file.size)} · ${origin}`);
+            option.value = file.name;
+            select.appendChild(option);
+        });
+        if ([...select.options].some((option) => option.value === previous)) select.value = previous;
+        const noFiles = !(backupStatus.files || []).length;
+        if (noFiles) {
+            const option = el("option", "", T("No backups yet"));
+            option.value = "";
+            select.appendChild(option);
+        }
+        ["bk-download", "bk-delete", "bk-restore"].forEach((id) => { document.getElementById(id).disabled = noFiles; });
+    }
+
+    function recurrenceLabel(cfg) {
+        const time = cfg.run_time || "02:00";
+        switch (cfg.recurrence) {
+            case "hourly": return fmt("Every hour at minute {0}", time.slice(3));
+            case "every_4_hours": return T("Every 4 hours");
+            case "weekly": return fmt("Every {0} at {1}", T(WEEKDAYS[Number(cfg.weekday || 0)]), time);
+            case "monthly": return fmt("Day {0} of every month at {1}", cfg.monthday || 1, time);
+            default: return fmt("Every day at {0}", time);
+        }
+    }
+
+    function syncScheduleFields() {
+        const enabled = document.getElementById("bk-enabled").checked;
+        const recurrence = document.getElementById("bk-recurrence").value;
+        document.getElementById("bk-schedule-fields").classList.toggle("is-disabled", !enabled);
+        document.getElementById("bk-weekday-field").hidden = recurrence !== "weekly";
+        document.getElementById("bk-monthday-field").hidden = recurrence !== "monthly";
+        const keepDays = Number(document.getElementById("bk-keep-days").value || 30);
+        const since = new Date(Date.now() - keepDays * 86400000);
+        const cfg = {
+            recurrence,
+            run_time: document.getElementById("bk-time").value || "02:00",
+            weekday: document.getElementById("bk-weekday").value,
+            monthday: document.getElementById("bk-monthday").value
+        };
+        const dir = document.getElementById("bk-dir-input").value.trim() || "/app/config/backups";
+        const list = document.getElementById("bk-explain");
+        list.innerHTML = "";
+        const lines = enabled
+            ? [
+                `${recurrenceLabel(cfg)} · ${dir}`,
+                fmt("Days to keep: the scheduled backups of the last {0} days are kept (today: since {1}).", keepDays, since.toISOString().slice(0, 10)),
+                T("Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted.")
+            ]
+            : [T("Recurring backups are off. Back up now still works.")];
+        lines.forEach((line) => list.appendChild(el("li", "", line)));
+    }
+
+    async function saveBackupSchedule() {
+        const statusEl = document.getElementById("bk-status");
+        flashStatus(statusEl, T("Saving…"), "busy");
+        try {
+            await apiFetch("/api/admin/backups/config", jsonBody("POST", {
+                enabled: document.getElementById("bk-enabled").checked,
+                backup_dir: document.getElementById("bk-dir-input").value.trim(),
+                recurrence: document.getElementById("bk-recurrence").value,
+                run_time: document.getElementById("bk-time").value || "02:00",
+                weekday: Number(document.getElementById("bk-weekday").value || 0),
+                monthday: Number(document.getElementById("bk-monthday").value || 1),
+                keep_days: Number(document.getElementById("bk-keep-days").value || 30)
+            }));
+            await loadBackupStatus();
+            flashStatus(statusEl, T("Scheduler settings saved."), "ok");
+        } catch (error) {
+            flashStatus(statusEl, String(error.message || error), "error");
         }
     }
 
     async function runBackupNow() {
+        const button = document.getElementById("bk-run-now");
+        button.disabled = true;
         try {
-            const res = await apiFetch("/api/admin/backups/run-now", {method: "POST"});
-            const result = res?.result || {};
-            document.getElementById("backup-status").textContent =
-                `Backup status: ${result.status || "unknown"} | File: ${result.backup_file || "-"}`;
-            await loadBackupConfig();
+            const dir = document.getElementById("bk-dir-input").value.trim();
+            if (dir && dir !== (backupStatus?.config?.backup_dir || "")) {
+                const cfg = backupStatus?.config || {};
+                await apiFetch("/api/admin/backups/config", jsonBody("POST", {
+                    enabled: Boolean(cfg.enabled), backup_dir: dir, recurrence: cfg.recurrence, run_time: cfg.run_time,
+                    weekday: cfg.weekday, monthday: cfg.monthday, keep_days: cfg.keep_days
+                }));
+            }
+            const data = await apiFetch("/api/admin/backups/run-now", {method: "POST"});
+            await loadBackupStatus();
+            const result = data.result || {};
+            if (result.status === "success") {
+                showAdminNotice({title: "Back up now", message: fmt("Backup saved: {0}", String(result.backup_file || "").split("/").pop())});
+            } else {
+                showAdminNotice({title: "Back up now", message: `${T("Backup failed:")} ${result.error || ""}`});
+            }
         } catch (error) {
-            showAdminNotice({title: "Backup Error", message: String(error)});
+            showAdminNotice({title: "Back up now", message: String(error.message || error)});
+        } finally {
+            button.disabled = false;
         }
+    }
+
+    async function deleteBackupFile() {
+        const name = document.getElementById("bk-file-select").value;
+        if (!name) return;
+        const ok = await askAdminConfirmation({title: "Delete backup", message: fmt("Delete the backup {0}? This action cannot be undone.", name)});
+        if (!ok) return;
+        try {
+            await apiFetch(`/api/admin/backups/files/${encodeURIComponent(name)}`, {method: "DELETE"});
+            await loadBackupStatus();
+        } catch (error) {
+            showAdminNotice({title: "Delete backup", message: String(error.message || error)});
+        }
+    }
+
+    async function restoreBackupFile() {
+        const name = document.getElementById("bk-file-select").value;
+        if (!name) return;
+        const ok = await askAdminConfirmation({
+            title: "Restore backup",
+            message: fmt("Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again.", name),
+            acceptLabel: "Restore backup"
+        });
+        if (!ok) return;
+        try {
+            const result = await apiFetch("/api/admin/backups/restore", jsonBody("POST", {name}));
+            showAdminNotice({title: "Restore backup", message: fmt("Backup restored. The previous data was saved as {0}.", result.safety_backup)});
+            await Promise.allSettled([loadBackupStatus(), loadUsers(), loadMailSettings()]);
+        } catch (error) {
+            showAdminNotice({title: "Restore backup", message: String(error.message || error)});
+        }
+    }
+
+    // ---------- Access logs ----------
+    function updateLogsUserFilter(extraNames = []) {
+        const select = document.getElementById("logs-user");
+        const current = select.value;
+        const names = [...new Set([...usersCache.map((user) => user.username), ...extraNames])].sort((a, b) => a.localeCompare(b));
+        select.innerHTML = "";
+        const all = el("option", "", T("All users"));
+        all.value = "";
+        select.appendChild(all);
+        names.forEach((name) => {
+            const option = el("option", "", name);
+            option.value = name;
+            option.setAttribute("data-no-i18n", "");
+            select.appendChild(option);
+        });
+        select.value = names.includes(current) ? current : "";
     }
 
     async function loadAccessLogs() {
-        const statusEl = document.getElementById("access-logs-status");
-        const select = document.getElementById("access-logs-user-filter");
-        const username = String(select?.value || "").trim();
-        const querySuffix = username ? `&username=${encodeURIComponent(username)}` : "";
-        statusEl.textContent = "Access logs: loading...";
-        try {
-            let rows = [];
-            try {
-                const data = await apiFetch(`/api/admin/access-logs?limit=300${querySuffix}`);
-                rows = data.logs || [];
-            } catch (primaryError) {
-                const fallback = await apiFetch("/api/admin/db/table/access_logs?limit=300&offset=0");
-                rows = fallback.rows || [];
-            }
-            if (username) {
-                const wanted = username.toLowerCase();
-                rows = rows.filter((row) => String(row?.username || "").trim().toLowerCase() === wanted);
-            }
-            accessLogsRows = rows;
-            renderAccessLogsTable();
-            statusEl.textContent = `Access logs: loaded ${rows.length} entries`;
-        } catch (error) {
-            statusEl.textContent = `Access logs: ${String(error)}`;
+        const params = new URLSearchParams({
+            limit: "500",
+            days: document.getElementById("logs-days").value,
+            username: document.getElementById("logs-user").value,
+            event: document.getElementById("logs-event").value
+        });
+        const data = await apiFetch(`/api/admin/access-logs?${params}`);
+        const eventSelect = document.getElementById("logs-event");
+        if (eventSelect.options.length <= 1) {
+            (data.events || []).forEach((item) => {
+                const option = el("option", "", T(item.label));
+                option.value = item.key;
+                eventSelect.appendChild(option);
+            });
         }
-    }
-
-    function formatAccessTimestamp(rawValue) {
-        const text = String(rawValue || "").trim();
-        if (!text) return "";
-        const match = text.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/);
-        if (match) return `${match[1]} - ${match[2]}`;
-        return text;
-    }
-
-    function sortAccessLogsRows(rows) {
-        const sorted = [...(rows || [])];
-        const {column, direction} = accessLogsSort;
-        sorted.sort((a, b) => {
-            let left = a?.[column];
-            let right = b?.[column];
-            if (column === "id") {
-                left = Number(left || 0);
-                right = Number(right || 0);
-            } else {
-                left = String(left || "").toLowerCase();
-                right = String(right || "").toLowerCase();
-            }
-            if (left < right) return direction === "asc" ? -1 : 1;
-            if (left > right) return direction === "asc" ? 1 : -1;
-            return 0;
-        });
-        return sorted;
-    }
-
-    function renderAccessLogsSortHeaders() {
-        document.querySelectorAll("#access-logs-table thead th[data-sort-col]").forEach((th) => {
-            const col = String(th.dataset.sortCol || "");
-            const base = String(th.textContent || "").replace(/\s+[▲▼]$/, "");
-            if (col === accessLogsSort.column) {
-                th.textContent = `${base} ${accessLogsSort.direction === "asc" ? "▲" : "▼"}`;
-            } else {
-                th.textContent = base;
-            }
-        });
-    }
-
-    function renderAccessLogsTable() {
-        const tbody = document.querySelector("#access-logs-table tbody");
+        updateLogsUserFilter(data.usernames || []);
+        document.getElementById("logs-count-pill").textContent = fmt("{0} events", data.total ?? (data.logs || []).length);
+        const tbody = document.querySelector("#logs-table tbody");
         tbody.innerHTML = "";
-        const rows = sortAccessLogsRows(accessLogsRows);
-        rows.forEach((row) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${row.id ?? ""}</td>
-                <td>${formatAccessTimestamp(row.created_at)}</td>
-                <td>${row.username || ""}</td>
-                <td>${row.ip_address || ""}</td>
-            `;
+        (data.logs || []).forEach((log) => {
+            const tr = el("tr");
+            const idTd = el("td", "adm-muted", String(log.id));
+            const dateTd = el("td", "", formatDateTime(log.created_at));
+            const userTd = el("td", "adm-strong", log.username || "-");
+            userTd.setAttribute("data-no-i18n", "");
+            const ipTd = el("td", "adm-mono", log.ip_address || "-");
+            ipTd.setAttribute("data-no-i18n", "");
+            const eventTd = el("td");
+            eventTd.appendChild(el("span", `adm-event adm-event--${log.event}`, T(log.event_label || log.event)));
+            const detailsTd = el("td", "", log.details || "");
+            detailsTd.setAttribute("data-no-i18n", "");
+            tr.append(idTd, dateTd, userTd, ipTd, eventTd, detailsTd);
             tbody.appendChild(tr);
         });
-        renderAccessLogsSortHeaders();
+        document.getElementById("logs-empty").hidden = (data.logs || []).length > 0;
     }
 
-    function toggleAccessLogsSort(column) {
-        if (accessLogsSort.column === column) {
-            accessLogsSort.direction = accessLogsSort.direction === "asc" ? "desc" : "asc";
-        } else {
-            accessLogsSort.column = column;
-            accessLogsSort.direction = column === "created_at" ? "desc" : "asc";
-        }
-        renderAccessLogsTable();
-    }
-
-    document.getElementById("create-user-form").addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const statusEl = document.getElementById("admin-status");
-        const password = document.getElementById("new-password").value;
-        statusEl.textContent = "Status: creating user...";
+    // ---------- Theme and init ----------
+    async function loadThemeFromState() {
         try {
-            await apiFetch("/api/admin/users", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    username: document.getElementById("new-username").value.trim(),
-                    email: document.getElementById("new-email").value.trim(),
-                    password,
-                    role: document.getElementById("new-role").value,
-                    is_active: document.getElementById("new-active").checked,
-                    must_change_password: document.getElementById("new-must-change-password").value === "true",
-                    data_subpath: document.getElementById("new-data-subpath").value.trim(),
-                    volume1_subpath: document.getElementById("new-volume1-subpath").value.trim()
-                })
-            });
-            event.target.reset();
-            document.getElementById("new-active").checked = true;
-            document.getElementById("new-must-change-password").value = "";
-            await loadUsers();
-        } catch (error) {
-            const message = String(error || "Unable to create user.");
-            statusEl.textContent = `Status: ${message}`;
-            showAdminNotice({title: "Create User Error", message});
+            const data = await apiFetch("/api/state");
+            const theme = data?.ui_state?.theme || "ocean";
+            document.body.setAttribute("data-theme", THEMES.has(theme) ? theme : "ocean");
+        } catch (_error) {
+            document.body.setAttribute("data-theme", "ocean");
         }
-    });
+    }
 
+    document.querySelectorAll("[data-admin-tab]").forEach((tab) => tab.addEventListener("click", () => showAdminTab(tab.dataset.adminTab)));
+    document.querySelectorAll("[data-close-dialog]").forEach((button) => button.addEventListener("click", () => button.closest("dialog").close()));
+    document.querySelectorAll("dialog.adm-dialog").forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
+    document.getElementById("admin-notice-close").addEventListener("click", () => document.getElementById("admin-notice-dialog").close());
     document.getElementById("logout-btn").addEventListener("click", async () => {
-        await apiFetch("/api/auth/logout", {method: "POST"});
+        await apiFetch("/api/auth/logout", {method: "POST"}).catch(() => {});
         window.location.href = "/login";
     });
-    document.getElementById("db-table-refresh").addEventListener("click", async () => {
-        await loadDbTables();
-        await loadDbTableRows();
+
+    ["users-search", "users-role-filter", "users-status-filter"].forEach((id) => {
+        document.getElementById(id).addEventListener(id === "users-search" ? "input" : "change", () => renderUsers());
     });
-    document.getElementById("db-table-load").addEventListener("click", async () => {
-        await loadDbTableRows();
+    document.querySelectorAll("#users-table .adm-sort").forEach((button) => button.addEventListener("click", () => {
+        const key = button.dataset.sort;
+        usersSort = {key, dir: usersSort.key === key ? -usersSort.dir : (key === "last_login_at" ? -1 : 1)};
+        renderUsers();
+    }));
+    document.getElementById("users-online-pill").addEventListener("click", () => { onlineFirst = !onlineFirst; renderUsers(); });
+    document.getElementById("users-requests-pill").addEventListener("click", () => {
+        document.getElementById("users-status-filter").value = "requests";
+        renderUsers();
     });
-    document.getElementById("db-insert-btn").addEventListener("click", insertDbRow);
-    document.getElementById("db-table-select").addEventListener("change", async (event) => {
-        dbCurrentTable = event.target.value || "";
-        await loadDbTableRows(dbCurrentTable);
+    document.getElementById("users-select-all").addEventListener("change", (event) => {
+        usersCache.filter(userMatchesFilters).forEach((user) => {
+            if (event.target.checked) selectedUserIds.add(user.id); else selectedUserIds.delete(user.id);
+        });
+        renderUsers();
     });
-    document.getElementById("backup-save").addEventListener("click", saveBackupConfig);
-    document.getElementById("backup-run-now").addEventListener("click", runBackupNow);
-    document.getElementById("access-logs-refresh").addEventListener("click", loadAccessLogs);
-    document.getElementById("access-logs-user-filter").addEventListener("change", loadAccessLogs);
-    document.querySelectorAll("#access-logs-table thead th[data-sort-col]").forEach((th) => {
-        th.style.cursor = "pointer";
-        th.addEventListener("click", () => toggleAccessLogsSort(String(th.dataset.sortCol || "")));
+    document.getElementById("users-bulk-clear").addEventListener("click", () => { selectedUserIds.clear(); renderUsers(); });
+    document.querySelectorAll("[data-bulk-action]").forEach((button) => button.addEventListener("click", () => runBulkAction(button.dataset.bulkAction)));
+    document.getElementById("users-bulk-role").addEventListener("change", (event) => {
+        const role = event.target.value;
+        event.target.value = "";
+        if (role) runBulkAction("role", role);
+    });
+    document.getElementById("new-user-btn").addEventListener("click", openNewUserDialog);
+    document.getElementById("new-user-form").addEventListener("submit", createUser);
+    document.getElementById("new-password-toggle").addEventListener("click", () => {
+        setNewPasswordVisible(document.getElementById("new-password").classList.contains("adm-input--masked"));
+    });
+    document.getElementById("new-username").addEventListener("input", (event) => {
+        document.getElementById("new-user-avatar").textContent = (event.target.value.trim().slice(0, 2) || "?").toUpperCase();
     });
 
     document.getElementById("mail-form").addEventListener("submit", saveMailSettings);
     document.getElementById("mail-test").addEventListener("click", sendTestMail);
-    document.getElementById("email-dialog-cancel").addEventListener("click", closeEmailDialog);
-    document.getElementById("email-dialog-save").addEventListener("click", async () => {
-        const statusEl = document.getElementById("email-dialog-status");
-        if (!activeEmailUserId) return;
-        statusEl.textContent = "Status: saving...";
-        try {
-            await apiFetch(`/api/admin/users/${activeEmailUserId}`, {
-                method: "PUT",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({email: document.getElementById("email-new").value.trim()})
-            });
-            closeEmailDialog();
-            await loadUsers();
-        } catch (error) {
-            statusEl.textContent = `Status: ${String(error)}`;
-        }
+
+    document.getElementById("db-table-select").addEventListener("change", (event) => openDbTable(event.target.value));
+    document.getElementById("db-table-refresh").addEventListener("click", () => loadDbTables());
+    document.getElementById("db-add-row-btn").addEventListener("click", openDbRowDialog);
+    document.getElementById("db-row-form").addEventListener("submit", insertDbRow);
+    document.getElementById("db-filter-close").addEventListener("click", closeDbFilter);
+    document.getElementById("db-filter-clear").addEventListener("click", () => applyDbFilter(true));
+    document.getElementById("db-filter-apply").addEventListener("click", () => applyDbFilter(false));
+    let dbFilterTimer = null;
+    document.getElementById("db-filter-search").addEventListener("input", () => {
+        clearTimeout(dbFilterTimer);
+        dbFilterTimer = setTimeout(loadDbFilterValues, 250);
     });
-    document.getElementById("password-dialog-cancel").addEventListener("click", closePasswordDialog);
-    document.getElementById("admin-notice-close").addEventListener("click", () => {
-        const dialog = document.getElementById("admin-notice-dialog");
-        if (dialog.open) dialog.close();
+    document.querySelectorAll("#db-pager [data-page]").forEach((button) => button.addEventListener("click", () => {
+        const pages = Math.max(1, Math.ceil(dbState.total / DB_PAGE_SIZE));
+        const page = Math.floor(dbState.offset / DB_PAGE_SIZE);
+        const target = {first: 0, prev: Math.max(0, page - 1), next: Math.min(pages - 1, page + 1), last: pages - 1}[button.dataset.page];
+        dbState.offset = target * DB_PAGE_SIZE;
+        loadDbRows();
+    }));
+
+    ["bk-enabled", "bk-recurrence", "bk-weekday", "bk-monthday", "bk-time", "bk-keep-days", "bk-dir-input"].forEach((id) => {
+        document.getElementById(id).addEventListener(id === "bk-enabled" || id === "bk-recurrence" || id === "bk-weekday" ? "change" : "input", syncScheduleFields);
     });
-    document.getElementById("password-dialog-save").addEventListener("click", async () => {
-        const statusEl = document.getElementById("password-dialog-status");
-        const passNew = document.getElementById("password-new").value;
-        const passConfirm = document.getElementById("password-confirm").value;
-        if (!activePasswordUserId) return;
-        if (passNew !== passConfirm) {
-            statusEl.textContent = "Status: passwords do not match";
-            return;
-        }
-        statusEl.textContent = "Status: saving...";
-        try {
-            await apiFetch(`/api/admin/users/${activePasswordUserId}`, {
-                method: "PUT",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({password: passNew})
-            });
-            closePasswordDialog();
-            await loadUsers();
-        } catch (error) {
-            statusEl.textContent = `Status: ${String(error)}`;
-        }
+    document.getElementById("bk-save").addEventListener("click", saveBackupSchedule);
+    document.getElementById("bk-run-now").addEventListener("click", runBackupNow);
+    document.getElementById("bk-delete").addEventListener("click", deleteBackupFile);
+    document.getElementById("bk-restore").addEventListener("click", restoreBackupFile);
+    document.getElementById("bk-download").addEventListener("click", () => {
+        const name = document.getElementById("bk-file-select").value;
+        if (name) window.location.href = `/api/admin/backups/files/${encodeURIComponent(name)}`;
     });
 
-    Promise.resolve()
-        .then(loadThemeFromState)
-        .then(loadUsers)
-        .then(loadMailSettings)
-        .then(loadDbTables)
-        .then(() => loadDbTableRows())
-        .then(loadBackupConfig)
-        .then(loadAccessLogs)
-        .catch((error) => {
-        document.getElementById("admin-status").textContent = `Status: ${String(error)}`;
-    });
+    ["logs-days", "logs-user", "logs-event"].forEach((id) => document.getElementById(id).addEventListener("change", loadAccessLogs));
+    document.getElementById("logs-refresh").addEventListener("click", loadAccessLogs);
+
+    guardAutofill();
+    (async () => {
+        await loadThemeFromState();
+        await Promise.allSettled([loadUsers(), loadMailSettings()]);
+        let initial = "users";
+        try { initial = sessionStorage.getItem("pm_admin_tab") || initial; } catch (error) { /* storage unavailable */ }
+        showAdminTab(document.querySelector(`[data-admin-tab="${initial}"]`) ? initial : "users");
+        setInterval(() => {
+            if (!document.hidden && !document.querySelector("dialog[open]") && !document.activeElement?.closest?.("#users-table")) loadUsers().catch(() => {});
+        }, 30000);
+    })();
 </script>
 </body>
 </html>

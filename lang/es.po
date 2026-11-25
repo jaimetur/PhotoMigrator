@@ -18,6 +18,9 @@ msgstr "(predeterminado: todo)"
 msgid "(no output)"
 msgstr "(sin salida)"
 
+msgid "+ Add row"
+msgstr "+ Añadir fila"
+
 msgid "/app/data subpath"
 msgstr "Subruta de /app/data"
 
@@ -44,6 +47,12 @@ msgstr "Una carpeta completa, con sus álbumes"
 
 msgid "ALL_PHOTOS Folder Name"
 msgstr "Nombre de la carpeta ALL_PHOTOS"
+
+msgid "API key admin"
+msgstr "API key de administrador"
+
+msgid "API key user"
+msgstr "API key de usuario"
 
 msgid "About Auto Rename Folders Content Based"
 msgstr "Acerca de Renombrar carpetas automáticamente según su contenido"
@@ -117,6 +126,9 @@ msgstr "Acerca de {0}"
 msgid "Access Logs"
 msgstr "Registros de acceso"
 
+msgid "Access logs"
+msgstr "Registros de acceso"
+
 msgid "Access logs: loaded {0} entries"
 msgstr "Registros de acceso: {0} entradas cargadas"
 
@@ -125,6 +137,12 @@ msgstr "Registros de acceso: cargando..."
 
 msgid "Access logs: {0}"
 msgstr "Registros de acceso: {0}"
+
+msgid "Access request"
+msgstr "Solicitud de acceso"
+
+msgid "Access request of {0} approved"
+msgstr "Solicitud de acceso de {0} aprobada"
 
 msgid "Account"
 msgstr "Cuenta"
@@ -141,8 +159,23 @@ msgstr "Solicitud de cuenta"
 msgid "Account request from {0}"
 msgstr "Solicitud de cuenta de {0}"
 
+msgid "Account requests from the login page"
+msgstr "Solicitudes de cuenta desde la página de inicio de sesión"
+
 msgid "Account {0}"
 msgstr "Cuenta {0}"
+
+msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "Cuenta {0}: tu USER_API_KEY de Immich Photos (puedes crear una API_KEY en Ajustes de la cuenta --> API_KEY Keys)"
+
+msgid "Account {0}: Your password for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "Cuenta {0}: tu contraseña de Immich Photos (obligatoria si no se indica una API_KEY)"
+
+msgid "Account {0}: Your username for Immich Photos (mandatory if not API_KEY is providen)"
+msgstr "Cuenta {0}: tu nombre de usuario de Immich Photos (obligatorio si no se indica una API_KEY)"
+
+msgid "Accounts"
+msgstr "Cuentas"
 
 msgid "Action"
 msgstr "Acción"
@@ -150,14 +183,26 @@ msgstr "Acción"
 msgid "Actions"
 msgstr "Acciones"
 
+msgid "Activate"
+msgstr "Activar"
+
+msgid "Activate the {0} selected users?"
+msgstr "¿Activar los {0} usuarios seleccionados?"
+
 msgid "Active"
 msgstr "Activa"
+
+msgid "Active and inactive"
+msgstr "Activos e inactivos"
 
 msgid "Activity"
 msgstr "Actividad"
 
 msgid "Activity · PhotoMigrator"
 msgstr "Actividad · PhotoMigrator"
+
+msgid "Add row"
+msgstr "Añadir fila"
 
 msgid "Add the URL and credentials of each account in"
 msgstr "Añade la URL y las credenciales de cada cuenta en"
@@ -246,11 +291,23 @@ msgstr "Álbumes con el mismo nombre"
 msgid "All Users"
 msgstr "Todos los usuarios"
 
+msgid "All dates"
+msgstr "Todas las fechas"
+
+msgid "All events"
+msgstr "Todos los eventos"
+
 msgid "All photos folder name"
 msgstr "Nombre de la carpeta de todas las fotos"
 
 msgid "All photos folder structure"
 msgstr "Estructura de la carpeta de todas las fotos"
+
+msgid "All roles"
+msgstr "Todos los roles"
+
+msgid "All users"
+msgstr "Todos los usuarios"
 
 msgid "Allow login into Synology Photos using 2FA with an OTP token."
 msgstr "Permite iniciar sesión en Synology Photos con 2FA mediante un token OTP."
@@ -266,6 +323,9 @@ msgstr "También requiere el selector de módulo '--dup-asset-keeper {more-peopl
 
 msgid "An administrator reviews every request. You will get an email when your account is active."
 msgstr "Un administrador revisa cada solicitud. Recibirás un correo cuando tu cuenta esté activa."
+
+msgid "An email with the username and the password is sent to the new user."
+msgstr "Se envía un email con el nombre de usuario y la contraseña al nuevo usuario."
 
 msgid "Any value saved here is kept in the database but ignored while that override remains set."
 msgstr "Cualquier valor guardado aquí se conserva en la base de datos, pero se ignora mientras siga activa esa sobrescritura."
@@ -285,11 +345,23 @@ msgstr "Apple Photos"
 msgid "Apple iCloud Photos export"
 msgstr "Exportación de Apple iCloud Photos"
 
+msgid "Application activity"
+msgstr "Actividad de la aplicación"
+
 msgid "Apply a reviewed duplicates CSV"
 msgstr "Aplicar un CSV de duplicados revisado"
 
+msgid "Apply filter"
+msgstr "Aplicar filtro"
+
 msgid "Approve it by activating the account in the Administration Panel, or reject it from the same list."
 msgstr "Apruébala activando la cuenta en el Panel de administración, o recházala desde la misma lista."
+
+msgid "Approve request"
+msgstr "Aprobar solicitud"
+
+msgid "Approve the request of {0}"
+msgstr "Aprobar la solicitud de {0}"
 
 msgid "Are you sure?"
 msgstr "¿Seguro?"
@@ -297,8 +369,14 @@ msgstr "¿Seguro?"
 msgid "Arguments must be passed as two values separated by comma."
 msgstr "Los argumentos deben pasarse como dos valores separados por coma."
 
+msgid "Asked at the first sign-in"
+msgstr "Se pide en el primer inicio de sesión"
+
 msgid "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead."
 msgstr "Los elementos se eliminan del origen una vez migrados. Desactiva “Mover elementos” para copiarlos en su lugar."
+
+msgid "At least {0} characters"
+msgstr "Al menos {0} caracteres"
 
 msgid "Authorize"
 msgstr "Autorizar"
@@ -308,6 +386,9 @@ msgstr "Renombrar carpetas automáticamente según su contenido"
 
 msgid "Auto Scroll"
 msgstr "Desplazamiento automático"
+
+msgid "Automatic"
+msgstr "Automático"
 
 msgid "Automatic Migration"
 msgstr "Migración automática"
@@ -330,8 +411,41 @@ msgstr "Volver a la interfaz web"
 msgid "Back to sign in"
 msgstr "Volver a iniciar sesión"
 
+msgid "Back up now"
+msgstr "Hacer copia ahora"
+
+msgid "Back up the web database now, restore a backup or schedule recurring backups."
+msgstr "Haz ahora una copia de seguridad de la base de datos web, restaura una copia o programa copias periódicas."
+
+msgid "Backup"
+msgstr "Copia de seguridad"
+
 msgid "Backup Error"
 msgstr "Error de copia de seguridad"
+
+msgid "Backup deleted"
+msgstr "Copia de seguridad eliminada"
+
+msgid "Backup failed:"
+msgstr "Error en la copia de seguridad:"
+
+msgid "Backup file"
+msgstr "Archivo de copia de seguridad"
+
+msgid "Backup folder"
+msgstr "Carpeta de copias de seguridad"
+
+msgid "Backup protection"
+msgstr "Protección de copias de seguridad"
+
+msgid "Backup restored"
+msgstr "Copia de seguridad restaurada"
+
+msgid "Backup restored. The previous data was saved as {0}."
+msgstr "Copia de seguridad restaurada. Los datos anteriores se guardaron como {0}."
+
+msgid "Backup saved: {0}"
+msgstr "Copia de seguridad guardada: {0}"
 
 msgid "Backup status: idle | Mode: daily_2am | Last run: - | Next: -"
 msgstr "Estado de la copia de seguridad: inactiva | Modo: daily_2am | Última ejecución: - | Siguiente: -"
@@ -348,14 +462,23 @@ msgstr "Estado de la copia de seguridad: {0} | Archivo: {1}"
 msgid "Backup status: {0} | Mode: {1} | Last run: {2} | Next: {3}"
 msgstr "Estado de la copia de seguridad: {0} | Modo: {1} | Última ejecución: {2} | Siguiente: {3}"
 
+msgid "Backups"
+msgstr "Copias de seguridad"
+
 msgid "Backups Scheduler"
 msgstr "Programador de copias de seguridad"
+
+msgid "Before a restore"
+msgstr "Antes de una restauración"
 
 msgid "Blue palette"
 msgstr "Paleta azul"
 
 msgid "Browse"
 msgstr "Explorar"
+
+msgid "Browse, edit or remove individual records of any table of the Web Interface database."
+msgstr "Explora, edita o elimina registros individuales de cualquier tabla de la base de datos de la interfaz web."
 
 msgid "By default migration runs in parallel with live dashboard enabled."
 msgstr "De forma predeterminada, la migración se ejecuta en paralelo con el panel en vivo activado."
@@ -366,14 +489,50 @@ msgstr "De forma predeterminada, la salida usa la estructura 'year/month' y se g
 msgid "CSV endpoint not available in backend. Restart/update the web backend."
 msgstr "El endpoint CSV no está disponible en el backend. Reinicia o actualiza el backend web."
 
+msgid "Can sign in right away"
+msgstr "Puede iniciar sesión de inmediato"
+
 msgid "Cancel"
 msgstr "Cancelar"
+
+msgid "Cannot change role of the last active admin."
+msgstr "No se puede cambiar el rol del último administrador activo."
+
+msgid "Cannot deactivate the last active admin."
+msgstr "No se puede desactivar al último administrador activo."
+
+msgid "Cannot delete the last active admin."
+msgstr "No se puede eliminar al último administrador activo."
 
 msgid "Change Email"
 msgstr "Cambiar correo"
 
 msgid "Change Email: {0}"
 msgstr "Cambiar correo: {0}"
+
+msgid "Change any field in place: it saves on its own. Select several users to change them at once."
+msgstr "Cambia cualquier campo directamente: se guarda solo. Selecciona varios usuarios para cambiarlos a la vez."
+
+msgid "Change selected users"
+msgstr "Cambiar usuarios seleccionados"
+
+msgid "Change the email"
+msgstr "Cambiar el email"
+
+msgid "Change the email of {0}"
+msgstr "Cambiar el email de {0}"
+
+msgid "Change the role of the selected users"
+msgstr "Cambiar el rol de los usuarios seleccionados"
+
+msgid "Change the role of the {0} selected users to {1}?"
+msgstr "¿Cambiar el rol de los {0} usuarios seleccionados a {1}?"
+
+msgid "Change this IP by the IP that contains the Immich server or by your valid Immich URL"
+msgstr "Cambia esta IP por la IP del servidor Immich o por tu URL de Immich válida"
+
+msgid "Changed {0} users. Not changed:"
+msgstr "{0} usuarios cambiados. No cambiados:"
 
 msgid "Changes your library"
 msgstr "Modifica tu biblioteca"
@@ -405,6 +564,12 @@ msgstr "Elige el elemento que se conserva para '--remove-duplicates-assets'. Las
 msgid "Clean up"
 msgstr "Limpiar"
 
+msgid "Clear column"
+msgstr "Vaciar columna"
+
+msgid "Clear selection"
+msgstr "Borrar selección"
+
 msgid "Client ID"
 msgstr "ID de cliente"
 
@@ -416,6 +581,12 @@ msgstr "Cerrar"
 
 msgid "Close menu"
 msgstr "Cerrar menú"
+
+msgid "Close without adding"
+msgstr "Cerrar sin añadir"
+
+msgid "Close without creating"
+msgstr "Cerrar sin crear"
 
 msgid "Collapse panel"
 msgstr "Contraer panel"
@@ -492,13 +663,22 @@ msgstr "Archivo de configuración"
 msgid "Configuration for Google Photos"
 msgstr "Configuración de Google Photos"
 
+msgid "Configuration for Immich Photos"
+msgstr "Configuración de Immich Photos"
+
 msgid "Configured"
 msgstr "Configurado"
+
+msgid "Configured · SMTP server"
+msgstr "Configurado · servidor SMTP"
 
 msgid "Confirm"
 msgstr "Confirmar"
 
 msgid "Confirm Action"
+msgstr "Confirmar acción"
+
+msgid "Confirm action"
 msgstr "Confirmar acción"
 
 msgid "Confirm new password"
@@ -567,6 +747,9 @@ msgstr "Error al crear: {0}"
 msgid "Create stacks"
 msgstr "Crear pilas"
 
+msgid "Create user"
+msgstr "Crear usuario"
+
 msgid "Created From"
 msgstr "Creado desde"
 
@@ -575,6 +758,9 @@ msgstr "Creado hasta"
 
 msgid "Created: {0}"
 msgstr "Creado: {0}"
+
+msgid "Creating…"
+msgstr "Creando…"
 
 msgid "Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature."
 msgstr "Las credenciales y los ajustes de los servicios se guardan por usuario en la base de datos web. Los valores sensibles permanecen cifrados en reposo y se reutilizan en todas las funciones."
@@ -606,6 +792,9 @@ msgstr "Error al insertar en la base de datos"
 msgid "DB Update Error"
 msgstr "Error al actualizar la base de datos"
 
+msgid "Daily"
+msgstr "Diaria"
+
 msgid "Dangerous Module"
 msgstr "Módulo peligroso"
 
@@ -615,8 +804,26 @@ msgstr "Paleta de interfaz oscura"
 msgid "Dashboard"
 msgstr "Panel"
 
+msgid "Data folder"
+msgstr "Carpeta de datos"
+
+msgid "Database"
+msgstr "Base de datos"
+
 msgid "Database Manager"
 msgstr "Gestor de base de datos"
+
+msgid "Database edit"
+msgstr "Edición de base de datos"
+
+msgid "Database error"
+msgstr "Error de base de datos"
+
+msgid "Database viewer"
+msgstr "Visor de base de datos"
+
+msgid "Date"
+msgstr "Fecha"
 
 msgid "Date and range separators"
 msgstr "Separadores de fecha y de rango"
@@ -626,6 +833,27 @@ msgstr "Los separadores de fecha y de rango se pueden personalizar con '--date-s
 
 msgid "Date separator"
 msgstr "Separador de fecha"
+
+msgid "Day of the month"
+msgstr "Día del mes"
+
+msgid "Day of the week"
+msgstr "Día de la semana"
+
+msgid "Day {0} of every month at {1}"
+msgstr "El día {0} de cada mes a las {1}"
+
+msgid "Days to keep"
+msgstr "Días a conservar"
+
+msgid "Days to keep: the scheduled backups of the last {0} days are kept (today: since {1})."
+msgstr "Días a conservar: se conservan las copias programadas de los últimos {0} días (hoy: desde {1})."
+
+msgid "Deactivate"
+msgstr "Desactivar"
+
+msgid "Deactivate the {0} selected users?"
+msgstr "¿Desactivar los {0} usuarios seleccionados?"
 
 msgid "Default account available:"
 msgstr "Cuenta predeterminada disponible:"
@@ -648,6 +876,12 @@ msgstr "¿Eliminar las carpetas seleccionadas?"
 msgid "Delete User"
 msgstr "Eliminar usuario"
 
+msgid "Delete backup"
+msgstr "Eliminar copia de seguridad"
+
+msgid "Delete database row"
+msgstr "Eliminar fila de la base de datos"
+
 msgid "Delete endpoint unavailable. Restart the web interface backend and try again."
 msgstr "El endpoint de eliminación no está disponible. Reinicia el backend de la interfaz web e inténtalo de nuevo."
 
@@ -657,8 +891,26 @@ msgstr "Eliminar fila"
 msgid "Delete row {0} from '{1}'?"
 msgstr "¿Eliminar la fila {0} de '{1}'?"
 
+msgid "Delete the backup {0}? This action cannot be undone."
+msgstr "¿Eliminar la copia de seguridad {0}? Esta acción no se puede deshacer."
+
+msgid "Delete the {0} selected users? This action cannot be undone."
+msgstr "¿Eliminar los {0} usuarios seleccionados? Esta acción no se puede deshacer."
+
+msgid "Delete user"
+msgstr "Eliminar usuario"
+
+msgid "Delete user {0}? This action cannot be undone."
+msgstr "¿Eliminar al usuario {0}? Esta acción no se puede deshacer."
+
+msgid "Delete {0}"
+msgstr "Eliminar {0}"
+
 msgid "Demo"
 msgstr "Demo"
+
+msgid "Demo (read only)"
+msgstr "Demo (solo lectura)"
 
 msgid "Demo Role Restricted"
 msgstr "Rol de demo restringido"
@@ -672,6 +924,12 @@ msgstr "Destino obligatorio"
 msgid "Destination folder"
 msgstr "Carpeta de destino"
 
+msgid "Details"
+msgstr "Detalles"
+
+msgid "Disabled"
+msgstr "Desactivado"
+
 msgid "Do not save the GPTH log"
 msgstr "No guardar el registro de GPTH"
 
@@ -680,6 +938,9 @@ msgstr "Documento"
 
 msgid "Documentation"
 msgstr "Documentación"
+
+msgid "Download"
+msgstr "Descargar"
 
 msgid "Download Albums"
 msgstr "Descargar álbumes"
@@ -741,6 +1002,9 @@ msgstr "Durante la subida, trata los nombres de álbum equivalentes ya existente
 msgid "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion."
 msgstr "Durante la subida, trata los nombres de álbum equivalentes ya existentes como una sola familia y fusiona sus elementos en el álbum canónico que se conserva. Los álbumes redundantes solo se eliminan cuando el servicio admite la eliminación de álbumes."
 
+msgid "Edit a value and press ✓ to save that row. Keys are protected. {0} rows per page."
+msgstr "Edita un valor y pulsa ✓ para guardar esa fila. Las claves están protegidas. {0} filas por página."
+
 msgid "Elapsed Time"
 msgstr "Tiempo transcurrido"
 
@@ -759,11 +1023,29 @@ msgstr "Correo electrónico (SMTP)"
 msgid "Email check"
 msgstr "Comprobación de correo"
 
+msgid "Email delivery"
+msgstr "Envío de emails"
+
+msgid "Email delivery saved."
+msgstr "Envío de emails guardado."
+
 msgid "Email is not configured on this server yet."
 msgstr "El correo electrónico aún no está configurado en este servidor."
 
+msgid "Email is not configured: give the username and the password to the new user yourself."
+msgstr "El email no está configurado: da tú mismo el nombre de usuario y la contraseña al nuevo usuario."
+
 msgid "Email me when it finishes"
 msgstr "Avisarme por correo al terminar"
+
+msgid "Email of {0}"
+msgstr "Email de {0}"
+
+msgid "Email of {0} changed"
+msgstr "Email de {0} cambiado"
+
+msgid "Email settings"
+msgstr "Ajustes de email"
 
 msgid "Email status: not configured, no emails are sent; account requests from the login page are enabled."
 msgstr "Estado del correo: no configurado, no se envían correos; las solicitudes de cuenta desde la página de inicio de sesión están activadas."
@@ -779,6 +1061,9 @@ msgstr "Estado del correo: correo de prueba enviado a {0}."
 
 msgid "Email status: {0}"
 msgstr "Estado del correo: {0}"
+
+msgid "Emails of the tool"
+msgstr "Emails de la herramienta"
 
 msgid "Enable or disable Error messages during GPTH Processing."
 msgstr "Activa o desactiva los mensajes de error durante el procesamiento con GPTH."
@@ -798,8 +1083,14 @@ msgstr "Activa o desactiva el panel en vivo durante la tarea de migración autom
 msgid "Enable or disable Live Dashboard feature during Automated Migration job. This argument only applies if both '--source' and '--target' arguments are given. (default: True)."
 msgstr "Activa o desactiva el panel en vivo durante la tarea de migración automática. Este argumento solo se aplica si se indican los argumentos '--source' y '--target'. (predeterminado: True)."
 
+msgid "Enable recurring backups"
+msgstr "Activar copias de seguridad periódicas"
+
 msgid "Enabled"
 msgstr "Activado"
+
+msgid "Encryption"
+msgstr "Cifrado"
 
 msgid "Enter a folder name, or an absolute path inside"
 msgstr "Introduce un nombre de carpeta o una ruta absoluta dentro de"
@@ -813,6 +1104,9 @@ msgstr "Error: {0}"
 msgid "Estimated End"
 msgstr "Fin estimado"
 
+msgid "Event"
+msgstr "Evento"
+
 msgid "Every album and asset"
 msgstr "Todos los álbumes y elementos"
 
@@ -825,11 +1119,23 @@ msgstr "Todos los elementos y álbumes"
 msgid "Every day (2:00 AM)"
 msgstr "Cada día (2:00)"
 
+msgid "Every day at {0}"
+msgstr "Cada día a las {0}"
+
 msgid "Every hour"
 msgstr "Cada hora"
 
+msgid "Every hour at minute {0}"
+msgstr "Cada hora en el minuto {0}"
+
 msgid "Every week (Monday 2:00 AM)"
 msgstr "Cada semana (lunes 2:00)"
+
+msgid "Every {0} at {1}"
+msgstr "Cada {0} a las {1}"
+
+msgid "Every {0} hours"
+msgstr "Cada {0} horas"
 
 msgid "Example: --consolidate-albums-names --preview-album-actions"
 msgstr "Ejemplo: --consolidate-albums-names --preview-album-actions"
@@ -960,6 +1266,9 @@ msgstr "Ejecutar herramienta GPTH"
 msgid "Execution"
 msgstr "Ejecución"
 
+msgid "Execution time"
+msgstr "Hora de ejecución"
+
 msgid "Expand panel"
 msgstr "Expandir panel"
 
@@ -978,11 +1287,20 @@ msgstr "ZIP extraídos: {0} ({1} archivos) |"
 msgid "Extracted ZIPs: {0}\\n"
 msgstr "ZIP extraídos: {0}\\n"
 
+msgid "Failed sign in"
+msgstr "Inicio de sesión fallido"
+
 msgid "Failed: {0}"
 msgstr "Error: {0}"
 
+msgid "Fill at least one value."
+msgstr "Rellena al menos un valor."
+
 msgid "Fill the required fields. Advanced options keep their defaults unless you open them."
 msgstr "Rellena los campos obligatorios. Las opciones avanzadas mantienen sus valores predeterminados a menos que las abras."
+
+msgid "Filter"
+msgstr "Filtrar"
 
 msgid "Filter by city"
 msgstr "Filtrar por ciudad"
@@ -993,6 +1311,12 @@ msgstr "Filtrar por país"
 msgid "Filter by person"
 msgstr "Filtrar por persona"
 
+msgid "Filter by role"
+msgstr "Filtrar por rol"
+
+msgid "Filter by status"
+msgstr "Filtrar por estado"
+
 msgid "Filter by type"
 msgstr "Filtrar por tipo"
 
@@ -1001,6 +1325,12 @@ msgstr "Filtrar desde la fecha"
 
 msgid "Filter to date"
 msgstr "Filtrar hasta la fecha"
+
+msgid "Filter {0}"
+msgstr "Filtrar {0}"
+
+msgid "Filter: {0}"
+msgstr "Filtro: {0}"
 
 msgid "Filters"
 msgstr "Filtros"
@@ -1016,6 +1346,9 @@ msgstr "Buscar duplicados"
 
 msgid "Find duplicates in one or more folders using file size and content checks."
 msgstr "Busca duplicados en una o más carpetas comprobando el tamaño y el contenido de los archivos."
+
+msgid "First page"
+msgstr "Primera página"
 
 msgid "Fix Broken Symlinks"
 msgstr "Reparar enlaces simbólicos rotos"
@@ -1073,6 +1406,9 @@ msgstr "Nombre de carpeta sin álbumes"
 
 msgid "Folders"
 msgstr "Carpetas"
+
+msgid "Folders of {0} changed"
+msgstr "Carpetas de {0} cambiadas"
 
 msgid "Folders to scan"
 msgstr "Carpetas a analizar"
@@ -1137,6 +1473,15 @@ msgstr "Forzar cambio de contraseña"
 msgid "Force password change on first login"
 msgstr "Forzar el cambio de contraseña en el primer inicio de sesión"
 
+msgid "Free disk space"
+msgstr "Espacio libre en disco"
+
+msgid "Friday"
+msgstr "Viernes"
+
+msgid "From"
+msgstr "Remitente"
+
 msgid "GPTH messages"
 msgstr "Mensajes de GPTH"
 
@@ -1145,6 +1490,9 @@ msgstr "Argumentos generales"
 
 msgid "Get started in three steps"
 msgstr "Empieza en tres pasos"
+
+msgid "Give this temporary password to {0}. It is shown only once:"
+msgstr "Da esta contraseña temporal a {0}. Solo se muestra una vez:"
 
 msgid "Global arguments shared by every feature: logging, execution, folder names and filters."
 msgstr "Argumentos globales compartidos por todas las funciones: registro, ejecución, nombres de carpetas y filtros."
@@ -1221,6 +1569,9 @@ msgstr "Inicio (data)"
 msgid "Home (volumes)"
 msgstr "Inicio (volumes)"
 
+msgid "Hourly"
+msgstr "Cada hora"
+
 msgid "How to migrate"
 msgstr "Cómo migrar"
 
@@ -1243,6 +1594,9 @@ msgid "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operat
 msgstr "IMPORTANTE: remove_duplicate y replace_duplicate son operaciones irreversibles."
 
 msgid "IP Address"
+msgstr "Dirección IP"
+
+msgid "IP address"
 msgstr "Dirección IP"
 
 msgid "Idle"
@@ -1287,6 +1641,9 @@ msgstr "Immich"
 msgid "Immich Photos"
 msgstr "Immich Photos"
 
+msgid "Immich Photos accounts"
+msgstr "Cuentas de Immich Photos"
+
 msgid "Immich Photos · PhotoMigrator"
 msgstr "Immich Photos · PhotoMigrator"
 
@@ -1307,6 +1664,9 @@ msgstr "Importa a Immich las etiquetas de personas de Google Takeout cuando hay 
 
 msgid "Import people"
 msgstr "Importar personas"
+
+msgid "Inactive"
+msgstr "Inactivo"
 
 msgid "Include Memories as albums"
 msgstr "Incluir Memories como álbumes"
@@ -1367,6 +1727,21 @@ msgstr "Última actualización: -"
 
 msgid "Last Updated: {0}"
 msgstr "Última actualización: {0}"
+
+msgid "Last backup"
+msgstr "Última copia de seguridad"
+
+msgid "Last page"
+msgstr "Última página"
+
+msgid "Last sign-in"
+msgstr "Último inicio de sesión"
+
+msgid "Last {0} days"
+msgstr "Últimos {0} días"
+
+msgid "Last {0} hours"
+msgstr "Últimas {0} horas"
 
 msgid "Letters, numbers, dots, hyphens or underscores"
 msgstr "Letras, números, puntos, guiones o guiones bajos"
@@ -1458,6 +1833,12 @@ msgstr "Falta el argumento obligatorio: --{0}"
 msgid "Missing tab."
 msgstr "Falta la pestaña."
 
+msgid "Monday"
+msgstr "Lunes"
+
+msgid "Monthly"
+msgstr "Mensual"
+
 msgid "Move Assets"
 msgstr "Mover elementos"
 
@@ -1485,8 +1866,17 @@ msgstr "Mueve toda tu biblioteca a otro servicio"
 msgid "Multiple albums can be separated by comma or space and quoted."
 msgstr "Se pueden indicar varios álbumes separados por coma o espacio y entre comillas."
 
+msgid "Must change password"
+msgstr "Debe cambiar la contraseña"
+
 msgid "Naming & Folders"
 msgstr "Nombres y carpetas"
+
+msgid "Never"
+msgstr "Nunca"
+
+msgid "Never shown. Leave it empty to keep the saved password."
+msgstr "Nunca se muestra. Déjalo vacío para conservar la contraseña guardada."
 
 msgid "New account request"
 msgstr "Nueva solicitud de cuenta"
@@ -1499,6 +1889,18 @@ msgstr "Nuevo nombre para cada álbum coincidente."
 
 msgid "New password"
 msgstr "Nueva contraseña"
+
+msgid "New password for {0}"
+msgstr "Nueva contraseña de {0}"
+
+msgid "New user"
+msgstr "Nuevo usuario"
+
+msgid "Next backup"
+msgstr "Próxima copia de seguridad"
+
+msgid "Next page"
+msgstr "Página siguiente"
 
 msgid "NextCloud"
 msgstr "NextCloud"
@@ -1515,8 +1917,17 @@ msgstr "No"
 msgid "No additional help for this field."
 msgstr "No hay ayuda adicional para este campo."
 
+msgid "No backups yet"
+msgstr "Aún no hay copias de seguridad"
+
 msgid "No credentials for account {0} yet."
 msgstr "Aún no hay credenciales para la cuenta {0}."
+
+msgid "No email · add one"
+msgstr "Sin email · añadir uno"
+
+msgid "No entries match the current filters."
+msgstr "Ninguna entrada coincide con los filtros actuales."
 
 msgid "No extra arguments required"
 msgstr "No se requieren argumentos adicionales"
@@ -1532,6 +1943,9 @@ msgstr "Ninguna tarea en ejecución"
 
 msgid "No log file"
 msgstr "Sin archivo de registro"
+
+msgid "No users match the current filters."
+msgstr "Ningún usuario coincide con los filtros actuales."
 
 msgid "Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure."
 msgstr "Los elementos sin álbum van a <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ con estructura year/month."
@@ -1560,6 +1974,12 @@ msgstr "Secreto de cliente OAuth de la cuenta {0} de Google Photos"
 msgid "OAuth Refresh Token for Google Photos account {0}"
 msgstr "Token de actualización OAuth de la cuenta {0} de Google Photos"
 
+msgid "Older scheduled backups are deleted, except the newest one. Backups made with Back up now are never deleted."
+msgstr "Las copias programadas anteriores se eliminan, excepto la más reciente. Las copias hechas con Hacer copia ahora nunca se eliminan."
+
+msgid "On"
+msgstr "Activado"
+
 msgid "On supported cloud targets, redundant variants are merged into the preferred keeper album. When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. Google Photos keeps the redundant variants because the public API cannot delete albums."
 msgstr "En los destinos en la nube compatibles, las variantes redundantes se fusionan en el álbum preferido que se conserva. Cuando la API admite la eliminación de álbumes (Immich, Synology, NextCloud), los álbumes redundantes se eliminan después. Google Photos conserva las variantes redundantes porque la API pública no permite eliminar álbumes."
 
@@ -1580,6 +2000,9 @@ msgstr "Contraseña de un solo uso"
 
 msgid "One value per line or comma-separated"
 msgstr "Un valor por línea o separados por comas"
+
+msgid "Online now"
+msgstr "En línea ahora"
 
 msgid "Only an active admin can authorize this action. Enter admin username and password."
 msgstr "Solo un administrador activo puede autorizar esta acción. Introduce el usuario y la contraseña de administrador."
@@ -1716,6 +2139,9 @@ msgstr "Sobrescrito en tiempo de ejecución por la variable de entorno '{0}'."
 msgid "Overwrite Configuration?"
 msgstr "¿Sobrescribir la configuración?"
 
+msgid "Page {0} of {1}"
+msgstr "Página {0} de {1}"
+
 msgid "Parallel Migration"
 msgstr "Migración en paralelo"
 
@@ -1725,8 +2151,20 @@ msgstr "Contraseña"
 msgid "Password (at least {0} characters)"
 msgstr "Contraseña (al menos {0} caracteres)"
 
+msgid "Password of {0} changed"
+msgstr "Contraseña de {0} cambiada"
+
+msgid "Password reset"
+msgstr "Restablecimiento de contraseña"
+
 msgid "Pattern and replacement"
 msgstr "Patrón y reemplazo"
+
+msgid "Pending access requests"
+msgstr "Solicitudes de acceso pendientes"
+
+msgid "Period"
+msgstr "Periodo"
 
 msgid "Photo libraries"
 msgstr "Bibliotecas de fotos"
@@ -1763,6 +2201,9 @@ msgstr "Selecciona una función o módulo para ejecutar."
 
 msgid "Please verify username/password and try again."
 msgstr "Comprueba el usuario y la contraseña e inténtalo de nuevo."
+
+msgid "Port"
+msgstr "Puerto"
 
 msgid "Port ({0}, {1} or {2})"
 msgstr "Puerto ({0}, {1} o {2})"
@@ -1802,6 +2243,12 @@ msgstr "Vista previa no disponible"
 
 msgid "Preview unavailable: {0}"
 msgstr "Vista previa no disponible: {0}"
+
+msgid "Previous page"
+msgstr "Página anterior"
+
+msgid "Primary-key values are protected"
+msgstr "Los valores de clave primaria están protegidos"
 
 msgid "Process Duplicates"
 msgstr "Procesar duplicados"
@@ -1878,6 +2325,15 @@ msgstr "Listo para ejecutar"
 msgid "Reason: {0}"
 msgstr "Motivo: {0}"
 
+msgid "Recurrence"
+msgstr "Periodicidad"
+
+msgid "Recurring backups are off. Back up now still works."
+msgstr "Las copias periódicas están desactivadas. Hacer copia ahora sigue funcionando."
+
+msgid "Refresh"
+msgstr "Actualizar"
+
 msgid "Refresh Logs"
 msgstr "Actualizar registros"
 
@@ -1892,6 +2348,12 @@ msgstr "Rechazar solicitud de cuenta"
 
 msgid "Reject Request"
 msgstr "Rechazar solicitud"
+
+msgid "Reject request"
+msgstr "Rechazar solicitud"
+
+msgid "Reject the access request of {0}? The account is deleted and the user gets an email."
+msgstr "¿Rechazar la solicitud de acceso de {0}? Se elimina la cuenta y el usuario recibe un email."
 
 msgid "Release Notes"
 msgstr "Notas de la versión"
@@ -1956,6 +2418,9 @@ msgstr "Elimina los álbumes duplicados (mismo nombre y tamaño)."
 msgid "Remove empty albums."
 msgstr "Elimina los álbumes vacíos."
 
+msgid "Remove the saved password"
+msgstr "Quitar la contraseña guardada"
+
 msgid "Removed: {0} | Failed: {1}"
 msgstr "Eliminados: {0} | Con error: {1}"
 
@@ -1998,6 +2463,9 @@ msgstr "Patrón de reemplazo"
 msgid "Replacement text"
 msgstr "Texto de reemplazo"
 
+msgid "Replaces the users, settings and credentials with the ones in the backup. The current data is saved first as a pre-restore backup."
+msgstr "Reemplaza los usuarios, ajustes y credenciales por los de la copia de seguridad. Antes se guardan los datos actuales en una copia previa a la restauración."
+
 msgid "Request User Confirmation"
 msgstr "Solicitar confirmación del usuario"
 
@@ -2025,6 +2493,21 @@ msgstr "Restablecer contraseña"
 msgid "Reset Password: {0}"
 msgstr "Restablecer contraseña: {0}"
 
+msgid "Reset password"
+msgstr "Restablecer contraseña"
+
+msgid "Reset password: sets a temporary password"
+msgstr "Restablecer contraseña: establece una contraseña temporal"
+
+msgid "Reset the password of {0}"
+msgstr "Restablecer la contraseña de {0}"
+
+msgid "Restore"
+msgstr "Restauración"
+
+msgid "Restore backup"
+msgstr "Restaurar copia de seguridad"
+
 msgid "Restore dates and albums of an Apple iCloud Photos export into a portable library."
 msgstr "Restaura las fechas y los álbumes de una exportación de Apple iCloud Photos en una biblioteca portable."
 
@@ -2037,6 +2520,9 @@ msgstr "Restaurar valores predeterminados"
 msgid "Restore the default values of the fields shown for this feature"
 msgstr "Restaura los valores predeterminados de los campos mostrados para esta función"
 
+msgid "Restore {0}? The users, settings and credentials are replaced with the ones in the backup. The current data is saved first as a pre-restore backup, and you may have to sign in again."
+msgstr "¿Restaurar {0}? Los usuarios, ajustes y credenciales se reemplazan por los de la copia de seguridad. Antes se guardan los datos actuales en una copia previa a la restauración y puede que tengas que volver a iniciar sesión."
+
 msgid "Result is exported to a CSV to review duplicates and selected action per item."
 msgstr "El resultado se exporta a un CSV para revisar los duplicados y la acción elegida para cada elemento."
 
@@ -2048,6 +2534,15 @@ msgstr "Hoja de ruta"
 
 msgid "Role"
 msgstr "Rol"
+
+msgid "Role of {0}"
+msgstr "Rol de {0}"
+
+msgid "Role of {0} changed to {1}"
+msgstr "Rol de {0} cambiado a {1}"
+
+msgid "Role…"
+msgstr "Rol…"
 
 msgid "Run"
 msgstr "Ejecutar"
@@ -2079,6 +2574,9 @@ msgstr "Contraseña SMTP"
 msgid "SMTP password (saved, leave empty to keep it)"
 msgstr "Contraseña SMTP (guardada, déjala vacía para conservarla)"
 
+msgid "SMTP server"
+msgstr "Servidor SMTP"
+
 msgid "SMTP server (for example mail.example.com)"
 msgstr "Servidor SMTP (por ejemplo, mail.example.com)"
 
@@ -2088,8 +2586,14 @@ msgstr "Usuario SMTP"
 msgid "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders."
 msgstr "SOURCE y TARGET pueden ser endpoints en la nube (synology/immich/nextcloud/google con cuenta) o carpetas locales."
 
+msgid "STARTTLS usually uses port {0} and SSL/TLS port {1}."
+msgstr "STARTTLS suele usar el puerto {0} y SSL/TLS el puerto {1}."
+
 msgid "Same name and size"
 msgstr "Mismo nombre y tamaño"
+
+msgid "Saturday"
+msgstr "Sábado"
 
 msgid "Save Email"
 msgstr "Guardar correo"
@@ -2112,11 +2616,29 @@ msgstr "Guardar ajustes de la aplicación"
 msgid "Save config"
 msgstr "Guardar configuración"
 
+msgid "Save email delivery"
+msgstr "Guardar envío de emails"
+
 msgid "Save people labels"
 msgstr "Guardar etiquetas de personas"
 
 msgid "Save row"
 msgstr "Guardar fila"
+
+msgid "Save schedule"
+msgstr "Guardar programación"
+
+msgid "Save the SMTP server first"
+msgstr "Guarda primero el servidor SMTP"
+
+msgid "Saved"
+msgstr "Guardado"
+
+msgid "Saved · leave empty to keep it"
+msgstr "Guardado · déjalo vacío para conservarlo"
+
+msgid "Saving…"
+msgstr "Guardando…"
 
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links."
 msgstr "Analiza <FOLDER_TO_FIX> de forma recursiva e intenta reparar los enlaces simbólicos rotos."
@@ -2124,11 +2646,29 @@ msgstr "Analiza <FOLDER_TO_FIX> de forma recursiva e intenta reparar los enlaces
 msgid "Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links. Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty. The tool searches for valid target files within the same folder tree and relinks when possible. IMPORTANT: Links are only fixed when a valid target can be inferred from current files. Example: --fix-symlinks-broken ./OUTPUT_FOLDER"
 msgstr "Analiza <FOLDER_TO_FIX> de forma recursiva e intenta reparar los enlaces simbólicos rotos. Útil tras mover o renombrar carpetas en OUTPUT_TAKEOUT_FOLDER cuando algunos álbumes aparecen vacíos. La herramienta busca archivos de destino válidos dentro del mismo árbol de carpetas y vuelve a enlazar cuando es posible. IMPORTANTE: Los enlaces solo se reparan cuando se puede deducir un destino válido a partir de los archivos actuales. Ejemplo: --fix-symlinks-broken ./OUTPUT_FOLDER"
 
+msgid "Scheduled"
+msgstr "Programada"
+
+msgid "Scheduled backups"
+msgstr "Copias programadas"
+
+msgid "Scheduler settings saved."
+msgstr "Ajustes del programador guardados."
+
 msgid "Scroll log to the first line"
 msgstr "Desplazar el registro a la primera línea"
 
 msgid "Scroll log to the last line"
 msgstr "Desplazar el registro a la última línea"
+
+msgid "Search all values"
+msgstr "Buscar en todos los valores"
+
+msgid "Search users"
+msgstr "Buscar usuarios"
+
+msgid "Search users by username or email"
+msgstr "Buscar usuarios por nombre de usuario o email"
 
 msgid "Segoe UI"
 msgstr "Segoe UI"
@@ -2147,6 +2687,9 @@ msgstr "Selecciona migración en paralelo o secuencial durante la tarea de migra
 
 msgid "Select a table first."
 msgstr "Selecciona primero una tabla."
+
+msgid "Select all users"
+msgstr "Seleccionar todos los usuarios"
 
 msgid "Select at least one folder first."
 msgstr "Selecciona primero al menos una carpeta."
@@ -2193,26 +2736,53 @@ msgstr "Enviar correo de prueba"
 msgid "Send a local folder or ZIP file to the server"
 msgstr "Enviar una carpeta local o un archivo ZIP al servidor"
 
+msgid "Send a test email to"
+msgstr "Enviar un email de prueba a"
+
 msgid "Send files here"
 msgstr "Envía archivos aquí"
 
 msgid "Send request"
 msgstr "Enviar solicitud"
 
+msgid "Send test email"
+msgstr "Enviar email de prueba"
+
 msgid "Send the test email to (default: your email)"
 msgstr "Enviar el correo de prueba a (predeterminado: tu correo)"
+
+msgid "Sender"
+msgstr "Remitente"
+
+msgid "Sender address"
+msgstr "Dirección del remitente"
 
 msgid "Sender email"
 msgstr "Correo del remitente"
 
+msgid "Sender name"
+msgstr "Nombre del remitente"
+
 msgid "Sender name (PhotoMigrator)"
 msgstr "Nombre del remitente (PhotoMigrator)"
+
+msgid "Sending…"
+msgstr "Enviando…"
+
+msgid "Server"
+msgstr "Servidor"
 
 msgid "Service credentials"
 msgstr "Credenciales de servicios"
 
 msgid "Set a new password and confirm it."
 msgstr "Define una nueva contraseña y confírmala."
+
+msgid "Set a temporary password for {0}? The user signs out on every browser and must choose a new password at the next sign-in."
+msgstr "¿Establecer una contraseña temporal para {0}? El usuario se desconecta en todos los navegadores y debe elegir una contraseña nueva en el próximo inicio de sesión."
+
+msgid "Set with"
+msgstr "Definido con"
 
 msgid "Settings"
 msgstr "Ajustes"
@@ -2229,6 +2799,12 @@ msgstr "Argumentos compartidos, credenciales de servicios y preferencias que usa
 msgid "Show"
 msgstr "Mostrar"
 
+msgid "Show API key admin"
+msgstr "Mostrar API key de administrador"
+
+msgid "Show API key user"
+msgstr "Mostrar API key de usuario"
+
 msgid "Show Client secret"
 msgstr "Mostrar secreto de cliente"
 
@@ -2237,6 +2813,9 @@ msgstr "Mostrar mensajes de error de GPTH"
 
 msgid "Show GPTH info messages"
 msgstr "Mostrar mensajes informativos de GPTH"
+
+msgid "Show Password"
+msgstr "Mostrar contraseña"
 
 msgid "Show Refresh token"
 msgstr "Mostrar token de actualización"
@@ -2247,11 +2826,20 @@ msgstr "Mostrar contraseña"
 msgid "Show {0}"
 msgstr "Mostrar {0}"
 
+msgid "Showing the first {0} matching values. Search to narrow them."
+msgstr "Se muestran los primeros {0} valores coincidentes. Busca para acotarlos."
+
 msgid "Sign in"
 msgstr "Iniciar sesión"
 
 msgid "Sign in to PhotoMigrator"
 msgstr "Inicia sesión en PhotoMigrator"
+
+msgid "Sign-in"
+msgstr "Inicio de sesión"
+
+msgid "Sign-ins and Administration Panel changes: who did what, when and from where."
+msgstr "Inicios de sesión y cambios del Panel de administración: quién hizo qué, cuándo y desde dónde."
 
 msgid "Skip GPTH tool (not recommended)"
 msgstr "Omitir la herramienta GPTH (no recomendado)"
@@ -2517,6 +3105,12 @@ msgstr "Detener"
 msgid "Stop Running Module?"
 msgstr "¿Detener el módulo en ejecución?"
 
+msgid "Stored backups"
+msgstr "Copias guardadas"
+
+msgid "Sunday"
+msgstr "Domingo"
+
 msgid "Synology"
 msgstr "Synology"
 
@@ -2525,6 +3119,9 @@ msgstr "Synology Photos"
 
 msgid "Synology Photos · PhotoMigrator"
 msgstr "Synology Photos · PhotoMigrator"
+
+msgid "Table"
+msgstr "Tabla"
 
 msgid "Table status: 'access_logs' loaded (2/2 rows)"
 msgstr "Estado de la tabla: 'access_logs' cargada (2/2 filas)"
@@ -2577,6 +3174,15 @@ msgstr "Endpoint o carpeta local de destino hacia donde migrar."
 msgid "Target service"
 msgstr "Servicio de destino"
 
+msgid "Test email"
+msgstr "Email de prueba"
+
+msgid "Test email failed:"
+msgstr "Error en el email de prueba:"
+
+msgid "Test email sent to {0}."
+msgstr "Email de prueba enviado a {0}."
+
 msgid "The account is not active yet. We will email you when it is."
 msgstr "La cuenta aún no está activa. Te enviaremos un correo cuando lo esté."
 
@@ -2586,8 +3192,14 @@ msgstr "El rol de demo no puede guardar cambios de configuración, salvo la zona
 msgid "The demo role cannot {0} configuration directly."
 msgstr "El rol de demo no puede {0} la configuración directamente."
 
+msgid "The password needs at least {0} characters."
+msgstr "La contraseña necesita al menos {0} caracteres."
+
 msgid "The selected path contains '{0}', which is reserved as a Google special folder name.\\n\\n"
 msgstr "La ruta seleccionada contiene '{0}', que está reservado como nombre de carpeta especial de Google.\\n\\n"
+
+msgid "The temporary password was emailed to {0}."
+msgstr "La contraseña temporal se envió por email a {0}."
 
 msgid "The tool searches for valid target files within the same folder tree and relinks when possible."
 msgstr "La herramienta busca archivos de destino válidos dentro del mismo árbol de carpetas y vuelve a enlazar cuando es posible."
@@ -2600,6 +3212,9 @@ msgstr "Tema"
 
 msgid "Theme used by the PhotoMigrator web interface."
 msgstr "Tema que usa la interfaz web de PhotoMigrator."
+
+msgid "There are no changed values in this row."
+msgstr "No hay valores cambiados en esta fila."
 
 msgid "This argument only accepts one folder. Select exactly one."
 msgstr "Este argumento solo acepta una carpeta. Selecciona exactamente una."
@@ -2757,6 +3372,9 @@ msgstr "Este módulo renombrará en el sitio las carpetas de álbumes locales us
 msgid "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?"
 msgstr "Este módulo renombrará en el sitio las carpetas de álbumes locales usando fechas basadas en el contenido. Los nombres originales de las carpetas se cambiarán en el disco. ¿Quieres continuar?"
 
+msgid "This permanently deletes the selected row of {0}."
+msgstr "Esto elimina definitivamente la fila seleccionada de {0}."
+
 msgid "This will delete the account request of '{0}' and email them that it was not approved. Do you want to continue?"
 msgstr "Esto eliminará la solicitud de cuenta de '{0}' y le enviará un correo indicando que no fue aprobada. ¿Quieres continuar?"
 
@@ -2771,6 +3389,9 @@ msgstr "Esto eliminará de forma permanente al usuario '{0}'. ¿Quieres continua
 
 msgid "This will permanently delete {0} selected folder(s) and all their contents."
 msgstr "Esto eliminará de forma permanente {0} carpeta(s) seleccionada(s) y todo su contenido."
+
+msgid "Thursday"
+msgstr "Jueves"
 
 msgid "Time zone"
 msgstr "Zona horaria"
@@ -2787,11 +3408,17 @@ msgstr "Marca de tiempo ▼"
 msgid "To save any other configuration field, enter active admin credentials."
 msgstr "Para guardar cualquier otro campo de configuración, introduce las credenciales de un administrador activo."
 
+msgid "Today"
+msgstr "Hoy"
+
 msgid "Toggle {0}"
 msgstr "Alternar {0}"
 
 msgid "Tools"
 msgstr "Herramientas"
+
+msgid "Total size"
+msgstr "Tamaño total"
 
 msgid "Transfer"
 msgstr "Transferir"
@@ -2816,6 +3443,12 @@ msgstr "Probar agrupación de álbumes pequeños"
 
 msgid "Try Truncated Albums Grouping"
 msgstr "Probar agrupación de álbumes truncados"
+
+msgid "Tuesday"
+msgstr "Martes"
+
+msgid "Type a new password and leave the field to save it (at least {0} characters)"
+msgstr "Escribe una contraseña nueva y sal del campo para guardarla (al menos {0} caracteres)"
 
 msgid "Type an answer when the running job asks for input"
 msgstr "Escribe una respuesta cuando la tarea en ejecución solicite datos"
@@ -2979,6 +3612,21 @@ msgstr "Útil tras mover o renombrar carpetas en OUTPUT_TAKEOUT_FOLDER cuando al
 msgid "User"
 msgstr "Usuario"
 
+msgid "User created"
+msgstr "Usuario creado"
+
+msgid "User deleted"
+msgstr "Usuario eliminado"
+
+msgid "User not found."
+msgstr "Usuario no encontrado."
+
+msgid "User update failed"
+msgstr "Error al actualizar el usuario"
+
+msgid "User updated"
+msgstr "Usuario actualizado"
+
 msgid "Username"
 msgstr "Nombre de usuario"
 
@@ -2987,6 +3635,15 @@ msgstr "Usuario o correo electrónico"
 
 msgid "Users"
 msgstr "Usuarios"
+
+msgid "Users active in the last {0} minutes · click to list them first"
+msgstr "Usuarios activos en los últimos {0} minutos · haz clic para listarlos primero"
+
+msgid "Users, settings and credentials"
+msgstr "Usuarios, ajustes y credenciales"
+
+msgid "Users, settings, saved credentials and email settings, in one file. Backups made here are never deleted automatically."
+msgstr "Usuarios, ajustes, credenciales guardadas y ajustes de email, en un solo archivo. Las copias hechas aquí nunca se eliminan automáticamente."
 
 msgid "Uses the configured cloud account ID."
 msgstr "Usa el ID de cuenta en la nube configurado."
@@ -3003,8 +3660,14 @@ msgstr "Usando los valores predeterminados de Ajustes"
 msgid "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate."
 msgstr "Acciones válidas: restore_duplicate / remove_duplicate / replace_duplicate."
 
+msgid "Values come from the whole table, not just this page."
+msgstr "Los valores proceden de toda la tabla, no solo de esta página."
+
 msgid "Version v5.0.0 · Sign in to continue"
 msgstr "Versión v5.0.0 · Inicia sesión para continuar"
+
+msgid "Volumes folder"
+msgstr "Carpeta de volúmenes"
 
 msgid "Warm palette"
 msgstr "Paleta cálida"
@@ -3015,8 +3678,17 @@ msgstr "Hemos recibido tu solicitud de cuenta"
 msgid "Web Interface"
 msgstr "Interfaz web"
 
+msgid "Web database"
+msgstr "Base de datos web"
+
 msgid "Website"
 msgstr "Sitio web"
+
+msgid "Wednesday"
+msgstr "Miércoles"
+
+msgid "Weekly"
+msgstr "Semanal"
 
 msgid "Welcome back, admin"
 msgstr "Te damos la bienvenida de nuevo, admin"
@@ -3081,11 +3753,32 @@ msgstr "Espacio de trabajo"
 msgid "Yes"
 msgstr "Sí"
 
+msgid "Yesterday"
+msgstr "Ayer"
+
+msgid "You"
+msgstr "Tú"
+
 msgid "You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax."
 msgstr "Puedes editar celdas y pulsar Guardar fila, o Eliminar fila. Las inserciones usan sintaxis de objeto JSON."
 
+msgid "You cannot deactivate your own account"
+msgstr "No puedes desactivar tu propia cuenta"
+
+msgid "You cannot deactivate your own account."
+msgstr "No puedes desactivar tu propia cuenta."
+
+msgid "You cannot delete your own user"
+msgstr "No puedes eliminar tu propio usuario"
+
+msgid "You cannot delete your own user."
+msgstr "No puedes eliminar tu propio usuario."
+
 msgid "You will be asked to confirm before it runs."
 msgstr "Se te pedirá confirmación antes de ejecutarlo."
+
+msgid "Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
+msgstr "Tu ADMIN_API_KEY de Immich Photos (puedes crear una API_KEY en Ajustes de la cuenta --> API_KEY Keys)"
 
 msgid "Your PhotoMigrator account"
 msgstr "Tu cuenta de PhotoMigrator"
@@ -3108,6 +3801,9 @@ msgstr "Tu propia biblioteca"
 msgid "Your password was changed"
 msgstr "Tu contraseña ha sido cambiada"
 
+msgid "Your password was reset"
+msgstr "Tu contraseña se restableció"
+
 msgid "Your temporary password is <b>{0}</b>. You will choose your own password the first time you sign in."
 msgstr "Tu contraseña temporal es <b>{0}</b>. Elegirás tu propia contraseña la primera vez que inicies sesión."
 
@@ -3120,8 +3816,14 @@ msgstr "un administrador ha cambiado la contraseña de tu cuenta de PhotoMigrato
 msgid "an administrator disabled your PhotoMigrator account <b>{0}</b>. If you think this is a mistake, reply to this email."
 msgstr "un administrador ha deshabilitado tu cuenta de PhotoMigrator <b>{0}</b>. Si crees que es un error, responde a este correo."
 
+msgid "an administrator reset the password of your PhotoMigrator account <b>{0}</b>."
+msgstr "un administrador restableció la contraseña de tu cuenta de PhotoMigrator <b>{0}</b>."
+
 msgid "backup_schedules ({0})"
 msgstr "backup_schedules ({0})"
+
+msgid "created"
+msgstr "creado"
 
 msgid "data subpath (default username)"
 msgstr "subruta de data (por defecto, el nombre de usuario)"
@@ -3132,6 +3834,9 @@ msgstr "p. ej., photos-2026 o /app/data/photos-2026"
 msgid "environment variables."
 msgstr "variables de entorno."
 
+msgid "failed"
+msgstr "fallido"
+
 msgid "iCloud Takeout"
 msgstr "iCloud Takeout"
 
@@ -3141,8 +3846,14 @@ msgstr "iCloud Takeout · PhotoMigrator"
 msgid "immich-photos-1 -> immich-photos-1"
 msgstr "immich-photos-1 -> immich-photos-1"
 
+msgid "in the backup folder"
+msgstr "en la carpeta de copias de seguridad"
+
 msgid "is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. If set to No, .zip files are kept as uploaded."
 msgstr "se establece en Sí, los archivos .zip subidos se extraen en el servidor y se elimina el archivo .zip. Si se establece en No, los archivos .zip se conservan tal como se subieron."
+
+msgid "key"
+msgstr "clave"
 
 msgid "max size {0} MB"
 msgstr "tamaño máximo {0} MB"
@@ -3150,11 +3861,20 @@ msgstr "tamaño máximo {0} MB"
 msgid "max size {0} MB · timeout {1} s"
 msgstr "tamaño máximo {0} MB · tiempo de espera {1} s"
 
+msgid "name@example.com · empty = your own email"
+msgstr "nombre@ejemplo.com · vacío = tu propio email"
+
 msgid "nextcloud-photos-1 -> nextcloud-photos-1"
 msgstr "nextcloud-photos-1 -> nextcloud-photos-1"
 
+msgid "on the backup volume"
+msgstr "en el volumen de copias de seguridad"
+
 msgid "sessions ({0})"
 msgstr "sessions ({0})"
+
+msgid "success"
+msgstr "correcto"
 
 msgid "synology-photos-1 -> immich-photos-1"
 msgstr "synology-photos-1 -> immich-photos-1"
@@ -3210,11 +3930,41 @@ msgstr "tu tarea <b>{0}</b> ha finalizado correctamente."
 msgid "your task <b>{0}</b> was stopped before it finished."
 msgstr "tu tarea <b>{0}</b> se detuvo antes de terminar."
 
+msgid "{0} / {1} rows"
+msgstr "{0} / {1} filas"
+
+msgid "{0} access request"
+msgstr "{0} solicitud de acceso"
+
+msgid "{0} access requests"
+msgstr "{0} solicitudes de acceso"
+
+msgid "{0} account"
+msgstr "{0} cuenta"
+
 msgid "{0} accounts"
 msgstr "{0} cuentas"
 
+msgid "{0} activated"
+msgstr "{0} activado"
+
+msgid "{0} created"
+msgstr "{0} creado"
+
 msgid "{0} created a PhotoMigrator account for you. Sign in with the username <b>{1}</b> or with this email address."
 msgstr "{0} ha creado una cuenta de PhotoMigrator para ti. Inicia sesión con el nombre de usuario <b>{1}</b> o con esta dirección de correo."
+
+msgid "{0} days ago"
+msgstr "Hace {0} días"
+
+msgid "{0} deactivated"
+msgstr "{0} desactivado"
+
+msgid "{0} deleted"
+msgstr "{0} eliminado"
+
+msgid "{0} events"
+msgstr "{0} eventos"
 
 msgid "{0} failed"
 msgstr "{0} ha fallado"
@@ -3225,11 +3975,44 @@ msgstr "{0} funciones"
 msgid "{0} finished"
 msgstr "{0} ha finalizado"
 
+msgid "{0} is active"
+msgstr "{0} está activo"
+
+msgid "{0} must change the password"
+msgstr "{0} debe cambiar la contraseña"
+
+msgid "{0} no longer has to change the password"
+msgstr "{0} ya no tiene que cambiar la contraseña"
+
+msgid "{0} of {1} users"
+msgstr "{0} de {1} usuarios"
+
+msgid "{0} online"
+msgstr "{0} en línea"
+
 msgid "{0} options"
 msgstr "Opciones de {0}"
 
+msgid "{0} rows"
+msgstr "{0} filas"
+
+msgid "{0} scheduled · {1} manual"
+msgstr "{0} programadas · {1} manuales"
+
+msgid "{0} selected"
+msgstr "{0} seleccionados"
+
 msgid "{0} stopped"
 msgstr "{0} detenido"
+
+msgid "{0} users"
+msgstr "{0} usuarios"
+
+msgid "{0} users changed"
+msgstr "{0} usuarios cambiados"
+
+msgid "{0} will change the password at the next sign-in"
+msgstr "{0} cambiará la contraseña en el próximo inicio de sesión"
 
 msgid "⏱️ Delayed Recovered"
 msgstr "⏱️ Recuperados tras demora"

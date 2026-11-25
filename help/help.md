@@ -19,7 +19,12 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - `Request an account` asks for a username, an email (required), a password and an optional message. The account stays inactive until an admin activates it (`Approve`) or rejects it (`Reject`) in the Administration Panel.
 - When email is configured (`SMTP_*` variables or `Admin Panel > Email (SMTP)`), PhotoMigrator emails account requests to the admins and notices to the user when the request is received, the account is created, activated or disabled, the request is rejected or the password changes.
 - Every account needs an email. Admins add or change it with `Email` in the users list.
-- The Administration Panel (admins only) has one tab per section: `Users`, `Email (SMTP)`, `Database Manager`, `Backups Scheduler` and `Access Logs`.
+- The Administration Panel (admins only) has one tab per section:
+  - `Users`: every field is changed in place and saved on its own (email, new password, role, `Active`, `Must change password` and folders). The list shows the last sign-in and who is online, can be searched and filtered by role or status (including `Pending access requests`), and several users can be activated, deactivated, deleted or given a role at once. `New user` opens a form; the key button sets a temporary password (emailed to the user, or shown once to you when email is not configured); approving a request is switching `Active` on.
+  - `Email (SMTP)`: server, account and sender of the emails, and a test email. The saved password is never shown; leave the field empty to keep it.
+  - `Database`: pick a table, filter any column by its values, edit a row in place and save it with ✓, delete it with × or add one with `Add row`.
+  - `Backups`: stored backups, size, free space, last and next backup; `Back up now`, download, delete or restore a backup (the current data is saved first as a pre-restore backup), and recurring backups (hourly, every 4 hours, daily, weekly or monthly, at a chosen time, keeping the scheduled backups of the last N days; backups made with `Back up now` are never deleted automatically).
+  - `Access logs`: sign-ins, failed sign-ins and the changes made from the Administration Panel, filtered by period, user and event.
 - Choose the language of the interface (and of your emails) with the language picker on the login page, next to your user in the sidebar, or in the Administration Panel. By default the Web Interface uses the language of your browser.
 
 ### 1. Sidebar

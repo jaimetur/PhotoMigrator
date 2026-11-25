@@ -185,7 +185,7 @@ class TestWebInterfaceAccountsAndEmail(unittest.TestCase):
         user = self.web_app._fetch_user_by_username("newuser")
         self.sent.clear()
 
-        self.web_app.admin_delete_user(user["id"], self.admin)
+        self.web_app.admin_delete_user(user["id"], self._request(), self.admin)
 
         self.assertIsNone(self.web_app._fetch_user_by_id(user["id"]))
         self.assertEqual([mail["subject"] for mail in self.sent], ["Your account request"])
@@ -219,6 +219,7 @@ class TestWebInterfaceAccountsAndEmail(unittest.TestCase):
             self.web_app.MailSettingsRequest(
                 host="smtp.example.com", port=587, security="starttls", username="mailer", password="s3cret", from_address="PM@Example.com"
             ),
+            self._request(),
             self.admin,
         )
         settings = self.web_app.mailer.settings()
@@ -229,6 +230,7 @@ class TestWebInterfaceAccountsAndEmail(unittest.TestCase):
 
         public = self.web_app.admin_save_mail_settings(
             self.web_app.MailSettingsRequest(host="smtp.example.com", port=587, security="starttls", username="mailer", from_address="pm@example.com"),
+            self._request(),
             self.admin,
         )
         self.assertTrue(public["has_password"])
@@ -300,6 +302,146 @@ class TestWebInterfaceLanguages(unittest.TestCase):
         self.assertIn('window.PM_LANG = "en"', head)
         self.assertIn("/lang/i18n.js", head)
 
+
+
+class TestWebInterfaceAdminPanel(unittest.TestCase):
+    """Administration Panel: users edited in place, bulk changes, password reset, access log, database filters and backups."""
+
+    setUp = TestWebInterfaceAccountsAndEmail.setUp
+    tearDown = TestWebInterfaceAccountsAndEmail.tearDown
+    _record_mail = TestWebInterfaceAccountsAndEmail._record_mail
+    _set_email = TestWebInterfaceAccountsAndEmail._set_email
+    _request = TestWebInterfaceAccountsAndEmail._request
+
+    def _create_user(self, username, email, role="user", active=True):
+        payload = self.web_app.AdminUserCreateRequest(username=username, email=email, password="long-password", role=role, is_active=active)
+        return self.web_app.admin_create_user(payload, self._request(), self.admin)["user_id"]
+
+    def _events(self, event=""):
+        logs = self.web_app.admin_access_logs(limit=200, username="", event=event, days=0, current_user=self.admin)["logs"]
+        return [(log["event"], log["details"]) for log in logs]
+
+    def test_users_list_reports_last_sign_in_and_online_users(self):
+        user_id = self._create_user("marta", "marta@example.com")
+        login = self.web_app.api_login(self.web_app.LoginRequest(username="marta", password="long-password"), self.Response(), self._request())
+        self.assertTrue(login)
+        token = self.web_app._create_session_for_user(user_id)
+        self.assertIsNotNone(self.web_app._user_from_session_token(token))
+        users = {user["username"]: user for user in self.web_app.admin_list_users(self.admin)["users"]}
+        self.assertTrue(users["marta"]["last_login_at"])
+        self.assertTrue(users["marta"]["online"])
+        self.assertTrue(users["admin"]["is_current_user"])
+
+    def test_failed_sign_in_is_logged(self):
+        with self.assertRaises(self.HTTPException):
+            self.web_app.api_login(self.web_app.LoginRequest(username="admin", password="wrong"), self.Response(), self._request())
+        self.assertIn(("sign_in_failed", "Wrong username or password"), self._events("sign_in_failed"))
+
+    def test_password_set_by_admin_signs_the_user_out_and_is_logged(self):
+        user_id = self._create_user("marta", "marta@example.com")
+        token = self.web_app._create_session_for_user(user_id)
+        self.web_app.admin_update_user(user_id, self.web_app.AdminUserUpdateRequest(password="another-password"), self._request(), self.admin)
+        self.assertIsNone(self.web_app._user_from_session_token(token))
+        self.assertIn(("user_updated", "marta · password set"), self._events("user_updated"))
+
+    def test_reset_password_shows_a_temporary_password_without_email(self):
+        user_id = self._create_user("marta", "marta@example.com")
+        result = self.web_app.admin_reset_user_password(user_id, self._request(), self.admin)
+        self.assertFalse(result["emailed"])
+        self.assertTrue(result["temporary_password"])
+        user = self.web_app._fetch_user_by_id(user_id)
+        self.assertTrue(bool(user["must_change_password"]))
+        self.assertTrue(self.web_app._pbkdf2_verify_password(result["temporary_password"], user["password_hash"]))
+
+    def test_reset_password_emails_the_temporary_password_when_email_works(self):
+        user_id = self._create_user("marta", "marta@example.com")
+        self.sent.clear()
+        with patch.object(self.web_app.mailer, "is_configured", return_value=True):
+            result = self.web_app.admin_reset_user_password(user_id, self._request(), self.admin)
+        self.assertEqual((result["emailed"], result["temporary_password"]), (True, ""))
+        self.assertEqual(self.sent[-1]["to"], ["marta@example.com"])
+        self.assertEqual(self.sent[-1]["subject"], "Your password was reset")
+
+    def test_bulk_changes_skip_users_that_cannot_change(self):
+        marta = self._create_user("marta", "marta@example.com")
+        pedro = self._create_user("pedro", "pedro@example.com")
+        result = self.web_app.admin_bulk_users(
+            self.web_app.AdminUsersBulkRequest(user_ids=[marta, pedro, self.admin["id"]], action="deactivate"), self._request(), self.admin
+        )
+        self.assertEqual(sorted(result["updated"]), sorted([marta, pedro]))
+        self.assertEqual([item["username"] for item in result["skipped"]], ["admin"])
+        self.assertFalse(bool(self.web_app._fetch_user_by_id(marta)["is_active"]))
+        result = self.web_app.admin_bulk_users(
+            self.web_app.AdminUsersBulkRequest(user_ids=[marta], action="role", value="demo"), self._request(), self.admin
+        )
+        self.assertEqual(self.web_app._fetch_user_by_id(marta)["role"], "demo")
+        with self.assertRaises(self.HTTPException):
+            self.web_app.admin_bulk_users(self.web_app.AdminUsersBulkRequest(user_ids=[marta], action="explode"), self._request(), self.admin)
+
+    def test_database_viewer_filters_and_column_values(self):
+        self._create_user("marta", "marta@example.com")
+        self._create_user("pedro", "pedro@example.com", role="demo")
+        rows = self.web_app.admin_db_table_rows("users", limit=100, offset=0, filters=json.dumps({"role": ["demo"]}), current_user=self.admin)
+        self.assertEqual([row["username"] for row in rows["rows"]], ["pedro"])
+        self.assertEqual(rows["total"], 1)
+        self.assertGreaterEqual(rows["total_rows"], 3)
+        values = self.web_app.admin_db_column_values("users", column="role", search="", filters="", current_user=self.admin)["values"]
+        self.assertIn({"value": "demo", "count": 1}, values)
+        with self.assertRaises(self.HTTPException):
+            self.web_app.admin_db_column_values("users", column="nope", search="", filters="", current_user=self.admin)
+
+    def test_backups_schedule_status_restore_and_delete(self):
+        backup_dir = Path(self.temp_dir.name) / "backups"
+        config = self.web_app.BackupConfigRequest(
+            enabled=True, backup_dir=str(backup_dir), recurrence="weekly", run_time="03:30", weekday=3, monthday=1, keep_days=14
+        )
+        saved = self.web_app.admin_save_backup_config(config, self.admin)["config"]
+        self.assertEqual((saved["recurrence"], saved["run_time"], saved["weekday"], saved["keep_days"]), ("weekly", "03:30", 3, 14))
+        next_run = datetime.fromisoformat(saved["next_run_at"])
+        self.assertEqual((next_run.weekday(), next_run.hour, next_run.minute), (3, 3, 30))
+
+        result = self.web_app.admin_run_backup_now(self._request(), self.admin)["result"]
+        self.assertEqual(result["status"], "success")
+        marta = self._create_user("marta", "marta@example.com")
+        status = self.web_app.admin_backup_status(self.admin)
+        self.assertEqual([item["origin"] for item in status["files"]], ["manual"])
+
+        restored = self.web_app.admin_restore_backup(self.web_app.BackupFileRequest(name=status["files"][0]["name"]), self._request(), self.admin)
+        self.assertIsNone(self.web_app._fetch_user_by_id(marta))
+        self.assertTrue(restored["safety_backup"].startswith("web_interface_prerestore_"))
+
+        with self.assertRaises(self.HTTPException):
+            self.web_app._resolve_backup_file("../web_interface.db")
+        self.web_app.admin_delete_backup(restored["safety_backup"], self._request(), self.admin)
+        self.assertNotIn(restored["safety_backup"], [item["name"] for item in self.web_app.admin_backup_status(self.admin)["files"]])
+
+        with self.assertRaises(self.HTTPException):
+            self.web_app.admin_save_backup_config(self.web_app.BackupConfigRequest(enabled=True, recurrence="yearly"), self.admin)
+
+    def test_scheduled_retention_keeps_manual_backups_and_the_newest_scheduled(self):
+        backup_dir = Path(self.temp_dir.name) / "retention"
+        backup_dir.mkdir()
+        old_time = (datetime.now() - timedelta(days=40)).timestamp()
+        for name in ("web_interface_20250101_020000.db", "web_interface_20250102_020000.db", "web_interface_manual_20250101_120000.db"):
+            path = backup_dir / name
+            path.write_bytes(b"x")
+            os.utime(path, (old_time, old_time))
+        newest = backup_dir / "web_interface_20250103_020000.db"
+        newest.write_bytes(b"x")
+        os.utime(newest, (old_time + 60, old_time + 60))
+        self.web_app._prune_scheduled_backups(backup_dir, keep_days=30)
+        self.assertEqual(
+            sorted(path.name for path in backup_dir.iterdir()),
+            ["web_interface_20250103_020000.db", "web_interface_manual_20250101_120000.db"],
+        )
+
+    def test_next_scheduled_backup_for_every_recurrence(self):
+        base = datetime(2026, 11, 25, 10, 15).astimezone()
+        compute = self.web_app._compute_next_scheduled_backup
+        self.assertEqual(compute({"recurrence": "hourly", "run_time": "00:30"}, base).strftime("%d %H:%M"), "25 10:30")
+        self.assertEqual(compute({"recurrence": "every_4_hours", "run_time": "02:00"}, base).strftime("%d %H:%M"), "25 14:00")
+        self.assertEqual(compute({"recurrence": "daily", "run_time": "02:00"}, base).strftime("%d %H:%M"), "26 02:00")
+        self.assertEqual(compute({"recurrence": "monthly", "run_time": "02:00", "monthday": 1}, base).strftime("%m-%d %H:%M"), "12-01 02:00")
 
 
 class TestMailer(unittest.TestCase):
