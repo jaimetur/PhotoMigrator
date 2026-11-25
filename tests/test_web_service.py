@@ -222,6 +222,22 @@ class TestCloudService(unittest.TestCase):
         self.assertEqual(self.client.get("/admin", follow_redirects=False).status_code, 403)
         self.assertEqual(self.client.get(f"/login?next=%2Fservice", follow_redirects=False).headers["location"], "/service")
 
+    def test_documentation_is_public_except_the_user_config(self):
+        for path in ("/docs/view/help", "/docs/view/readme", "/docs/view/changelog", "/docs/view/help/13-cloud-service.md"):
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(path).status_code, 200)
+        help_doc = self.client.get("/api/docs/help").json()
+        self.assertIn("PhotoMigrator", help_doc["content"])
+        self.assertEqual(help_doc["path"], "help.md")
+        self.assertTrue(self.client.get("/api/docs/help-index").json()["documents"])
+        self.assertEqual(self.client.get("/api/docs/help/13-cloud-service.md").status_code, 200)
+        self.assertEqual(self.client.get("/api/docs/config").status_code, 401)
+        config_view = self.client.get("/docs/view/config", follow_redirects=False)
+        self.assertEqual(config_view.status_code, 302)
+        self.assertTrue(config_view.headers["location"].startswith("/login?next="))
+        self._login("alice", "alice-pass-123")
+        self.assertEqual(self.client.get("/api/docs/config").status_code, 200)
+
     def test_sign_in_keeps_the_language_of_accounts_without_one(self):
         self.client.post("/api/auth/login", json={"username": "alice", "password": "alice-pass-123"},
                          headers={"accept-language": "es-ES,es;q=0.9"})

@@ -4831,11 +4831,22 @@ def admin_panel(request: Request, session_token: str | None = Cookie(default=Non
     return _html_no_store_response(response)
 
 
+def _optional_user(session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> Dict[str, Any] | None:
+    return _user_from_session_token(session_token)
+
+
+# The documentation (README, release notes, roadmap and help) is public, like the website that links to it. Only the
+# Config.ini view, which shows the settings of the signed-in user, needs an account.
+PUBLIC_DOCS = {"readme", "changelog", "roadmap", "help"}
+
+
 @app.get("/docs/view/{doc_name}", response_class=HTMLResponse)
-def docs_view(request: Request, doc_name: str, current_user: Dict[str, Any] = Depends(_require_user)) -> HTMLResponse:
+def docs_view(request: Request, doc_name: str, current_user: Dict[str, Any] | None = Depends(_optional_user)) -> HTMLResponse:
     normalized = str(doc_name or "").strip().lower()
-    if normalized not in {"readme", "changelog", "roadmap", "config", "help"}:
+    if normalized not in PUBLIC_DOCS | {"config"}:
         raise HTTPException(status_code=404, detail="Document not found")
+    if normalized not in PUBLIC_DOCS and not current_user:
+        return RedirectResponse(url=f"/login?next={quote(request.url.path, safe='')}", status_code=302)
     pretty_title = "README.md"
     if normalized == "changelog":
         pretty_title = "CHANGELOG.md"
@@ -4852,12 +4863,13 @@ def docs_view(request: Request, doc_name: str, current_user: Dict[str, Any] = De
             "doc_name": pretty_title,
             "doc_api_url": f"/api/docs/{normalized}",
             "tool_name": TOOL_NAME,
+            "signed_in": bool(current_user),
         },
     )
 
 
 @app.get("/docs/view/help/{doc_file:path}", response_class=HTMLResponse)
-def docs_view_help_file(request: Request, doc_file: str, current_user: Dict[str, Any] = Depends(_require_user)) -> HTMLResponse:
+def docs_view_help_file(request: Request, doc_file: str, current_user: Dict[str, Any] | None = Depends(_optional_user)) -> HTMLResponse:
     path = _resolve_help_doc_path(doc_file)
     return templates.TemplateResponse(
         "doc_view.html",
@@ -4866,6 +4878,7 @@ def docs_view_help_file(request: Request, doc_file: str, current_user: Dict[str,
             "doc_name": path.name,
             "doc_api_url": f"/api/docs/help/{doc_file}",
             "tool_name": TOOL_NAME,
+            "signed_in": bool(current_user),
         },
     )
 
@@ -5048,38 +5061,9 @@ def save_config(payload: ConfigUpdateRequest, current_user: Dict[str, Any] = Dep
     return {"saved": True, "path": _user_config_db_path(current_user)}
 
 
-@app.get("/api/docs/{doc_name}")
-def get_markdown_doc(doc_name: str, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
-    if str(doc_name or "").strip().lower() == "config":
-        merged = _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
-        content = _serialize_values_to_ini_with_comments(merged, CONFIG_TEMPLATE_CONTENT)
-        return {
-            "name": "config",
-            "path": _user_config_db_path(current_user),
-            "content": content,
-        }
-    path = _resolve_doc_path(doc_name)
-    content = path.read_text(encoding="utf-8", errors="replace")
-    return {
-        "name": doc_name,
-        "path": str(path),
-        "content": content,
-    }
-
-
-@app.get("/api/docs/help/{doc_file:path}")
-def get_help_markdown_doc(doc_file: str, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
-    path = _resolve_help_doc_path(doc_file)
-    content = path.read_text(encoding="utf-8", errors="replace")
-    return {
-        "name": path.name,
-        "path": str(path),
-        "content": content,
-    }
-
-
+# Declared before /api/docs/{doc_name}, which would otherwise take "help-index" as a document name.
 @app.get("/api/docs/help-index")
-def get_help_docs_index(current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
+def get_help_docs_index(current_user: Dict[str, Any] | None = Depends(_optional_user)) -> Dict[str, Any]:
     help_root = (PROJECT_ROOT / "help").resolve()
     docs: List[Dict[str, str]] = []
     if help_root.exists() and help_root.is_dir():
@@ -5095,7 +5079,39 @@ def get_help_docs_index(current_user: Dict[str, Any] = Depends(_require_user)) -
                     "url": f"/docs/view/help/{rel}",
                 }
             )
-    return {"root": str(help_root), "documents": docs}
+    return {"root": str(help_root) if current_user else "help", "documents": docs}
+
+
+@app.get("/api/docs/{doc_name}")
+def get_markdown_doc(doc_name: str, current_user: Dict[str, Any] | None = Depends(_optional_user)) -> Dict[str, Any]:
+    if str(doc_name or "").strip().lower() == "config":
+        if not current_user:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        merged = _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
+        content = _serialize_values_to_ini_with_comments(merged, CONFIG_TEMPLATE_CONTENT)
+        return {
+            "name": "config",
+            "path": _user_config_db_path(current_user),
+            "content": content,
+        }
+    path = _resolve_doc_path(doc_name)
+    content = path.read_text(encoding="utf-8", errors="replace")
+    return {
+        "name": doc_name,
+        "path": str(path) if current_user else path.name,
+        "content": content,
+    }
+
+
+@app.get("/api/docs/help/{doc_file:path}")
+def get_help_markdown_doc(doc_file: str, current_user: Dict[str, Any] | None = Depends(_optional_user)) -> Dict[str, Any]:
+    path = _resolve_help_doc_path(doc_file)
+    content = path.read_text(encoding="utf-8", errors="replace")
+    return {
+        "name": path.name,
+        "path": str(path) if current_user else path.name,
+        "content": content,
+    }
 
 
 @app.get("/api/fs/list")

@@ -403,7 +403,7 @@
         <h1 id="doc-title" class="title">Loading...</h1>
         <div class="topbar__actions">
             <button type="button" class="btn btn--back" onclick="goBack()"><span class="btn__icon">↩</span><span>Back</span></button>
-            <button type="button" class="btn btn--close" onclick="window.close()"><span class="btn__icon">✕</span><span>Close</span></button>
+            <button type="button" class="btn btn--close" onclick="closeDoc()"><span class="btn__icon">✕</span><span>Close</span></button>
         </div>
     </div>
     <div id="doc-meta" class="meta"></div>
@@ -567,12 +567,19 @@
         return markdownRenderer.render(markdownText);
     }
 
+    function closeDoc() {
+        // A tab the app opened closes; a page opened from a link (the website) goes back to where it came from.
+        window.close();
+        window.setTimeout(() => window.location.assign({{ 'true' if signed_in else 'false' }} ? "/features?view=home" : "/"), 150);
+    }
+
     function goBack() {
         if (window.history.length > 1) {
             window.history.back();
             return;
         }
-        window.location.assign("/docs/view/help");
+        // Visitors without an account came from the website.
+        window.location.assign({{ 'true' if signed_in else 'false' }} ? "/docs/view/help" : "/");
     }
 
     async function loadDocument() {
