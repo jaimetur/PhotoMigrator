@@ -53,14 +53,17 @@ NEXTCLOUD_URL                   = http://192.168.1.11:8080
 NEXTCLOUD_MAX_PARALLEL_UPLOADS  = 12
 NEXTCLOUD_MAX_PARALLEL_DOWNLOADS= 16
 NEXTCLOUD_USE_SYSTEM_PROXY      = false
+NEXTCLOUD_URL_1                 =
 NEXTCLOUD_USERNAME_1            = username_1
 NEXTCLOUD_PASSWORD_1            = app_password_1
 NEXTCLOUD_PHOTOS_FOLDER_1       = /Photos/ALL_Photos
 NEXTCLOUD_ALBUMS_FOLDER_1       = /Photos/Albums
+NEXTCLOUD_URL_2                 =
 NEXTCLOUD_USERNAME_2            = username_2
 NEXTCLOUD_PASSWORD_2            = app_password_2
 NEXTCLOUD_PHOTOS_FOLDER_2       = /Photos/ALL_Photos
 NEXTCLOUD_ALBUMS_FOLDER_2       = /Photos/Albums
+NEXTCLOUD_URL_3                 =
 NEXTCLOUD_USERNAME_3            = username_3
 NEXTCLOUD_PASSWORD_3            = app_password_3
 NEXTCLOUD_PHOTOS_FOLDER_3       = /Photos/ALL_Photos
@@ -71,6 +74,8 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > To use all those features, it is mandatory to use the argument _**`--client=nextcloud`**_ to specify NextCloud Photos as the service that you want to connect.  
 > 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id`**_ to specify the account 2 or 3 as needed. 
+>
+> Each account can be on a different NextCloud server: set `NEXTCLOUD_URL_<n>` for account `<n>` (empty uses the shared `NEXTCLOUD_URL`). For example, `--source=nextcloud-1 --target=nextcloud-2` migrates between two servers.
 
 > [!TIP]
 > In Docker/Compose/Kubernetes, you can override these settings without editing `Config.ini` by using environment variables with the same key names, for example `NEXTCLOUD_URL`, `NEXTCLOUD_USERNAME_1`, `NEXTCLOUD_PASSWORD_1`, `NEXTCLOUD_PHOTOS_FOLDER_1`, `NEXTCLOUD_ALBUMS_FOLDER_1`.

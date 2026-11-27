@@ -55,10 +55,13 @@ The credentials/API Key need to be loaded from the `Config.ini` file that  have 
 # Configuration for Synology Photos
 [Synology Photos]
 SYNOLOGY_URL                = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
+SYNOLOGY_URL_1              =                                               # Account 1: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)
 SYNOLOGY_USERNAME_1         = username_1                                    # Account 1: Your username for Synology Photos
 SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
+SYNOLOGY_URL_2              =                                               # Account 2: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)
 SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
 SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
+SYNOLOGY_URL_3              =                                               # Account 3: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)
 SYNOLOGY_USERNAME_3         = username_3                                    # Account 3: Your username for Synology Photos
 SYNOLOGY_PASSWORD_3         = password_3                                    # Account 3: Your password for Synology Photos
 ```
@@ -67,6 +70,8 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 > To use all these features, it is mandatory to use the argument _**`--client=synology`**_ to specify Synology Photos as the service that you want to connect.  
 > 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id=[1-3]`**_ to specify the account 2 or 3 as needed. 
+>
+> Each account can be on a different Synology NAS: set `SYNOLOGY_URL_<n>` for account `<n>` (empty uses the shared `SYNOLOGY_URL`). For example, `--source=synology-1 --target=synology-2` migrates between two NAS.
 
 > [!TIP]
 > In Docker/Compose/Kubernetes, you can override these settings without editing `Config.ini` by using environment variables with the same key names, for example `SYNOLOGY_URL`, `SYNOLOGY_USERNAME_1`, `SYNOLOGY_PASSWORD_1`.

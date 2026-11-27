@@ -321,6 +321,30 @@ msgstr "Demandes de compte depuis la page de connexion"
 msgid "Account {0}"
 msgstr "Compte {0}"
 
+msgid "Account {0}: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)"
+msgstr "Compte {0} : URL facultative du serveur Synology de ce compte (vide = SYNOLOGY_URL)"
+
+msgid "Account {0}: Optional URL of the Immich server of this account (empty = IMMICH_URL)"
+msgstr "Compte {0} : URL facultative du serveur Immich de ce compte (vide = IMMICH_URL)"
+
+msgid "Account {0}: Optional URL of the NextCloud server of this account (empty = NEXTCLOUD_URL)"
+msgstr "Compte {0} : URL facultative du serveur NextCloud de ce compte (vide = NEXTCLOUD_URL)"
+
+msgid "Sign in with"
+msgstr "Se connecter avec"
+
+msgid "Username and password"
+msgstr "Nom d'utilisateur et mot de passe"
+
+msgid "Account {0}: How this account signs in: api_key or password (empty = API key if set, else username/password)"
+msgstr "Compte {0} : mode de connexion de ce compte : api_key ou password (vide = clé API si elle existe, sinon nom d'utilisateur/mot de passe)"
+
+msgid "Admin API key (optional)"
+msgstr "Clé API administrateur (facultative)"
+
+msgid "Optional (leave it empty if you don't have one): API key of an Immich administrator account. No current feature needs it; migrations and the rest of the features sign in with each account's own API key or username and password"
+msgstr "Facultative (laissez-la vide si vous n'en avez pas) : clé API d'un compte administrateur Immich. Aucune fonction actuelle n'en a besoin ; les migrations et les autres fonctions se connectent avec la clé API ou le nom d'utilisateur et le mot de passe de chaque compte"
+
 msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
 msgstr "Compte {0} : votre USER_API_KEY pour Immich Photos (vous pouvez créer une API_KEY dans Paramètres du compte --> API_KEY Keys)"
 

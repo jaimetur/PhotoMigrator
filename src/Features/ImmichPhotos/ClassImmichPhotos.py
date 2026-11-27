@@ -163,7 +163,7 @@ class ClassImmichPhotos(BaseMediaClient):
         Returns:
             dict: The loaded configuration dictionary.
         """
-        from Core.ConfigReader import load_config
+        from Core.ConfigReader import load_config, account_config_value
         
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if self.CONFIG:
@@ -175,12 +175,23 @@ class ClassImmichPhotos(BaseMediaClient):
             self.CONFIG[section_to_load] = conf.get(section_to_load)
 
             # Extract values for Immich from self.CONFIG
-            self.IMMICH_URL = self.CONFIG.get(section_to_load).get('IMMICH_URL', None)
+            # IMMICH_URL_<n> lets each account use its own Immich server (empty = IMMICH_URL).
+            self.IMMICH_URL = account_config_value(self.CONFIG.get(section_to_load), 'IMMICH_URL', self.ACCOUNT_ID) or None
             self.IMMICH_API_KEY_ADMIN = self.CONFIG.get(section_to_load).get('IMMICH_API_KEY_ADMIN', None)
 
             self.IMMICH_USER_API_KEY = self.CONFIG.get(section_to_load).get(f'IMMICH_API_KEY_USER_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
             self.IMMICH_USERNAME = self.CONFIG.get(section_to_load).get(f'IMMICH_USERNAME_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
             self.IMMICH_PASSWORD = self.CONFIG.get(section_to_load).get(f'IMMICH_PASSWORD_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
+
+            # IMMICH_AUTH_METHOD_<n> chooses how the account signs in: 'api_key' or 'password'.
+            # Empty keeps the automatic choice: the API key when one is set, otherwise username and password.
+            auth_method = str(self.CONFIG.get(section_to_load).get(f'IMMICH_AUTH_METHOD_{self.ACCOUNT_ID}', '') or '').strip().lower()
+            if auth_method == 'password':
+                self.IMMICH_USER_API_KEY = ''
+            elif auth_method == 'api_key' and (not self.IMMICH_USER_API_KEY or self.IMMICH_USER_API_KEY.strip() == ''):
+                LOGGER.warning(f"IMMICH_API_KEY_USER_{self.ACCOUNT_ID} not found. It will be requested on screen.")
+                self.CONFIG['IMMICH_API_KEY_USER'] = input("[PROMPT] Enter IMMICH_API_KEY_USER: ")
+                self.IMMICH_USER_API_KEY = self.CONFIG['IMMICH_API_KEY_USER']
 
             # Verify required parameters and prompt on screen if missing
             if not self.IMMICH_URL or self.IMMICH_URL.strip() == '':

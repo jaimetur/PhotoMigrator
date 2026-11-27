@@ -868,12 +868,12 @@ def _immich_field_sort_key(field: Dict[str, Any], index: int) -> tuple[int, int,
         return 0, 0, index
     if normalized == "IMMICH_API_KEY_ADMIN":
         return 1, 0, index
-    match = re.fullmatch(r"IMMICH_(USERNAME|PASSWORD|API_KEY_USER)_(\d+)", normalized)
+    match = re.fullmatch(r"IMMICH_(URL|AUTH_METHOD|API_KEY_USER|USERNAME|PASSWORD)_(\d+)", normalized)
     if not match:
         return 9, 0, index
     field_kind = str(match.group(1))
     account_id = int(match.group(2))
-    kind_order = {"USERNAME": 0, "PASSWORD": 1, "API_KEY_USER": 2}
+    kind_order = {"URL": 0, "AUTH_METHOD": 1, "API_KEY_USER": 2, "USERNAME": 3, "PASSWORD": 4}
     return 2, account_id * 10 + kind_order.get(field_kind, 9), index
 
 

@@ -321,6 +321,30 @@ msgstr "来自登录页面的账户申请"
 msgid "Account {0}"
 msgstr "账户 {0}"
 
+msgid "Account {0}: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)"
+msgstr "账户 {0}：此账户的 Synology 服务器 URL（可选，留空 = SYNOLOGY_URL）"
+
+msgid "Account {0}: Optional URL of the Immich server of this account (empty = IMMICH_URL)"
+msgstr "账户 {0}：此账户的 Immich 服务器 URL（可选，留空 = IMMICH_URL）"
+
+msgid "Account {0}: Optional URL of the NextCloud server of this account (empty = NEXTCLOUD_URL)"
+msgstr "账户 {0}：此账户的 NextCloud 服务器 URL（可选，留空 = NEXTCLOUD_URL）"
+
+msgid "Sign in with"
+msgstr "登录方式"
+
+msgid "Username and password"
+msgstr "用户名和密码"
+
+msgid "Account {0}: How this account signs in: api_key or password (empty = API key if set, else username/password)"
+msgstr "账户 {0}：此账户的登录方式：api_key 或 password（留空 = 如已设置 API 密钥则使用它，否则使用用户名/密码）"
+
+msgid "Admin API key (optional)"
+msgstr "管理员 API 密钥（可选）"
+
+msgid "Optional (leave it empty if you don't have one): API key of an Immich administrator account. No current feature needs it; migrations and the rest of the features sign in with each account's own API key or username and password"
+msgstr "可选（如果没有可留空）：Immich 管理员账户的 API 密钥。目前没有任何功能需要它；迁移和其他功能都使用各账户自己的 API 密钥或用户名和密码登录"
+
 msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
 msgstr "账户 {0}：您的 Immich Photos USER_API_KEY（可在 账户设置 --> API_KEY 密钥 中创建 API_KEY）"
 

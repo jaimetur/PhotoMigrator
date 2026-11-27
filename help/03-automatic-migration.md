@@ -314,6 +314,8 @@ In this example, the Tool will do an Automatic Migration Process which has two s
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
+  - The two accounts can be on the same Immich server or on two different ones: set `IMMICH_URL_2` in `Config.ini` (or the account's `URL` in the Web Interface settings) when account 2 is on another server.
+
 
 - **Example 5**:
 ``` 

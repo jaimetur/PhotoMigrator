@@ -321,6 +321,30 @@ msgstr "ログインページからのアカウントリクエスト"
 msgid "Account {0}"
 msgstr "アカウント {0}"
 
+msgid "Account {0}: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)"
+msgstr "アカウント {0}: このアカウントの Synology サーバーの URL (任意、空欄 = SYNOLOGY_URL)"
+
+msgid "Account {0}: Optional URL of the Immich server of this account (empty = IMMICH_URL)"
+msgstr "アカウント {0}: このアカウントの Immich サーバーの URL (任意、空欄 = IMMICH_URL)"
+
+msgid "Account {0}: Optional URL of the NextCloud server of this account (empty = NEXTCLOUD_URL)"
+msgstr "アカウント {0}: このアカウントの NextCloud サーバーの URL (任意、空欄 = NEXTCLOUD_URL)"
+
+msgid "Sign in with"
+msgstr "サインイン方法"
+
+msgid "Username and password"
+msgstr "ユーザー名とパスワード"
+
+msgid "Account {0}: How this account signs in: api_key or password (empty = API key if set, else username/password)"
+msgstr "アカウント {0}: このアカウントのサインイン方法: api_key または password (空欄 = API キーがあればそれ、なければユーザー名/パスワード)"
+
+msgid "Admin API key (optional)"
+msgstr "管理者 API キー (任意)"
+
+msgid "Optional (leave it empty if you don't have one): API key of an Immich administrator account. No current feature needs it; migrations and the rest of the features sign in with each account's own API key or username and password"
+msgstr "任意 (持っていない場合は空欄のまま): Immich 管理者アカウントの API キー。現在この値を必要とする機能はありません。移行やその他の機能は、各アカウントの API キーまたはユーザー名とパスワードでサインインします"
+
 msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
 msgstr "アカウント {0}: Immich Photos の USER_API_KEY（API_KEY は アカウント設定 --> API_KEY キー で作成できます）"
 

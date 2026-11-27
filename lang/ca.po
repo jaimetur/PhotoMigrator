@@ -321,6 +321,30 @@ msgstr "Sol·licituds de compte des de la pàgina d'inici de sessió"
 msgid "Account {0}"
 msgstr "Compte {0}"
 
+msgid "Account {0}: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)"
+msgstr "Compte {0}: URL opcional del servidor Synology d'aquest compte (buit = SYNOLOGY_URL)"
+
+msgid "Account {0}: Optional URL of the Immich server of this account (empty = IMMICH_URL)"
+msgstr "Compte {0}: URL opcional del servidor Immich d'aquest compte (buit = IMMICH_URL)"
+
+msgid "Account {0}: Optional URL of the NextCloud server of this account (empty = NEXTCLOUD_URL)"
+msgstr "Compte {0}: URL opcional del servidor NextCloud d'aquest compte (buit = NEXTCLOUD_URL)"
+
+msgid "Sign in with"
+msgstr "Inicia la sessió amb"
+
+msgid "Username and password"
+msgstr "Usuari i contrasenya"
+
+msgid "Account {0}: How this account signs in: api_key or password (empty = API key if set, else username/password)"
+msgstr "Compte {0}: com inicia la sessió aquest compte: api_key o password (buit = API key si n'hi ha, si no usuari/contrasenya)"
+
+msgid "Admin API key (optional)"
+msgstr "API key d'administrador (opcional)"
+
+msgid "Optional (leave it empty if you don't have one): API key of an Immich administrator account. No current feature needs it; migrations and the rest of the features sign in with each account's own API key or username and password"
+msgstr "Opcional (deixa-la buida si no en tens cap): API key d'un compte d'administrador d'Immich. Cap funció actual la necessita; les migracions i la resta de funcions inicien la sessió amb l'API key o l'usuari i contrasenya de cada compte"
+
 msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
 msgstr "Compte {0}: la teva USER_API_KEY d'Immich Photos (pots crear una API_KEY a Configuració del compte --> API_KEY Keys)"
 

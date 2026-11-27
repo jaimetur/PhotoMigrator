@@ -49,6 +49,17 @@ def get_env_override_source(key: str):
     return env_source
 
 
+# Optional per-account server keys (an empty or missing value means the shared key of the section is used).
+OPTIONAL_KEY_PATTERN = re.compile(r"^(SYNOLOGY_URL|IMMICH_URL|IMMICH_AUTH_METHOD|NEXTCLOUD_URL)_\d+$")
+
+
+def account_config_value(section: dict, key: str, account_id) -> str:
+    """Return the value of '<key>_<account_id>' in a config section, or the shared '<key>' when it is empty or missing."""
+    section = section or {}
+    value = str(section.get(f"{key}_{account_id}", "") or "").strip()
+    return value or str(section.get(key, "") or "").strip()
+
+
 def _apply_env_overrides(CONFIG, config_keys, section_to_load):
     normalized_section = str(section_to_load or "").strip().lower()
     for section, keys in config_keys.items():
@@ -90,22 +101,31 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
     config_keys = {
         'Synology Photos': [
             'SYNOLOGY_URL',
+            'SYNOLOGY_URL_1',
             'SYNOLOGY_USERNAME_1',
             'SYNOLOGY_PASSWORD_1',
+            'SYNOLOGY_URL_2',
             'SYNOLOGY_USERNAME_2',
             'SYNOLOGY_PASSWORD_2',
+            'SYNOLOGY_URL_3',
             'SYNOLOGY_USERNAME_3',
             'SYNOLOGY_PASSWORD_3',
         ],
         'Immich Photos': [
             'IMMICH_URL',
             'IMMICH_API_KEY_ADMIN',
+            'IMMICH_URL_1',
+            'IMMICH_AUTH_METHOD_1',
             'IMMICH_API_KEY_USER_1',
             'IMMICH_USERNAME_1',
             'IMMICH_PASSWORD_1',
+            'IMMICH_URL_2',
+            'IMMICH_AUTH_METHOD_2',
             'IMMICH_API_KEY_USER_2',
             'IMMICH_USERNAME_2',
             'IMMICH_PASSWORD_2',
+            'IMMICH_URL_3',
+            'IMMICH_AUTH_METHOD_3',
             'IMMICH_API_KEY_USER_3',
             'IMMICH_USERNAME_3',
             'IMMICH_PASSWORD_3',
@@ -115,14 +135,17 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
             'NEXTCLOUD_MAX_PARALLEL_UPLOADS',
             'NEXTCLOUD_MAX_PARALLEL_DOWNLOADS',
             'NEXTCLOUD_USE_SYSTEM_PROXY',
+            'NEXTCLOUD_URL_1',
             'NEXTCLOUD_USERNAME_1',
             'NEXTCLOUD_PASSWORD_1',
             'NEXTCLOUD_PHOTOS_FOLDER_1',
             'NEXTCLOUD_ALBUMS_FOLDER_1',
+            'NEXTCLOUD_URL_2',
             'NEXTCLOUD_USERNAME_2',
             'NEXTCLOUD_PASSWORD_2',
             'NEXTCLOUD_PHOTOS_FOLDER_2',
             'NEXTCLOUD_ALBUMS_FOLDER_2',
+            'NEXTCLOUD_URL_3',
             'NEXTCLOUD_USERNAME_3',
             'NEXTCLOUD_PASSWORD_3',
             'NEXTCLOUD_PHOTOS_FOLDER_3',
@@ -236,7 +259,7 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
                     CONFIG[section][key] = value  # Add to dict without overwriting other sections
                     if key.strip() == '':
                         LOGGER.warning(f"WARNING: Missing value for key '{key}' in section '{section}', skipping.")
-                else:
+                elif not OPTIONAL_KEY_PATTERN.match(key):
                     LOGGER.warning(f"WARNING: Missing key '{key}' in section '{section}', skipping.")
 
     _apply_env_overrides(CONFIG=CONFIG, config_keys=config_keys, section_to_load=section_to_load)

@@ -56,16 +56,22 @@ The credentials/API Key need to be loaded from the `Config.ini` file that  have 
 # Configuration for Immich Photos
 [Immich Photos]
 IMMICH_URL                  = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
-IMMICH_API_KEY_ADMIN        = YOUR_ADMIN_API_KEY                            # Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+IMMICH_API_KEY_ADMIN        =                                               # Optional (leave it empty if you don't have one): API key of an Immich administrator account. No current feature needs it; migrations and the rest of the features sign in with each account's own API key or username and password
 
+IMMICH_URL_1                =                                               # Account 1: Optional URL of the Immich server of this account (empty = IMMICH_URL)
+IMMICH_AUTH_METHOD_1        =                                               # Account 1: How this account signs in: api_key or password (empty = API key if set, else username/password)
 IMMICH_API_KEY_USER_1       = API_KEY_USER_1                                # Account 1: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
 IMMICH_USERNAME_1           = username_1                                    # Account 1: Your username for Immich Photos (mandatory if not API_KEY is providen)
 IMMICH_PASSWORD_1           = password_1                                    # Account 1: Your password for Immich Photos (mandatory if not API_KEY is providen)
 
+IMMICH_URL_2                =                                               # Account 2: Optional URL of the Immich server of this account (empty = IMMICH_URL)
+IMMICH_AUTH_METHOD_2        =                                               # Account 2: How this account signs in: api_key or password (empty = API key if set, else username/password)
 IMMICH_API_KEY_USER_2       = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
 IMMICH_USERNAME_2           = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
 IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
 
+IMMICH_URL_3                =                                               # Account 3: Optional URL of the Immich server of this account (empty = IMMICH_URL)
+IMMICH_AUTH_METHOD_3        =                                               # Account 3: How this account signs in: api_key or password (empty = API key if set, else username/password)
 IMMICH_API_KEY_USER_3       = API_KEY_USER_3                                # Account 3: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
 IMMICH_USERNAME_3           = username_3                                    # Account 3: Your username for Immich Photos (mandatory if not API_KEY is providen)
 IMMICH_PASSWORD_3           = password_3                                    # Account 3: Your password for Immich Photos (mandatory if not API_KEY is providen)
@@ -75,6 +81,10 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 > To use all those features, it is mandatory to use the argument _**`--client=immich`**_ to specify Immich Photos as the service that you want to connect.  
 > 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id`**_ to specify the account 2 or 3 as needed. 
+>
+> Each account signs in with an API key or with its username and password, as chosen in `IMMICH_AUTH_METHOD_<n>` (`api_key` or `password`; empty uses the API key when one is set). With an API key, the username and password are not needed. In the Web Interface, the `Sign in with` selector of each account shows only the fields of the chosen method.
+>
+> Each account can also be on a different Immich server: set `IMMICH_URL_<n>` (empty uses the shared `IMMICH_URL`). `IMMICH_API_KEY_ADMIN` is a single key outside the accounts and is optional: no current feature needs it, so you can leave it empty. For example, `--source=immich-1 --target=immich-2` migrates between two Immich servers.
 
 > [!TIP]
 > In Docker/Compose/Kubernetes, you can override these settings without editing `Config.ini` by using environment variables with the same key names, for example `IMMICH_URL`, `IMMICH_API_KEY_ADMIN`, `IMMICH_API_KEY_USER_1`, `IMMICH_USERNAME_1`, `IMMICH_PASSWORD_1`.

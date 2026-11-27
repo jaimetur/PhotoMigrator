@@ -5991,9 +5991,87 @@
         });
     }
 
+    // Immich accounts sign in with an API key or with username and password (IMMICH_AUTH_METHOD_<n>).
+    // Only the fields of the chosen method are shown; an empty choice is the API key when one is set.
+    function immichAuthMethod(section, accountId) {
+        const sectionName = String(section?.name || "");
+        const valueOf = (key) => {
+            const field = (section?.fields || []).find((item) => String(item?.key || "") === key);
+            return field ? configSectionFieldCurrentValue(sectionName, field).trim() : "";
+        };
+        const chosen = valueOf(`IMMICH_AUTH_METHOD_${accountId}`).toLowerCase();
+        if (chosen === "api_key" || chosen === "password") return chosen;
+        if (valueOf(`IMMICH_API_KEY_USER_${accountId}`)) return "api_key";
+        if (valueOf(`IMMICH_USERNAME_${accountId}`)) return "password";
+        return "api_key";
+    }
+
+    function immichFieldHiddenByAuthMethod(section, field) {
+        if (String(section?.name || "") !== "Immich Photos") return false;
+        const match = /^IMMICH_(API_KEY_USER|USERNAME|PASSWORD)_(\d+)$/.exec(String(field?.key || ""));
+        if (!match) return false;
+        const usesPassword = immichAuthMethod(section, match[2]) === "password";
+        return usesPassword ? match[1] === "API_KEY_USER" : match[1] !== "API_KEY_USER";
+    }
+
+    function renderImmichAuthMethodField(card, section, field) {
+        const sectionName = String(section?.name || "");
+        const key = String(field?.key || "");
+        const method = immichAuthMethod(section, String(field?.account_id || ""));
+        const row = document.createElement("div");
+        row.className = "config-field-row";
+        const inputColumn = document.createElement("div");
+        inputColumn.className = "config-field-input-col";
+        const label = document.createElement("span");
+        label.className = "config-field-key";
+        label.textContent = "Sign in with";
+        inputColumn.appendChild(label);
+        const group = document.createElement("div");
+        group.className = "account-tabs";
+        group.setAttribute("role", "radiogroup");
+        group.setAttribute("aria-label", "Sign in with");
+        [["api_key", "API key"], ["password", "Username and password"]].forEach(([value, text]) => {
+            const option = document.createElement("button");
+            option.type = "button";
+            const selected = value === method;
+            option.className = `account-tab${selected ? " is-selected" : ""}`;
+            option.setAttribute("role", "radio");
+            option.setAttribute("aria-checked", selected ? "true" : "false");
+            option.textContent = text;
+            option.addEventListener("click", () => {
+                if (selected) return;
+                syncVisibleConfigInputsToState();
+                if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
+                configFormValues[sectionName][key] = value;
+                renderActiveConfigSection();
+            });
+            group.appendChild(option);
+        });
+        inputColumn.appendChild(group);
+        const stored = document.createElement("input");
+        stored.type = "hidden";
+        stored.dataset.section = sectionName;
+        stored.dataset.key = key;
+        stored.value = method;
+        inputColumn.appendChild(stored);
+        const keyCode = document.createElement("code");
+        keyCode.className = "arg-flag config-field-raw-key";
+        keyCode.textContent = key;
+        inputColumn.appendChild(keyCode);
+        row.appendChild(inputColumn);
+        const helpPanel = document.createElement("aside");
+        helpPanel.className = "desc-card config-field-help-panel";
+        const helpText = document.createElement("p");
+        helpText.textContent = field?.help || "";
+        helpPanel.appendChild(helpText);
+        row.appendChild(helpPanel);
+        card.appendChild(row);
+    }
+
     function configFieldFriendlyLabel(section, rawKey) {
         let key = String(rawKey || "");
         if (key === "TIMEZONE") return "Time zone";
+        if (key === "IMMICH_API_KEY_ADMIN") return "Admin API key (optional)";
         const prefixes = ["GOOGLE_PHOTOS_", "SYNOLOGY_", "IMMICH_", "NEXTCLOUD_", "APPLE_PHOTOS_", "APPLE_"];
         prefixes.forEach((prefix) => {
             if (key.startsWith(prefix) && key.length > prefix.length) key = key.slice(prefix.length);
@@ -6222,7 +6300,13 @@
             card.appendChild(selectorRow);
         }
 
-        selectedAccountFields.forEach((field) => renderConfigSectionField(card, section, field));
+        selectedAccountFields.forEach((field) => {
+            if (/^IMMICH_AUTH_METHOD_\d+$/.test(String(field?.key || ""))) {
+                renderImmichAuthMethodField(card, section, field);
+            } else if (!immichFieldHiddenByAuthMethod(section, field)) {
+                renderConfigSectionField(card, section, field);
+            }
+        });
         return card;
     }
 

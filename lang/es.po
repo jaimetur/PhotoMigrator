@@ -321,6 +321,30 @@ msgstr "Solicitudes de cuenta desde la página de inicio de sesión"
 msgid "Account {0}"
 msgstr "Cuenta {0}"
 
+msgid "Account {0}: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)"
+msgstr "Cuenta {0}: URL opcional del servidor Synology de esta cuenta (vacío = SYNOLOGY_URL)"
+
+msgid "Account {0}: Optional URL of the Immich server of this account (empty = IMMICH_URL)"
+msgstr "Cuenta {0}: URL opcional del servidor Immich de esta cuenta (vacío = IMMICH_URL)"
+
+msgid "Account {0}: Optional URL of the NextCloud server of this account (empty = NEXTCLOUD_URL)"
+msgstr "Cuenta {0}: URL opcional del servidor NextCloud de esta cuenta (vacío = NEXTCLOUD_URL)"
+
+msgid "Sign in with"
+msgstr "Iniciar sesión con"
+
+msgid "Username and password"
+msgstr "Usuario y contraseña"
+
+msgid "Account {0}: How this account signs in: api_key or password (empty = API key if set, else username/password)"
+msgstr "Cuenta {0}: cómo inicia sesión esta cuenta: api_key o password (vacío = API key si hay una, si no usuario/contraseña)"
+
+msgid "Admin API key (optional)"
+msgstr "API key de administrador (opcional)"
+
+msgid "Optional (leave it empty if you don't have one): API key of an Immich administrator account. No current feature needs it; migrations and the rest of the features sign in with each account's own API key or username and password"
+msgstr "Opcional (déjala vacía si no tienes una): API key de una cuenta de administrador de Immich. Ninguna función actual la necesita; las migraciones y el resto de funciones inician sesión con la API key o el usuario y contraseña de cada cuenta"
+
 msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
 msgstr "Cuenta {0}: tu USER_API_KEY de Immich Photos (puedes crear una API_KEY en Ajustes de la cuenta --> API_KEY Keys)"
 

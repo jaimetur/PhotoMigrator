@@ -321,6 +321,30 @@ msgstr "Accountaanvragen vanaf de inlogpagina"
 msgid "Account {0}"
 msgstr "Account {0}"
 
+msgid "Account {0}: Optional URL of the Synology server of this account (empty = SYNOLOGY_URL)"
+msgstr "Account {0}: Optionele URL van de Synology-server van dit account (leeg = SYNOLOGY_URL)"
+
+msgid "Account {0}: Optional URL of the Immich server of this account (empty = IMMICH_URL)"
+msgstr "Account {0}: Optionele URL van de Immich-server van dit account (leeg = IMMICH_URL)"
+
+msgid "Account {0}: Optional URL of the NextCloud server of this account (empty = NEXTCLOUD_URL)"
+msgstr "Account {0}: Optionele URL van de NextCloud-server van dit account (leeg = NEXTCLOUD_URL)"
+
+msgid "Sign in with"
+msgstr "Aanmelden met"
+
+msgid "Username and password"
+msgstr "Gebruikersnaam en wachtwoord"
+
+msgid "Account {0}: How this account signs in: api_key or password (empty = API key if set, else username/password)"
+msgstr "Account {0}: Hoe dit account zich aanmeldt: api_key of password (leeg = API-sleutel indien ingesteld, anders gebruikersnaam/wachtwoord)"
+
+msgid "Admin API key (optional)"
+msgstr "Beheerders-API-sleutel (optioneel)"
+
+msgid "Optional (leave it empty if you don't have one): API key of an Immich administrator account. No current feature needs it; migrations and the rest of the features sign in with each account's own API key or username and password"
+msgstr "Optioneel (leeg laten als je er geen hebt): API-sleutel van een Immich-beheerdersaccount. Geen enkele huidige functie heeft hem nodig; migraties en de andere functies melden zich aan met de API-sleutel of gebruikersnaam en wachtwoord van elk account"
+
 msgid "Account {0}: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)"
 msgstr "Account {0}: je USER_API_KEY voor Immich Photos (je kunt een API_KEY aanmaken via Accountinstellingen --> API-sleutels)"
 

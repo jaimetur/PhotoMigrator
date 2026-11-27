@@ -712,7 +712,7 @@ class ClassSynologyPhotos(BaseMediaClient):
         Returns:
             dict: The loaded configuration dictionary.
         """
-        from Core.ConfigReader import load_config
+        from Core.ConfigReader import load_config, account_config_value
 
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if self.CONFIG:
@@ -724,7 +724,8 @@ class ClassSynologyPhotos(BaseMediaClient):
             self.CONFIG[section_to_load] = conf.get(section_to_load)
 
             # Extract values for Synology from self.CONFIG
-            self.SYNOLOGY_URL = self.CONFIG.get(section_to_load).get('SYNOLOGY_URL', None)
+            # SYNOLOGY_URL_<n> lets each account use its own Synology server (empty = SYNOLOGY_URL).
+            self.SYNOLOGY_URL = account_config_value(self.CONFIG.get(section_to_load), 'SYNOLOGY_URL', self.ACCOUNT_ID) or None
             self.SYNOLOGY_USERNAME = self.CONFIG.get(section_to_load).get(f'SYNOLOGY_USERNAME_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
             self.SYNOLOGY_PASSWORD = self.CONFIG.get(section_to_load).get(f'SYNOLOGY_PASSWORD_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
 

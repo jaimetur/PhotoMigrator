@@ -17,7 +17,7 @@ import requests
 from requests.adapters import HTTPAdapter
 
 from Core import GlobalVariables as GV
-from Core.ConfigReader import load_config
+from Core.ConfigReader import load_config, account_config_value
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import (
     ARGS,
@@ -95,7 +95,8 @@ class ClassNextCloudPhotos(BaseMediaClient):
             config = load_config(config_file=config_file, section_to_load="NextCloud Photos")
             section = config.get("NextCloud Photos", {})
             suffix = str(self.account_id)
-            self.base_url = section.get("NEXTCLOUD_URL", "").strip().rstrip("/")
+            # NEXTCLOUD_URL_<n> lets each account use its own NextCloud server (empty = NEXTCLOUD_URL).
+            self.base_url = account_config_value(section, "NEXTCLOUD_URL", suffix).rstrip("/")
             self.username = section.get(f"NEXTCLOUD_USERNAME_{suffix}", "").strip()
             self.password = section.get(f"NEXTCLOUD_PASSWORD_{suffix}", "").strip()
             default_photos_folder = "/Photos/ALL_Photos"
