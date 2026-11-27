@@ -722,9 +722,10 @@ class TestCliTuiShared(unittest.TestCase):
         relative_path = resolve_ui_config_path("configs/custom.ini", base_dir=base_dir)
         custom_path = resolve_ui_config_path("~/custom-config.ini", base_dir=base_dir)
 
-        self.assertEqual(default_path, base_dir / "Config.ini")
-        self.assertEqual(relative_path, base_dir / "configs" / "custom.ini")
-        self.assertEqual(custom_path, Path.home() / "custom-config.ini")
+        # Paths are resolved (on macOS /tmp is a link to /private/tmp).
+        self.assertEqual(default_path, (base_dir / "Config.ini").resolve())
+        self.assertEqual(relative_path, (base_dir / "configs" / "custom.ini").resolve())
+        self.assertEqual(custom_path, (Path.home() / "custom-config.ini").resolve())
 
     def test_build_full_command_uses_current_executable_only_when_frozen(self):
         schema = build_parser_schema()
@@ -752,7 +753,7 @@ class TestCliTuiShared(unittest.TestCase):
             ):
                 resolved = ui_runtime_launcher_executable()
 
-        self.assertEqual(resolved, str(launcher))
+        self.assertEqual(resolved, str(launcher.resolve()))  # resolved: macOS temp folders are links to /private
 
     def test_ui_runtime_launcher_executable_prefers_explicit_launcher_env(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -766,7 +767,7 @@ class TestCliTuiShared(unittest.TestCase):
             ):
                 resolved = ui_runtime_launcher_executable()
 
-        self.assertEqual(resolved, str(launcher))
+        self.assertEqual(resolved, str(launcher.resolve()))  # resolved: macOS temp folders are links to /private
 
     def test_ui_runtime_launcher_executable_recovers_versioned_binary_from_original_cwd(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -786,7 +787,7 @@ class TestCliTuiShared(unittest.TestCase):
             ):
                 resolved = ui_runtime_launcher_executable()
 
-        self.assertEqual(resolved, str(launcher))
+        self.assertEqual(resolved, str(launcher.resolve()))  # resolved: macOS temp folders are links to /private
 
     def test_load_config_editor_model_falls_back_to_launch_config_when_project_template_is_missing(self):
         with tempfile.TemporaryDirectory() as temp_dir:
