@@ -82,7 +82,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 > 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id`**_ to specify the account 2 or 3 as needed. 
 >
-> Each account signs in with an API key or with its username and password, as chosen in `IMMICH_AUTH_METHOD_<n>` (`api_key` or `password`; empty uses the API key when one is set). With an API key, the username and password are not needed. In the Web Interface, the `Sign in with` selector of each account shows only the fields of the chosen method.
+> Each account signs in with an API key or with its username and password, as chosen in `IMMICH_AUTH_METHOD_<n>` (`api_key` or `password`; empty uses the API key when one is set). With an API key, the username and password are not needed. In the Web Interface, Desktop GUI and Terminal TUI settings, the `Sign in with` selector of each account shows only the fields of the chosen method.
 >
 > Each account can also be on a different Immich server: set `IMMICH_URL_<n>` (empty uses the shared `IMMICH_URL`). `IMMICH_API_KEY_ADMIN` is a single key outside the accounts and is optional: no current feature needs it, so you can leave it empty. For example, `--source=immich-1 --target=immich-2` migrates between two Immich servers.
 

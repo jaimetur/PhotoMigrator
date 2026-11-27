@@ -16,6 +16,10 @@ from typing import Any, Callable, Dict, List
 from Core.GlobalVariables import TOOL_DATE, TOOL_VERSION
 
 from UI.ui_shared import (
+    IMMICH_AUTH_METHOD_KEY_PATTERN,
+    IMMICH_AUTH_METHOD_OPTIONS,
+    immich_auth_method,
+    immich_field_hidden_by_auth_method,
     CLOUD_ACTIONS_AVAILABLE_BY_TAB,
     CompactLogBuffer,
     CONFIG_EDITOR_SECTIONS_ORDER,
@@ -2323,7 +2327,12 @@ class PhotoMigratorTkGUI:
                     self.rebuild_content()
 
                 self.ttk.Button(tabs, text=text, command=select_account, style=style).pack(side="left", padx=(0, 6))
-            visible_account_fields = [field for field in account_fields if str(field.get("account_id") or "") == selected_account]
+            section_values = self.config_values.get(section_name, {})
+            visible_account_fields = [
+                field for field in account_fields
+                if str(field.get("account_id") or "") == selected_account
+                and not immich_field_hidden_by_auth_method(section_name, str(field.get("key") or ""), section_values)
+            ]
             for field in visible_account_fields:
                 self.build_config_field_widgets(form, section_name, field)
         else:
@@ -2418,7 +2427,10 @@ class PhotoMigratorTkGUI:
                 mapped = self.config_widget_map.get(widget_id)
                 if mapped:
                     section_name, key = mapped
+                    previous = str(self.config_values.get(section_name, {}).get(key, "") or "")
                     self.config_values.setdefault(section_name, {})[key] = selected
+                    if IMMICH_AUTH_METHOD_KEY_PATTERN.match(key) and selected != previous:
+                        self.rebuild_content()
 
         use_segmented = segmented if segmented is not None else (
             widget_id.startswith("field-") and 1 < len(values) <= 5 and all(len(item) <= 14 for item in values)
@@ -2670,6 +2682,14 @@ class PhotoMigratorTkGUI:
         key = str(field.get("key") or "")
         help_text = str(field.get("help") or "").strip()
         value = str(self.config_values.get(section_name, {}).get(key, ""))
+        auth_match = IMMICH_AUTH_METHOD_KEY_PATTERN.match(key)
+        if auth_match:
+            # Immich accounts sign in with an API key or with username and password: only those fields are shown.
+            widget_id = f"config-{len(self.config_widget_map)}"
+            self.config_widget_map[widget_id] = (section_name, key)
+            method = immich_auth_method(self.config_values.get(section_name, {}), auth_match.group(1))
+            self.build_select_row(parent, "Sign in with", widget_id, IMMICH_AUTH_METHOD_OPTIONS, method, help_text=help_text, segmented=True)
+            return
         container = self._field_container(parent)
         friendly = re.sub(r"_\d+$", "", key)
         for prefix in ("GOOGLE_PHOTOS_", "SYNOLOGY_", "IMMICH_", "NEXTCLOUD_", "APPLE_PHOTOS_", "APPLE_"):

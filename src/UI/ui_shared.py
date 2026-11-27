@@ -1207,6 +1207,34 @@ def _sort_section_fields(section_name: str, fields: List[Dict[str, Any]]) -> Lis
     return ordered
 
 
+IMMICH_AUTH_METHOD_KEY_PATTERN = re.compile(r"^IMMICH_AUTH_METHOD_(\d+)$")
+IMMICH_AUTH_METHOD_OPTIONS = [("API key", "api_key"), ("Username and password", "password")]
+
+
+def immich_auth_method(section_values: Dict[str, Any], account_id: str) -> str:
+    """Sign-in method of an Immich account: the chosen IMMICH_AUTH_METHOD_<n>, else the API key when one is set."""
+    values = section_values or {}
+    chosen = str(values.get(f"IMMICH_AUTH_METHOD_{account_id}", "") or "").strip().lower()
+    if chosen in {"api_key", "password"}:
+        return chosen
+    if str(values.get(f"IMMICH_API_KEY_USER_{account_id}", "") or "").strip():
+        return "api_key"
+    if str(values.get(f"IMMICH_USERNAME_{account_id}", "") or "").strip():
+        return "password"
+    return "api_key"
+
+
+def immich_field_hidden_by_auth_method(section_name: str, key: str, section_values: Dict[str, Any]) -> bool:
+    """True for the Immich credential fields that the chosen sign-in method of their account does not use."""
+    if section_name != "Immich Photos":
+        return False
+    match = re.fullmatch(r"IMMICH_(API_KEY_USER|USERNAME|PASSWORD)_(\d+)", str(key or ""))
+    if not match:
+        return False
+    uses_password = immich_auth_method(section_values, match.group(2)) == "password"
+    return match.group(1) == "API_KEY_USER" if uses_password else match.group(1) != "API_KEY_USER"
+
+
 def config_field_account_id(key: str) -> str:
     match = re.search(r"_(\d+)$", str(key or "").strip().upper())
     return str(match.group(1)) if match else ""

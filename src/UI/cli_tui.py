@@ -12,6 +12,10 @@ from typing import Any, Dict, List
 from Core.GlobalVariables import TOOL_VERSION
 
 from UI.ui_shared import (
+    IMMICH_AUTH_METHOD_KEY_PATTERN,
+    IMMICH_AUTH_METHOD_OPTIONS,
+    immich_auth_method,
+    immich_field_hidden_by_auth_method,
     CLOUD_ACTIONS_AVAILABLE_BY_TAB,
     CompactLogBuffer,
     CONFIG_EDITOR_SECTIONS_ORDER,
@@ -2605,7 +2609,12 @@ if TEXTUAL_AVAILABLE:
                     )
                 )
                 selected_account = str(self.active_config_account.get(section_name) or selector.get("default_account") or "")
-                visible_account_fields = [field for field in account_fields if str(field.get("account_id") or "") == selected_account]
+                section_values = self.config_values.get(section_name, {})
+                visible_account_fields = [
+                    field for field in account_fields
+                    if str(field.get("account_id") or "") == selected_account
+                    and not immich_field_hidden_by_auth_method(section_name, str(field.get("key") or ""), section_values)
+                ]
                 for field in visible_account_fields:
                     widgets.extend(self.build_config_field_widgets(section_name, field))
             else:
@@ -3227,6 +3236,11 @@ if TEXTUAL_AVAILABLE:
             choices = field.get("choices") or []
             widget_id = f"config-{len(self.config_widget_map)}"
             self.config_widget_map[widget_id] = (section_name, key)
+            auth_match = IMMICH_AUTH_METHOD_KEY_PATTERN.match(key)
+            if auth_match:
+                # Immich accounts sign in with an API key or with username and password: only those fields are shown.
+                method = immich_auth_method(self.config_values.get(section_name, {}), auth_match.group(1))
+                return [self.build_select_row("Sign in with", widget_id, IMMICH_AUTH_METHOD_OPTIONS, method, help_text=help_text, label_classes=label_classes)]
             if choices:
                 options = [(str(choice), str(choice)) for choice in choices]
                 return [self.build_select_row(label, widget_id, options, value, help_text=help_text, label_classes=label_classes)]
@@ -4031,7 +4045,10 @@ if TEXTUAL_AVAILABLE:
                 mapped = self.config_widget_map.get(widget_id)
                 if mapped:
                     section_name, key = mapped
+                    previous = str(self.config_values.get(section_name, {}).get(key, "") or "")
                     self.config_values.setdefault(section_name, {})[key] = value
+                    if IMMICH_AUTH_METHOD_KEY_PATTERN.match(key) and str(value or "") != previous:
+                        await self.rebuild_content()
 
         def append_log(self, line: str) -> None:
             self.consume_log_output(f"{line}\n")

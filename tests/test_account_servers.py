@@ -116,6 +116,20 @@ class TestAccountServers(unittest.TestCase):
         nextcloud_shared.read_config_file(config_file=str(self.config_file))
         self.assertEqual(nextcloud_shared.base_url, "http://cloud-shared")
 
+    def test_sign_in_method_decides_which_immich_fields_are_shown(self):
+        from UI.ui_shared import immich_auth_method, immich_field_hidden_by_auth_method
+
+        values = {"IMMICH_API_KEY_USER_1": "key", "IMMICH_USERNAME_2": "user", "IMMICH_AUTH_METHOD_3": "password", "IMMICH_API_KEY_USER_3": "key"}
+        self.assertEqual(immich_auth_method(values, "1"), "api_key")
+        self.assertEqual(immich_auth_method(values, "2"), "password")
+        self.assertEqual(immich_auth_method(values, "3"), "password")
+        self.assertEqual(immich_auth_method({}, "1"), "api_key")
+        hidden = lambda key: immich_field_hidden_by_auth_method("Immich Photos", key, values)
+        self.assertEqual([hidden(k) for k in ("IMMICH_API_KEY_USER_1", "IMMICH_USERNAME_1", "IMMICH_PASSWORD_1")], [False, True, True])
+        self.assertEqual([hidden(k) for k in ("IMMICH_API_KEY_USER_3", "IMMICH_USERNAME_3", "IMMICH_PASSWORD_3")], [True, False, False])
+        self.assertFalse(hidden("IMMICH_URL_1"))
+        self.assertFalse(immich_field_hidden_by_auth_method("Synology Photos", "IMMICH_USERNAME_1", values))
+
     def test_settings_list_the_immich_account_fields_in_sign_in_order(self):
         from UI.ui_shared import parse_template_to_form_schema
 

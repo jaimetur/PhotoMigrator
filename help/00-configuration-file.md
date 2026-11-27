@@ -94,7 +94,7 @@ You can see the default Configuration File ('Config.ini' by default) below:
 > [!NOTE]
 > Each Synology, Immich and NextCloud account can use its own server: `SYNOLOGY_URL_<n>`, `IMMICH_URL_<n>` and `NEXTCLOUD_URL_<n>` set the server of account `<n>`. Leave them empty to use the shared `SYNOLOGY_URL`, `IMMICH_URL` and `NEXTCLOUD_URL`. This lets the source and the target of a migration be two different servers of the same service, for example `--source=immich-1 --target=immich-2`.
 >
-> `IMMICH_AUTH_METHOD_<n>` chooses how Immich account `<n>` signs in: `api_key` (only `IMMICH_API_KEY_USER_<n>` is needed) or `password` (only `IMMICH_USERNAME_<n>` and `IMMICH_PASSWORD_<n>` are needed). Empty uses the API key when one is set, otherwise the username and password. In the Web Interface, `Settings > Service credentials > Immich Photos` shows a `Sign in with` selector and only the fields of the chosen method.
+> `IMMICH_AUTH_METHOD_<n>` chooses how Immich account `<n>` signs in: `api_key` (only `IMMICH_API_KEY_USER_<n>` is needed) or `password` (only `IMMICH_USERNAME_<n>` and `IMMICH_PASSWORD_<n>` are needed). Empty uses the API key when one is set, otherwise the username and password. The Web Interface (`Settings > Service credentials > Immich Photos`), the Desktop GUI and the Terminal TUI show a `Sign in with` selector for each account and only the fields of the chosen method.
 > Effective precedence is: environment variable > `Config.ini` > template default.
 > This means a value edited in the Web UI or written in `Config.ini` will be ignored on restart if the corresponding environment variable is still set.
 
@@ -138,7 +138,7 @@ In this section you have to provide:
 - **IMMICH_API_KEY_USER_3:** The API_KEY for the Immich Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)
 
 > [!NOTE]  
-> In Immich you can choose if you want to login with username/password or you prefer to use an API_KEY instead (`IMMICH_AUTH_METHOD_<n>`, or the `Sign in with` selector of each account in the Web Interface settings).  
+> In Immich you can choose if you want to login with username/password or you prefer to use an API_KEY instead (`IMMICH_AUTH_METHOD_<n>`, or the `Sign in with` selector of each account in the Web Interface, Desktop GUI and Terminal TUI settings).  
 >
 > If you choose username/password authentication method, then, you don't need to provide any API_KEY for that account.  
 >
